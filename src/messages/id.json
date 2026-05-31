@@ -1,0 +1,961 @@
+{
+  "nav": {
+    "dashboard": "Dasbor",
+    "leads": "Prospek",
+    "proposals": "Proposal",
+    "jobs": "Pekerjaan",
+    "calendar": "Kalender",
+    "customers": "Pelanggan",
+    "vendors": "Vendor",
+    "crew": "Kru",
+    "invoices": "Faktur",
+    "reports": "Laporan",
+    "settings": "Pengaturan",
+    "signOut": "Keluar",
+    "groups": {
+      "pipeline": "Pipeline",
+      "operations": "Operasional",
+      "resources": "Sumber Daya",
+      "finance": "Keuangan"
+    }
+  },
+
+  "topbar": {
+    "searchPlaceholder": "Cari…",
+    "openMenu": "Buka menu",
+    "expandSidebar": "Buka sidebar",
+    "collapseSidebar": "Tutup sidebar",
+    "account": "Akun",
+    "language": "Bahasa"
+  },
+
+  "search": {
+    "placeholder": "Cari prospek, pekerjaan, pelanggan, proposal, faktur…",
+    "groups": {
+      "leads": "Prospek",
+      "jobs": "Pekerjaan",
+      "proposals": "Proposal",
+      "customers": "Pelanggan",
+      "vendors": "Vendor",
+      "crew": "Kru",
+      "invoices": "Faktur"
+    },
+    "emptyHint": "Ketik untuk mencari di seluruh sistem.",
+    "emptyScope": "Prospek · Pekerjaan · Proposal · Pelanggan · Faktur · Vendor · Kru",
+    "noResults": "Tidak ada hasil untuk \"{query}\"",
+    "hintNavigate": "navigasi",
+    "hintOpen": "buka",
+    "hintClose": "tutup",
+    "hintToggle": "untuk membuka"
+  },
+
+  "common": {
+    "buttons": {
+      "save": "Simpan",
+      "saving": "Menyimpan…",
+      "saveChanges": "Simpan perubahan",
+      "cancel": "Batal",
+      "edit": "Edit",
+      "delete": "Hapus",
+      "confirm": "Konfirmasi",
+      "back": "Kembali",
+      "close": "Tutup",
+      "create": "Buat",
+      "duplicate": "Duplikat",
+      "duplicating": "Menduplikasi…",
+      "view": "Lihat",
+      "viewAll": "Lihat semua",
+      "loadMore": "Muat lagi",
+      "tryAgain": "Coba lagi",
+      "add": "Tambah",
+      "addAnyway": "Tetap tambahkan",
+      "remove": "Hapus",
+      "filter": "Filter",
+      "all": "Semua",
+      "scheduling": "Menjadwalkan…",
+      "uploading": "Mengunggah…",
+      "deleting": "Menghapus…",
+      "saved": "Tersimpan ✓"
+    },
+    "hints": {
+      "commaSeparated": "(pisahkan dengan koma)",
+      "idr": "(IDR)",
+      "optionalParen": "(opsional)",
+      "select": "Pilih…"
+    },
+    "actions": {
+      "search": "Cari",
+      "filter": "Filter",
+      "sort": "Urutkan",
+      "export": "Ekspor",
+      "download": "Unduh",
+      "downloadPdf": "Unduh PDF",
+      "generatingPdf": "Membuat PDF…",
+      "loadingPdf": "Memuat PDF…",
+      "upload": "Unggah",
+      "share": "Bagikan",
+      "open": "Buka",
+      "manage": "Kelola",
+      "syncCalendar": "Sinkronkan ke Kalender",
+      "reSyncCalendar": "Sinkronkan ulang",
+      "synced": "Tersinkron",
+      "syncAll": "Sinkronkan semua ke Kalender",
+      "syncing": "Menyinkronkan…",
+      "sendViaWhatsapp": "Kirim via WhatsApp"
+    },
+    "labels": {
+      "date": "Tanggal",
+      "time": "Waktu",
+      "status": "Status",
+      "notes": "Catatan",
+      "amount": "Jumlah",
+      "total": "Total",
+      "name": "Nama",
+      "phone": "Telepon",
+      "email": "Email",
+      "address": "Alamat",
+      "customer": "Pelanggan",
+      "loading": "Memuat…",
+      "noData": "Tidak ada data.",
+      "optional": "opsional",
+      "required": "wajib",
+      "createdAt": "Dibuat",
+      "updatedAt": "Diperbarui",
+      "dateTbd": "Tanggal belum ditentukan",
+      "since": "Sejak",
+      "type": "Tipe",
+      "phoneShort": "Telp",
+      "active": "Aktif",
+      "inactive": "Tidak aktif"
+    },
+    "errors": {
+      "generic": "Terjadi kesalahan.",
+      "saveFailed": "Gagal menyimpan.",
+      "loadFailed": "Gagal memuat.",
+      "amountMustBePositive": "Jumlah harus positif.",
+      "networkOffline": "Offline — perubahan akan tersinkron saat online.",
+      "nameRequired": "Nama wajib diisi.",
+      "priceRequired": "Harga wajib diisi.",
+      "dateTimeRequired": "Mohon isi tanggal dan waktu.",
+      "moveDateRequired": "Tanggal pindahan wajib diisi.",
+      "notAnImage": "{name} bukan gambar.",
+      "uploadFailed": "Gagal mengunggah."
+    }
+  },
+
+  "status": {
+    "lead": {
+      "new": "Baru",
+      "survey_scheduled": "Survei dijadwalkan",
+      "survey_done": "Survei selesai",
+      "estimating": "Estimasi",
+      "proposal_sent": "Proposal terkirim",
+      "converted": "Terkonversi",
+      "closed_lost": "Ditutup — gagal"
+    },
+    "job": {
+      "scheduled": "Terjadwal",
+      "in_progress": "Berjalan",
+      "completed": "Selesai",
+      "closed": "Ditutup",
+      "cancelled": "Dibatalkan"
+    },
+    "proposal": {
+      "draft": "Draf",
+      "sent": "Terkirim",
+      "negotiating": "Negosiasi",
+      "approved": "Disetujui",
+      "lost": "Ditolak",
+      "expired": "Kedaluwarsa"
+    },
+    "invoice": {
+      "draft": "Draf",
+      "sent": "Terkirim",
+      "partially_paid": "Sebagian dibayar",
+      "paid": "Lunas",
+      "overdue": "Jatuh tempo",
+      "cancelled": "Dibatalkan"
+    }
+  },
+
+  "dashboard": {
+    "title": "Dasbor Operasional",
+    "subtitle": "Status real-time per {date}",
+    "kpi": {
+      "totalRevenue": "Total pendapatan",
+      "totalProfit": "Total keuntungan",
+      "leadConversion": "Konversi prospek",
+      "totalLeads": "Total prospek",
+      "outstanding": "Tagihan tertunda",
+      "unpaidInvoices": "Faktur Belum Dibayar",
+      "monthRevenue": "Pendapatan bulan ini",
+      "monthExpenses": "Pengeluaran bulan ini",
+      "activeJobs": "Pekerjaan Aktif",
+      "openProposals": "Proposal Terbuka",
+      "movesToday": "Pindahan Hari Ini",
+      "movesTodayCount": "{count} pindahan hari ini",
+      "amountOverdue": "{amount} jatuh tempo",
+      "pendingApproval": "Menunggu persetujuan",
+      "confirmedBookings": "Pesanan terkonfirmasi",
+      "active": "Aktif",
+      "highValue": "Nilai Tinggi",
+      "actionRequired": "Perlu Tindakan",
+      "scheduledBadge": "Terjadwal",
+      "unpaidInvoicesCount": "{count} faktur belum dibayar"
+    },
+    "tabs": {
+      "overview": "Ringkasan",
+      "dispatch": "Penugasan",
+      "financials": "Keuangan"
+    },
+    "sections": {
+      "upcomingJobs": "Pekerjaan mendatang",
+      "recentPayments": "Pembayaran Terkini",
+      "recentLeads": "Prospek Terbaru",
+      "draftProposals": "Proposal Draf",
+      "priorityActiveJobs": "Pekerjaan Aktif Prioritas",
+      "dispatchBoard": "Papan Penugasan — 7 Hari ke Depan",
+      "financialHealth": "Kesehatan Keuangan",
+      "revenueMonthlyTarget": "Pendapatan (Target Bulanan)",
+      "netThisMonth": "Bersih bulan ini",
+      "netProfit": "Keuntungan Bersih",
+      "monthRevenueLabel": "Pendapatan Bulan Ini",
+      "monthExpensesLabel": "Pengeluaran Bulan Ini",
+      "actionItems": "Item Tindakan",
+      "invoiceStatus": "Status Faktur",
+      "upcoming": "Mendatang"
+    },
+    "columns": {
+      "jobId": "ID Pekerjaan",
+      "customer": "Pelanggan",
+      "revenue": "Pendapatan",
+      "status": "Status",
+      "date": "Tanggal",
+      "pickup": "Penjemputan",
+      "destination": "Tujuan",
+      "crew": "Kru",
+      "notes": "Catatan"
+    },
+    "empty": {
+      "noJobs": "Belum ada pekerjaan mendatang.",
+      "noPayments": "Belum ada pembayaran.",
+      "noLeads": "Belum ada prospek terbaru.",
+      "noDrafts": "Tidak ada proposal draf.",
+      "noActions": "Tidak ada item tindakan.",
+      "noActionsHint": "Tidak ada tugas tertunda saat ini.",
+      "noDispatch": "Tidak ada penugasan dalam 7 hari ke depan.",
+      "noInvoices": "Belum ada faktur."
+    },
+    "actions": {
+      "viewAll": "Lihat semua",
+      "inHomeSurvey": "Survei On-site: {name}",
+      "scheduledAt": "Terjadwal • {address}",
+      "addressTbd": "Alamat belum diisi",
+      "generateProposal": "Buat Proposal: {number}",
+      "draftReady": "Draf siap • Menunggu review",
+      "markSurveyDone": "Tandai Survei Selesai",
+      "generateProposalAction": "Buat Proposal",
+      "viewFullReport": "Lihat Laporan Lengkap →",
+      "manageInvoices": "Kelola Faktur →"
+    },
+    "dispatch": {
+      "noAssignments": "Belum ada kru/vendor"
+    },
+    "progress": {
+      "monthlyTargetAria": "Progress pendapatan bulanan: {pct}%",
+      "ofTargetAria": "{pct}% dari target bulanan"
+    },
+    "invoiceLegend": {
+      "draft": "Draf",
+      "sent": "Terkirim",
+      "partiallyPaid": "Sebagian Dibayar",
+      "paid": "Lunas",
+      "overdue": "Jatuh Tempo"
+    }
+  },
+
+  "pages": {
+    "leads": {
+      "title": "Prospek",
+      "searchPlaceholder": "Cari alamat…",
+      "filterAll": "Semua",
+      "empty": "Belum ada prospek.",
+      "emptyFiltered": "Tidak ada prospek yang cocok dengan filter Anda.",
+      "new": "Prospek Baru"
+    },
+    "jobs": {
+      "title": "Pekerjaan",
+      "filterAll": "Semua status",
+      "columns": {
+        "jobNumber": "No. Pekerjaan",
+        "customer": "Pelanggan",
+        "date": "Tanggal",
+        "revenue": "Pendapatan",
+        "status": "Status"
+      },
+      "empty": "Belum ada pekerjaan."
+    },
+    "proposals": {
+      "title": "Proposal",
+      "filterAll": "Semua status",
+      "columns": {
+        "proposalNumber": "No. Proposal",
+        "customer": "Pelanggan",
+        "price": "Harga",
+        "status": "Status",
+        "created": "Dibuat"
+      },
+      "empty": "Belum ada proposal."
+    },
+    "customers": {
+      "title": "Pelanggan",
+      "searchPlaceholder": "Cari berdasarkan nama, telepon, atau email…",
+      "columns": {
+        "name": "Nama",
+        "phone": "Telepon",
+        "type": "Tipe",
+        "since": "Sejak"
+      },
+      "empty": "Belum ada pelanggan. Buat yang pertama.",
+      "emptyFiltered": "Tidak ada pelanggan yang cocok dengan pencarian.",
+      "new": "Pelanggan Baru"
+    },
+    "vendors": {
+      "title": "Vendor",
+      "searchPlaceholder": "Cari vendor…",
+      "columns": {
+        "name": "Nama",
+        "contact": "Kontak",
+        "phone": "Telepon",
+        "vehicles": "Kendaraan",
+        "status": "Status"
+      },
+      "empty": "Tidak ada vendor.",
+      "new": "Vendor Baru"
+    },
+    "crew": {
+      "title": "Kru",
+      "searchPlaceholder": "Cari kru…",
+      "columns": {
+        "name": "Nama",
+        "phone": "Telepon",
+        "dailyRate": "Tarif harian",
+        "availability": "Ketersediaan"
+      },
+      "empty": "Tidak ada anggota kru.",
+      "new": "Kru Baru"
+    },
+    "invoices": {
+      "title": "Faktur",
+      "filterAll": "Semua status",
+      "columns": {
+        "invoiceNumber": "No. Faktur",
+        "customer": "Pelanggan",
+        "total": "Total",
+        "paid": "Dibayar",
+        "dueDate": "Jatuh tempo",
+        "status": "Status"
+      },
+      "empty": "Belum ada faktur."
+    },
+    "calendar": {
+      "title": "Kalender",
+      "legend": {
+        "survey": "Survei",
+        "scheduled": "Terjadwal",
+        "inProgress": "Berjalan",
+        "completed": "Selesai"
+      }
+    },
+    "reports": {
+      "title": "Laporan",
+      "kpi": {
+        "totalRevenue": "Total pendapatan",
+        "totalProfit": "Total keuntungan",
+        "leadConversion": "Konversi prospek",
+        "totalLeads": "Total prospek"
+      },
+      "profitByJob": {
+        "title": "Keuntungan per pekerjaan",
+        "job": "Pekerjaan",
+        "revenue": "Pendapatan",
+        "cost": "Biaya",
+        "profit": "Keuntungan"
+      },
+      "expensesThisMonth": "Pengeluaran bulan ini",
+      "noExpensesThisMonth": "Belum ada pengeluaran bulan ini.",
+      "leadFunnel": "Funnel prospek",
+      "noLeads": "Belum ada prospek.",
+      "arAging": {
+        "title": "Umur piutang",
+        "totalLabel": "Total: {amount}",
+        "noOutstanding": "Tidak ada faktur tertunda.",
+        "current": "Lancar",
+        "overdue": "{range} hari lewat"
+      },
+      "lostProposals": {
+        "title": "Proposal gagal — alasan",
+        "totalCount": "{count} total",
+        "empty": "Tidak ada proposal yang gagal atau kedaluwarsa.",
+        "noReason": "Tanpa alasan"
+      }
+    },
+    "settings": {
+      "title": "Pengaturan",
+      "hint": "Edit nilai apa pun dan klik di luar untuk menyimpan. Perubahan langsung berlaku.",
+      "sectionsAria": "Bagian pengaturan",
+      "noSettings": "Tidak ada pengaturan untuk bagian ini.",
+      "groups": {
+        "companyAndDocs": "Perusahaan & Dokumen",
+        "operations": "Operasional",
+        "pricing": "Harga",
+        "billing": "Tagihan",
+        "integrations": "Integrasi"
+      },
+      "descriptions": {
+        "companyAndDocs": "Branding, template PDF, dan blok tanda tangan",
+        "operations": "Tarif kru, biaya kendaraan, dan bahan kemasan",
+        "pricing": "Margin, buffer negosiasi, dan ambang batas keuntungan",
+        "billing": "Default faktur dan target dasbor keuangan",
+        "integrations": "Sinkronisasi Google Calendar dan layanan eksternal"
+      },
+      "sections": {
+        "companyIdentity": "Identitas Perusahaan",
+        "documentTemplates": "Template Dokumen",
+        "crewManpower": "Kru & Tenaga",
+        "pricingMargins": "Harga & Margin",
+        "vehicles": "Kendaraan",
+        "packingMaterials": "Bahan Kemasan",
+        "safetyThresholds": "Keamanan & Ambang Batas",
+        "invoiceSettings": "Pengaturan Faktur",
+        "dashboard": "Dasbor",
+        "googleCalendar": "Google Calendar"
+      }
+    },
+    "leadDetail": {
+      "moveDetails": "Detail pindahan",
+      "pickup": "Penjemputan",
+      "destination": "Tujuan",
+      "leadType": "Tipe prospek",
+      "channel": "Kanal",
+      "preferredDate": "Tanggal pilihan: {date}",
+      "createdOn": "Dibuat {date}"
+    },
+    "jobDetail": {
+      "moveSummary": "Ringkasan pindahan",
+      "pickup": "Penjemputan",
+      "destination": "Tujuan",
+      "revenue": "Pendapatan",
+      "expenses": "Pengeluaran",
+      "assignments": "Penugasan",
+      "noAssignments": "Belum ada penugasan.",
+      "addOrViewAll": "Tambah / lihat semua →",
+      "noExpenses": "Belum ada pengeluaran.",
+      "timeline": "Linimasa",
+      "noTimelineEvents": "Belum ada peristiwa. Catat loading, transit, unloading atau peristiwa lain seiring berjalannya pekerjaan.",
+      "profit": "Keuntungan",
+      "logExpense": "Catat Pengeluaran",
+      "invoice": "Faktur",
+      "payments": "Pembayaran",
+      "manageInvoice": "Kelola Faktur →",
+      "assignResources": "Tugaskan Sumber Daya",
+      "expense": "+ Pengeluaran"
+    },
+    "jobsTimeline": {
+      "backToJob": "Kembali ke pekerjaan",
+      "title": "Linimasa",
+      "emptyWithHint": "Belum ada peristiwa. Gunakan Catat Peristiwa untuk mencatat loading, transit, unloading, atau catatan khusus selama proses pindahan."
+    },
+    "proposalDetail": {
+      "viewLead": "← Lihat Prospek",
+      "created": "Dibuat {date}",
+      "approved": "Disetujui {date}",
+      "moveSummary": "Ringkasan pindahan",
+      "preferredDate": "Tanggal pilihan",
+      "finalPrice": "Harga final",
+      "estimationBreakdown": "Rincian estimasi",
+      "editEstimation": "Edit →",
+      "negotiationHistory": "Riwayat negosiasi",
+      "noRevisions": "Belum ada revisi.",
+      "breakdown": {
+        "vehicle": "Kendaraan",
+        "crew": "Kru",
+        "manpower": "Tenaga",
+        "food": "Makan",
+        "toll": "Tol",
+        "operationalBuffer": "Buffer operasional",
+        "adjustedCost": "Biaya disesuaikan",
+        "finalProfit": "Keuntungan final",
+        "internalTarget": "Target internal",
+        "offerPrice": "Harga penawaran"
+      }
+    },
+    "customerDetail": {
+      "contactInformation": "Informasi kontak",
+      "phone": "Telepon",
+      "email": "Email",
+      "company": "Perusahaan",
+      "since": "Pelanggan sejak",
+      "leads": "Prospek",
+      "newLead": "Prospek Baru",
+      "noLeadsYet": "Belum ada prospek.",
+      "jobs": "Pekerjaan",
+      "noJobsYet": "Belum ada pekerjaan."
+    },
+    "vendorDetail": {
+      "contact": "Kontak",
+      "phone": "Telepon",
+      "vehicles": "Kendaraan",
+      "serviceAreas": "Area layanan",
+      "bank": "Bank",
+      "notes": "Catatan"
+    },
+    "crewDetail": {
+      "phone": "Telepon",
+      "dailyRate": "Tarif harian",
+      "skills": "Keahlian",
+      "availability": "Ketersediaan",
+      "emergency": "Kontak darurat",
+      "notes": "Catatan"
+    },
+    "invoiceDetail": {
+      "due": "Jatuh tempo {date}",
+      "customer": "Pelanggan",
+      "phone": "Telepon",
+      "email": "Email",
+      "moveDate": "Tanggal pindahan",
+      "invoiceDate": "Tanggal faktur",
+      "dueDate": "Jatuh tempo",
+      "notes": "Catatan",
+      "total": "Total",
+      "downloadInvoicePdf": "Unduh PDF Faktur"
+    },
+    "estimation": {
+      "newTitle": "Estimasi Baru",
+      "editTitle": "Edit Estimasi"
+    },
+    "surveyDetail": {
+      "backToLead": "Kembali ke Prospek",
+      "completed": "Selesai",
+      "scheduled": "Terjadwal",
+      "inHomeSurvey": "Survei On-site",
+      "scheduledLabel": "Terjadwal",
+      "completedLabel": "Selesai",
+      "pickup": "Penjemputan",
+      "destination": "Tujuan",
+      "accessNotes": "Catatan akses",
+      "specialItems": "Barang khusus",
+      "generalNotes": "Catatan umum",
+      "addItem": "Tambah item",
+      "removeItem": "Hapus item",
+      "saveSurveyNotes": "Simpan catatan survei",
+      "markAsDone": "Tandai Selesai",
+      "markedAsCompleted": "Survei ditandai selesai"
+    }
+  },
+
+  "forms": {
+    "lead": {
+      "customer": "Pelanggan",
+      "existingCustomer": "Pelanggan yang ada",
+      "newCustomer": "Pelanggan baru",
+      "name": "Nama",
+      "phone": "Telepon",
+      "pickup": "Alamat penjemputan",
+      "destination": "Alamat tujuan",
+      "preferredDate": "Tanggal pindahan yang diinginkan",
+      "leadType": "Tipe prospek",
+      "originChannel": "Kanal asal",
+      "notes": "Catatan",
+      "createLead": "Buat prospek",
+      "editTitle": "Edit Prospek",
+      "newTitle": "Prospek Baru"
+    },
+    "customer": {
+      "fullName": "Nama lengkap",
+      "phone": "Telepon",
+      "phonePlaceholder": "cth. 08123456789",
+      "email": "Email",
+      "type": "Tipe",
+      "companyName": "Nama perusahaan",
+      "notes": "Catatan",
+      "newTitle": "Pelanggan Baru",
+      "editTitle": "Edit Pelanggan"
+    },
+    "vendor": {
+      "name": "Nama",
+      "contactPerson": "Narahubung",
+      "phone": "Telepon",
+      "vehicleTypes": "Tipe kendaraan",
+      "serviceAreas": "Area layanan",
+      "bankName": "Nama bank",
+      "bankAccount": "Rekening bank",
+      "notes": "Catatan",
+      "active": "Aktif",
+      "newTitle": "Vendor Baru",
+      "editTitle": "Edit Vendor"
+    },
+    "crew": {
+      "name": "Nama",
+      "phone": "Telepon",
+      "skills": "Keahlian",
+      "dailyRate": "Tarif harian",
+      "availability": "Ketersediaan",
+      "emergencyContact": "Kontak darurat",
+      "emergencyPlaceholder": "Nama — Telepon",
+      "notes": "Catatan",
+      "active": "Aktif",
+      "newTitle": "Kru Baru",
+      "editTitle": "Edit Kru"
+    },
+    "job": {
+      "status": "Status",
+      "schedule": "Jadwal",
+      "startDate": "Tanggal mulai",
+      "startTime": "Waktu mulai",
+      "endDate": "Tanggal selesai",
+      "endTime": "Waktu selesai",
+      "endDateHint": "(kosongkan jika hari yang sama)",
+      "revenue": "Pendapatan (Rp)",
+      "notes": "Catatan",
+      "editTitle": "Edit Pekerjaan",
+      "backToJob": "Kembali ke Pekerjaan",
+      "backToLead": "Kembali ke Prospek"
+    },
+    "estimation": {
+      "title": "Estimasi",
+      "inputs": "Input",
+      "vehicle": "Kendaraan",
+      "vehicleType": "Tipe kendaraan",
+      "vehicleCost": "Biaya kendaraan",
+      "distanceKm": "Jarak (km)",
+      "crewCount": "Jumlah kru",
+      "crewDayRate": "Tarif kru per hari",
+      "foodPerCrew": "Makan per kru",
+      "manpowerQty": "Tenaga",
+      "packingService": "Layanan packing",
+      "tollEstimate": "Estimasi tol",
+      "otherCost": "Biaya lain",
+      "outOfTown": "Luar kota",
+      "outOfTownHint": "(+1 kru, makan × {meals})",
+      "mealsCount": "Jumlah makan",
+      "specialItems": "Barang khusus",
+      "manualOverride": "Override manual",
+      "overridePrice": "Override harga final",
+      "overridePriceLabel": "Harga override",
+      "overrideReason": "Alasan override",
+      "breakdownTitle": "Rincian",
+      "saveEstimation": "Simpan Estimasi",
+      "creating": "Menyimpan…",
+      "summary": "Ringkasan biaya",
+      "breakdown": {
+        "other": "Lainnya",
+        "jobCost": "Biaya pekerjaan",
+        "margin": "Margin ({pct}%)",
+        "minimumProfitFloor": "Profit minimum",
+        "negotiationBuffer": "Buffer negosiasi ({pct}%)"
+      },
+      "engineFooter": "Engine v{version} · snapshot pengaturan diambil saat simpan"
+    },
+    "expense": {
+      "title": "Catat Pengeluaran",
+      "amount": "Jumlah",
+      "amountIdr": "Jumlah (IDR)",
+      "category": "Kategori",
+      "note": "Catatan",
+      "date": "Tanggal",
+      "receipt": "Foto resi",
+      "saveExpense": "Simpan Pengeluaran",
+      "moreOptions": "Catatan / tanggal / resi",
+      "hideOptions": "Sembunyikan opsi"
+    },
+    "payment": {
+      "type": "Tipe",
+      "method": "Metode",
+      "amountIdr": "Jumlah (IDR)",
+      "date": "Tanggal",
+      "notes": "Catatan",
+      "savePayment": "Simpan Pembayaran"
+    },
+    "survey": {
+      "accessNotes": "Catatan akses",
+      "accessNotesPlaceholder": "cth. Kode gerbang 1234…",
+      "generalNotes": "Catatan umum",
+      "generalNotesPlaceholder": "Catatan tambahan…",
+      "specialItems": "Barang khusus",
+      "noSpecialItems": "Belum ada barang khusus tercatat.",
+      "itemType": "Tipe barang",
+      "qty": "Jumlah",
+      "itemNote": "Catatan",
+      "addItem": "Tambah item",
+      "removeItem": "Hapus item",
+      "saveSurveyNotes": "Simpan catatan survei",
+      "markAsDone": "Tandai Selesai",
+      "markDoneFailed": "Gagal menandai selesai.",
+      "markedAsCompleted": "Survei ditandai selesai",
+      "media": "Foto & video",
+      "uploadMedia": "Unggah media",
+      "noMedia": "Belum ada media.",
+      "photoAlt": "Foto survei"
+    }
+  },
+
+  "panels": {
+    "leadActions": {
+      "title": "Aksi",
+      "scheduleSurvey": "Jadwalkan Survei",
+      "skipToEstimate": "Lewati → Estimasi",
+      "surveyScheduled": "Survei dijadwalkan",
+      "viewSurvey": "Lihat Survei",
+      "markDone": "Tandai Selesai",
+      "surveyCompleted": "Survei selesai",
+      "createEstimation": "Buat Estimasi →",
+      "estimationInProgress": "Estimasi sedang berjalan",
+      "openProposal": "Buka Proposal →",
+      "convertedToJob": "✓ Sudah jadi pekerjaan",
+      "closedLost": "Ditutup — gagal"
+    },
+    "proposalActions": {
+      "title": "Aksi",
+      "createEstimation": "Buat Estimasi",
+      "editEstimation": "Edit Estimasi",
+      "markAsSent": "Tandai Terkirim",
+      "sendViaWhatsapp": "Kirim via WhatsApp",
+      "recordCounterOffer": "Catat Penawaran Balik",
+      "markApproved": "Tandai Disetujui ✓",
+      "markLost": "Tandai Gagal",
+      "approved": "Disetujui",
+      "convertToJob": "Konversi ke Pekerjaan →",
+      "jobCreated": "Pekerjaan dibuat",
+      "viewJob": "Lihat Pekerjaan →",
+      "viewJobWith": "Lihat Pekerjaan {number} →",
+      "revenueLockedAmount": "Pendapatan terkunci di: {amount}",
+      "noFurtherActions": "Tidak ada aksi lanjutan."
+    },
+    "negotiation": {
+      "title": "Riwayat negosiasi",
+      "empty": "Belum ada revisi."
+    },
+    "assignments": {
+      "title": "Penugasan",
+      "add": "Tambah",
+      "addAssignment": "Tambah Penugasan",
+      "empty": "Belum ada penugasan.",
+      "manage": "Kelola →",
+      "type": "Tipe",
+      "role": "Peran",
+      "rolePlaceholder": "Sopir, Loader, Supervisor…",
+      "vendor": "Vendor",
+      "crewMember": "Anggota kru",
+      "vendorLabel": "Vendor",
+      "crewLabel": "Kru",
+      "overlapWarning": "⚠ {type} ini sudah ditugaskan pada {date}. Tetap tambahkan?",
+      "remove": "Hapus",
+      "removeAria": "Hapus {name}"
+    },
+    "payments": {
+      "total": "Total",
+      "paid": "Dibayar",
+      "outstanding": "Tertunda",
+      "recordPayment": "+ Catat Pembayaran",
+      "history": "Riwayat",
+      "noPayments": "Belum ada pembayaran.",
+      "via": "via {method}"
+    },
+    "photos": {
+      "title": "Foto",
+      "titleCount": "Foto ({count})",
+      "upload": "Unggah",
+      "uploading": "Mengunggah…",
+      "empty": "Belum ada foto.",
+      "viewPhoto": "Lihat foto {n} dari {total}",
+      "deletePhoto": "Hapus foto",
+      "sectionAria": "Foto prospek",
+      "listAria": "Foto terunggah",
+      "fallbackAlt": "Foto prospek"
+    },
+    "timeline": {
+      "logEvent": "Catat Peristiwa"
+    }
+  },
+
+  "modals": {
+    "scheduleSurvey": {
+      "title": "Jadwalkan Survei",
+      "dateTime": "Tanggal & waktu",
+      "notes": "Catatan"
+    },
+    "counterOffer": {
+      "title": "Catat Penawaran Balik",
+      "proposedBy": "Diajukan oleh",
+      "customer": "Pelanggan",
+      "operator": "Operator",
+      "newPrice": "Harga baru (IDR)",
+      "note": "Catatan"
+    },
+    "markLost": {
+      "title": "Tandai Gagal",
+      "reason": "Alasan",
+      "note": "Catatan",
+      "confirm": "Konfirmasi Gagal",
+      "reasons": {
+        "priceTooHigh": "Harga terlalu tinggi",
+        "wentWithCompetitor": "Memilih kompetitor",
+        "noResponse": "Tidak ada respon",
+        "other": "Lainnya"
+      }
+    },
+    "convertToJob": {
+      "title": "Buat Pekerjaan untuk {name}",
+      "startDate": "Tanggal mulai",
+      "startTime": "Waktu mulai",
+      "endDate": "Tanggal selesai",
+      "endDateHint": "(kosongkan jika hari yang sama)",
+      "endTime": "Waktu selesai",
+      "revenueLockedAt": "Pendapatan terkunci di: {amount}",
+      "createJob": "Buat Pekerjaan",
+      "creating": "Membuat…"
+    },
+    "logEvent": {
+      "title": "Catat peristiwa linimasa",
+      "event": "Peristiwa",
+      "when": "Kapan",
+      "note": "Catatan",
+      "saveEvent": "Simpan peristiwa"
+    },
+    "confirmations": {
+      "duplicateLead": "Duplikat prospek ini sebagai yang baru?",
+      "duplicateProposal": "Duplikat proposal ini sebagai draf baru?",
+      "markJobDone": "Tandai pekerjaan ini sebagai selesai? Sulit untuk dibatalkan.",
+      "startJob": "Mulai pekerjaan ini? Pengeluaran bisa dicatat setelah pekerjaan berjalan.",
+      "syncAll": "Sinkronkan ulang pekerjaan dan survei mendatang ke Google Calendar?"
+    }
+  },
+
+  "actions": {
+    "newLead": "Prospek Baru",
+    "newJob": "Pekerjaan Baru",
+    "newProposal": "Proposal Baru",
+    "newCustomer": "Pelanggan Baru",
+    "newVendor": "Vendor Baru",
+    "newCrew": "Kru Baru",
+    "newInvoice": "Faktur Baru",
+    "createCustomer": "Buat pelanggan",
+    "addVendor": "Tambah vendor",
+    "addCrewMember": "Tambah anggota",
+    "generateInvoice": "Buat Faktur",
+    "generating": "Membuat…",
+    "markAsSent": "Tandai Terkirim",
+    "markApproved": "Tandai Disetujui",
+    "markLost": "Tandai Gagal",
+    "markDone": "Tandai Selesai",
+    "startJob": "Mulai Pekerjaan",
+    "starting": "Memulai…",
+    "convertToJob": "Konversi ke Pekerjaan",
+    "addItem": "Tambah item",
+    "removeItem": "Hapus item",
+    "uploadPhoto": "Unggah Foto"
+  },
+
+  "entity": {
+    "leadType": {
+      "whatsapp": "WhatsApp",
+      "onsite": "On-site",
+      "returning": "Pelanggan kembali",
+      "corporate": "Korporat"
+    },
+    "originChannel": {
+      "whatsapp": "WhatsApp",
+      "call": "Telepon",
+      "referral": "Referensi",
+      "walkin": "Walk-in"
+    },
+    "customerType": {
+      "individual": "Individu",
+      "corporate": "Korporat"
+    },
+    "availability": {
+      "available": "Tersedia",
+      "on_job": "Sedang bekerja",
+      "unavailable": "Tidak tersedia"
+    },
+    "vehicleType": {
+      "box_small": "Box (Kecil)",
+      "box_medium": "Box (Sedang)",
+      "box_large": "Box (Besar)",
+      "truck_l300": "Truk L300",
+      "fuso": "Fuso",
+      "cde": "CDE",
+      "cdd": "CDD",
+      "wingbox": "Wingbox",
+      "pickup": "Pickup",
+      "box_truck": "Truk"
+    },
+    "skill": {
+      "loading": "Loading",
+      "unloading": "Unloading",
+      "packing": "Packing",
+      "assembly": "Perakitan",
+      "driving": "Mengemudi",
+      "supervision": "Supervisi"
+    },
+    "paymentType": {
+      "down_payment": "Uang muka",
+      "partial": "Sebagian",
+      "final": "Pelunasan",
+      "refund": "Refund"
+    },
+    "paymentMethod": {
+      "cash": "Tunai",
+      "transfer": "Transfer",
+      "qris": "QRIS"
+    },
+    "expenseCategory": {
+      "fuel": "BBM",
+      "toll": "Tol",
+      "food": "Makan",
+      "labor": "Tenaga",
+      "packing_materials": "Bahan kemasan",
+      "transport": "Transport",
+      "parking": "Parkir",
+      "other": "Lainnya",
+      "vehicle_rental": "Sewa kendaraan",
+      "crew_payment": "Bayar kru",
+      "miscellaneous": "Lain-lain"
+    },
+    "eventType": {
+      "job_started": "Pekerjaan dimulai",
+      "loading_start": "Loading dimulai",
+      "loading_done": "Loading selesai",
+      "transit_start": "Dalam perjalanan",
+      "transit_done": "Tiba di tujuan",
+      "unloading_start": "Unloading dimulai",
+      "unloading_done": "Unloading selesai",
+      "overtime_approved": "Lembur disetujui",
+      "overnight_approved": "Diperpanjang ke menginap",
+      "crew_added": "Kru tambahan",
+      "job_completed": "Pekerjaan selesai",
+      "custom": "Catatan",
+      "note": "Catatan"
+    }
+  },
+
+  "offline": {
+    "savedOffline": "Tersimpan offline — akan tersinkron saat online.",
+    "removeReceiptToSave": "Offline: hapus foto resi untuk menyimpan sekarang, atau tunggu koneksi.",
+    "syncedCount": "{count} pengeluaran tersinkron.",
+    "pendingSync": "{count} menunggu sinkron",
+    "pending": "menunggu sinkron"
+  },
+
+  "syncAll": {
+    "nothing": "Tidak ada yang perlu disinkron (jendela: sejak {date}).",
+    "jobsLabel": "Pekerjaan {ok}/{total}",
+    "surveysLabel": "Survei {ok}/{total}",
+    "failedSuffix": "{count} gagal"
+  },
+
+  "photoLightbox": {
+    "close": "Tutup penampil foto"
+  }
+}

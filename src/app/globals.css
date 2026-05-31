@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #edf2f7;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --sidebar: #0a0f1a;
+  --sidebar-border: rgba(255,255,255,0.08);
+  --ring: #7c3aed;
+}
+
+/* ── Dark mode token overrides ──────────────────────────────────────────── */
+.dark {
+  --background: #0d1117;
+  --foreground: #e2e8f0;
+  --card: #161d2e;
+  color-scheme: dark;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* ── Dark mode surface overrides ────────────────────────────────────────── */
+/* These override Tailwind utility classes so pages work in dark mode        */
+/* without requiring dark: variants on every component.                      */
+
+/* Backgrounds */
+.dark .bg-white         { background-color: #1a2236; }
+.dark .bg-white\/80     { background-color: rgb(26 34 54 / 0.97); }
+.dark .bg-slate-50      { background-color: #1a2236; }
+.dark .bg-slate-100     { background-color: #232f47; }
+.dark .bg-gray-50       { background-color: #1e2a40; }  /* table headers */
+.dark .bg-gray-100      { background-color: #232f47; }
+.dark .bg-gray-900      { background-color: #1a2236; }
+.dark .bg-gray-800      { background-color: #232f47; }
+
+/* Text */
+.dark .text-slate-800   { color: #f1f5f9; }
+.dark .text-slate-700   { color: #e2e8f0; }
+.dark .text-slate-600   { color: #b4c0d0; }
+.dark .text-slate-500   { color: #94a3b8; }
+.dark .text-slate-400   { color: #94a3b8; }
+.dark .text-gray-900    { color: #f1f5f9; }
+.dark .text-gray-800    { color: #e2e8f0; }
+.dark .text-gray-500    { color: #94a3b8; }
+.dark .text-gray-400    { color: #94a3b8; }
+
+/* Borders & dividers */
+.dark .border-slate-100 { border-color: #2d3f5a; }
+.dark .border-slate-200 { border-color: #2d3f5a; }
+.dark .border-gray-200  { border-color: #2d3f5a; }
+.dark .border-gray-100  { border-color: #2d3f5a; }
+
+/* Divide utilities — target the pseudo-element border */
+.dark .divide-slate-50  > :not([hidden]) ~ :not([hidden]) { border-color: #1e293b; }
+.dark .divide-y         > :not([hidden]) ~ :not([hidden]) { border-color: #334155; }
+
+/* Hover states */
+.dark .hover\:bg-slate-50:hover   { background-color: #243350; }
+.dark .hover\:bg-slate-100:hover  { background-color: #243350; }
+.dark .hover\:bg-gray-50:hover    { background-color: #243350; }
+.dark .hover\:bg-gray-800:hover   { background-color: #273553; }
+.dark .border-gray-700            { border-color: #3d526e; }
+.dark .border-gray-800            { border-color: #2d3f5a; }
+.dark .border-gray-600            { border-color: #4d6382; }
+
+/* Placeholder text */
+.dark input::placeholder,
+.dark textarea::placeholder { color: #475569; }
+
+/* Form inputs */
+.dark input[type="text"],
+.dark input[type="search"],
+.dark input[type="email"],
+.dark input[type="number"],
+.dark input[type="tel"],
+.dark input[type="date"],
+.dark textarea,
+.dark select {
+  background-color: #1a2236;
+  border-color: #3d526e;
+  color: #e2e8f0;
+}
+
+/* Focus ring adjusts automatically via ring-brand-500 */
+
+/* ── Ambient brand glow in the content area ─────────────────────────────── */
+main#main-content {
+  background-image: radial-gradient(ellipse 90% 50% at 95% -5%, rgba(124, 58, 237, 0.08) 0%, transparent 60%);
+}
+.dark main#main-content {
+  background-image: radial-gradient(ellipse 90% 50% at 95% -5%, rgba(124, 58, 237, 0.18) 0%, transparent 60%);
+}
+
+/* ── Card elevation ──────────────────────────────────────────────────────── */
+/* Targets any rounded-xl container with a border — the standard card pattern */
+.rounded-xl.border {
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 6px 24px rgba(15, 23, 42, 0.07);
+}
+.dark .rounded-xl.border {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 4px 32px rgba(0, 0, 0, 0.5);
+}
+.rounded-2xl.border {
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 6px 24px rgba(15, 23, 42, 0.07);
+}
+.dark .rounded-2xl.border {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 4px 32px rgba(0, 0, 0, 0.5);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.08);
+    border-radius: 2px;
+  }
+}
