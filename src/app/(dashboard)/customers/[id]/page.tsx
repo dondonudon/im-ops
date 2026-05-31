@@ -8,7 +8,7 @@ import {
 	leadStatusVariant,
 	jobStatusVariant,
 } from "@/components/shared/StatusChip";
-import { PageHeader, Badge, buttonStyles } from "@/components/ui";
+import { PageHeader, buttonStyles } from "@/components/ui";
 
 /**
  * Customer detail page — history of leads, jobs, invoices.

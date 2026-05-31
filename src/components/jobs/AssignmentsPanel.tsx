@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
-import { Button, Card, Field, Input, Select, FormError, EmptyState } from "@/components/ui";
+import { Button, Card, Field, Input, Select, EmptyState } from "@/components/ui";
 
 type FleetMember = { id: string; name: string };
 type Crew = { id: string; name: string; daily_rate: number | null };

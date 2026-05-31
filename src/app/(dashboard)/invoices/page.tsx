@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatDate, formatRupiah } from "@/lib/utils";
-import { StatusChip, invoiceStatusVariant } from "@/components/shared/StatusChip";
 import {
 	PageHeader,
 	Select,

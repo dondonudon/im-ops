@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate, formatRupiah } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import {
 	buildCompanySettings,
 	buildInvoiceTemplateSettings,
