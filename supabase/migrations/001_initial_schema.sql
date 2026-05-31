@@ -314,7 +314,9 @@ ON CONFLICT (key) DO NOTHING;
 -- ============================================================
 
 -- Live profit per job
-CREATE OR REPLACE VIEW job_profit_summary AS
+CREATE OR REPLACE VIEW job_profit_summary
+WITH (security_invoker = true)
+AS
 SELECT
   j.id AS job_id,
   j.job_number,
@@ -329,7 +331,9 @@ LEFT JOIN invoices i ON i.job_id = j.id
 GROUP BY j.id, i.paid_amount;
 
 -- Outstanding invoices
-CREATE OR REPLACE VIEW invoice_outstanding AS
+CREATE OR REPLACE VIEW invoice_outstanding
+WITH (security_invoker = true)
+AS
 SELECT
   i.id,
   i.invoice_number,
