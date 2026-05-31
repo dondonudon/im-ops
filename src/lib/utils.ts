@@ -91,6 +91,24 @@ export async function resizeImage(file: File, maxPx = 1600): Promise<Blob> {
   })
 }
 
+/**
+ * Sanitize a user-supplied search term for safe use inside a PostgREST
+ * `.or()` / `.ilike()` filter string.
+ *
+ * - Strips PostgREST-meaningful characters (`(` `)` `,`) that would otherwise
+ *   let a search term break out of its filter and inject arbitrary conditions.
+ * - Escapes ILIKE wildcards (`%` `_`) and the escape char (`\`) so they match
+ *   literally instead of acting as wildcards.
+ *
+ * Always wrap the result in `%…%` yourself, e.g. `name.ilike.%${safe}%`.
+ */
+export function sanitizeSearch(input: string): string {
+  return input
+    .replace(/[(),]/g, " ")
+    .replace(/[\\%_]/g, "\\$&")
+    .trim();
+}
+
 /** Build a WhatsApp deeplink URL with pre-filled text. */
 export function buildWhatsAppLink(phone: string, message: string): string {
   // Strip non-numeric chars, ensure leading country code

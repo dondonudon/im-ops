@@ -23,7 +23,7 @@ export default function JobDetailLoading() {
 				{/* Left column */}
 				<div className="lg:col-span-2 space-y-6">
 					{/* Move summary */}
-					<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 grid grid-cols-2 gap-4">
+					<div className="bg-surface border border-line rounded-xl shadow-token p-5 grid grid-cols-2 gap-4">
 						{Array.from({ length: 4 }).map((_, i) => (
 							// biome-ignore lint/suspicious/noArrayIndexKey: placeholder
 							<div key={i} className="space-y-1.5">
@@ -34,14 +34,14 @@ export default function JobDetailLoading() {
 					</div>
 
 					{/* Assignments */}
-					<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						<Skeleton className="h-3 w-24" />
 						<Skeleton className="h-4 w-full" />
 						<Skeleton className="h-4 w-3/4" />
 					</div>
 
 					{/* Expenses */}
-					<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						<Skeleton className="h-3 w-24" />
 						{Array.from({ length: 3 }).map((_, i) => (
 							// biome-ignore lint/suspicious/noArrayIndexKey: placeholder
@@ -53,7 +53,7 @@ export default function JobDetailLoading() {
 					</div>
 
 					{/* Timeline */}
-					<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						<Skeleton className="h-3 w-24" />
 						{Array.from({ length: 3 }).map((_, i) => (
 							// biome-ignore lint/suspicious/noArrayIndexKey: placeholder
@@ -70,14 +70,14 @@ export default function JobDetailLoading() {
 
 				{/* Right column */}
 				<div className="space-y-4">
-					<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						<Skeleton className="h-3 w-16" />
 						<Skeleton className="h-8 w-32" />
 						<Skeleton className="h-3 w-full" />
 						<Skeleton className="h-3 w-full" />
 						<Skeleton className="h-10 w-full" />
 					</div>
-					<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						<Skeleton className="h-3 w-16" />
 						<Skeleton className="h-4 w-full" />
 						<Skeleton className="h-4 w-2/3" />

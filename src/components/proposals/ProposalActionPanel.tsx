@@ -9,6 +9,16 @@ import Link from "next/link";
 import { formatRupiah } from "@/lib/utils";
 import { NumericInput } from "@/components/shared/NumericInput";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
+import {
+	Button,
+	buttonStyles,
+	Card,
+	Field,
+	Input,
+	Select,
+	Textarea,
+	FormError,
+} from "@/components/ui";
 
 type Proposal = {
 	id: string;
@@ -137,38 +147,34 @@ export function ProposalActionPanel({
 		: "";
 
 	return (
-		<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-4">
-			<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+		<Card className="p-5 space-y-4">
+			<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
 				{t("title")}
 			</h2>
 
-			{error && (
-				<div
-					role="alert"
-					className="rounded bg-red-50 dark:bg-red-900/20 border border-red-200 px-3 py-2 text-xs text-red-700 dark:text-red-300"
-				>
-					{error}
-				</div>
-			)}
+			{error && <FormError>{error}</FormError>}
 
 			{/* ── DRAFT ── */}
 			{proposal.status === "draft" && (
 				<div className="space-y-2">
 					<Link
 						href={`/estimations/new?proposal_id=${proposal.id}`}
-						className="block w-full text-center rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						className={buttonStyles({ variant: "secondary", size: "md", className: "w-full" })}
 					>
 						{hasEstimation ? t("editEstimation") : t("createEstimation")}
 					</Link>
 					{hasEstimation && (
-						<button
+						<Button
 							type="button"
 							onClick={handleMarkSent}
 							disabled={isPending || !proposal.final_price}
-							className="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							loading={isPending}
+							variant="primary"
+							size="md"
+							className="w-full"
 						>
 							{t("markAsSent")}
-						</button>
+						</Button>
 					)}
 				</div>
 			)}
@@ -184,57 +190,65 @@ export function ProposalActionPanel({
 							className="w-full justify-center"
 						/>
 					)}
-					<button
+					<Button
 						type="button"
 						onClick={() => setShowCounterModal(true)}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						variant="secondary"
+						size="md"
+						className="w-full"
 					>
 						{t("recordCounterOffer")}
-					</button>
-					<button
+					</Button>
+					<Button
 						type="button"
 						onClick={handleMarkApproved}
-						disabled={isPending}
-						className="w-full rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						loading={isPending}
+						variant="primary"
+						size="md"
+						className="w-full bg-success hover:opacity-90 text-white"
 					>
 						{t("markApproved")}
-					</button>
-					<button
+					</Button>
+					<Button
 						type="button"
 						onClick={() => setShowLostModal(true)}
-						className="w-full rounded-lg border border-red-300 dark:border-red-800 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+						variant="danger"
+						size="md"
+						className="w-full"
 					>
 						{t("markLost")}
-					</button>
+					</Button>
 				</div>
 			)}
 
 			{/* ── APPROVED ── */}
 			{proposal.status === "approved" && !job && (
 				<div className="space-y-2">
-					<div className="text-sm text-green-600 dark:text-green-400 font-medium">
+					<div className="text-sm text-success font-medium">
 						✓ {t("approved")} —{" "}
 						{proposal.final_price ? formatRupiah(proposal.final_price) : "—"}
 					</div>
-					<button
+					<Button
 						type="button"
 						onClick={() => setShowJobModal(true)}
-						className="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						variant="primary"
+						size="md"
+						className="w-full"
 					>
 						{t("convertToJob")}
-					</button>
+					</Button>
 				</div>
 			)}
 
 			{/* ── JOB CREATED ── */}
 			{job && (
 				<div className="space-y-2">
-					<p className="text-sm text-gray-500 dark:text-gray-400">
+					<p className="text-sm text-ink-muted">
 						{t("jobCreated")}
 					</p>
 					<Link
 						href={`/jobs/${job.id}`}
-						className="block w-full text-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						className={buttonStyles({ variant: "primary", size: "md", className: "w-full" })}
 					>
 						{t("viewJobWith", { number: job.job_number })}
 					</Link>
@@ -243,7 +257,7 @@ export function ProposalActionPanel({
 
 			{/* ── LOST / EXPIRED ── */}
 			{(proposal.status === "lost" || proposal.status === "expired") && (
-				<p className="text-sm text-gray-500">{t("noFurtherActions")}</p>
+				<p className="text-sm text-ink-muted">{t("noFurtherActions")}</p>
 			)}
 
 			{/* Modals */}
@@ -279,7 +293,7 @@ export function ProposalActionPanel({
 					onClose={() => setShowJobModal(false)}
 				/>
 			)}
-		</div>
+		</Card>
 	);
 }
 
@@ -351,75 +365,63 @@ function CounterOfferModal({
 			aria-labelledby="counter-title"
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
 		>
-			<div className="w-full max-w-sm rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 shadow-xl space-y-4">
+			<Card className="w-full max-w-sm p-6 shadow-token-md space-y-4">
 				<h3
 					id="counter-title"
-					className="text-base font-semibold text-gray-900 dark:text-white"
+					className="text-base font-semibold text-ink"
 				>
 					{tModal("title")}
 				</h3>
-				{error && (
-					<div role="alert" className="text-xs text-red-600 dark:text-red-400">
-						{error}
-					</div>
-				)}
+				{error && <FormError>{error}</FormError>}
 				<form onSubmit={handleSubmit} className="space-y-4">
-					<div>
-						<label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-							{tModal("proposedBy")}
-						</label>
-						<select
+					<Field label={tModal("proposedBy")} htmlFor="counter-who">
+						<Select
+							id="counter-who"
 							value={form.who}
 							onChange={(e) => setForm((p) => ({ ...p, who: e.target.value }))}
-							className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 						>
 							<option value="customer">{tModal("customer")}</option>
 							<option value="operator">{tModal("operator")}</option>
-						</select>
-					</div>
-					<div>
-						<label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-							{tModal("newPrice")}{" "}
-							<span aria-hidden="true" className="text-red-500">
-								*
-							</span>
-						</label>
+						</Select>
+					</Field>
+					<Field label={tModal("newPrice")} htmlFor="counter-price" required>
 						<NumericInput
 							value={Number(form.price) || 0}
 							onChange={(v) => setForm((p) => ({ ...p, price: v > 0 ? String(v) : "" }))}
 							placeholder={new Intl.NumberFormat("id-ID").format(currentPrice)}
-							className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+							className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
 						/>
-					</div>
-					<div>
-						<label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-							{tModal("note")}
-						</label>
-						<input
+					</Field>
+					<Field label={tModal("note")} htmlFor="counter-note">
+						<Input
+							id="counter-note"
 							type="text"
 							value={form.note}
 							onChange={(e) => setForm((p) => ({ ...p, note: e.target.value }))}
-							className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 						/>
-					</div>
+					</Field>
 					<div className="flex gap-2">
-						<button
+						<Button
 							type="submit"
-							disabled={saving}
-							className="flex-1 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							loading={saving}
+							variant="primary"
+							size="md"
+							className="flex-1"
 						>
 							{saving ? tButtons("saving") : tButtons("save")}
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
 							onClick={onClose}
-							className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							variant="secondary"
+							size="md"
+							className="flex-1"
 						>
 							{tButtons("cancel")}
-						</button>
+						</Button>
 					</div>
 				</form>
-			</div>
+			</Card>
 		</div>
 	);
 }
@@ -472,65 +474,60 @@ function MarkLostModal({
 			aria-labelledby="lost-title"
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
 		>
-			<div className="w-full max-w-sm rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 shadow-xl space-y-4">
+			<Card className="w-full max-w-sm p-6 shadow-token-md space-y-4">
 				<h3
 					id="lost-title"
-					className="text-base font-semibold text-gray-900 dark:text-white"
+					className="text-base font-semibold text-ink"
 				>
 					{tModal("title")}
 				</h3>
 				<form onSubmit={handleSubmit} className="space-y-4">
-					<div>
-						<label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-							{tModal("reason")}
-						</label>
-						<select
+					<Field label={tModal("reason")} htmlFor="lost-reason">
+						<Select
+							id="lost-reason"
 							value={reason}
 							onChange={(e) => setReason(e.target.value)}
-							className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 						>
 							{REASONS.map((r) => (
 								<option key={r.value} value={r.value}>
 									{tModal(`reasons.${r.labelKey}`)}
 								</option>
 							))}
-						</select>
-					</div>
+						</Select>
+					</Field>
 					{reason === "Other" && (
-						<div>
-							<label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-								{tModal("note")}{" "}
-								<span aria-hidden="true" className="text-red-500">
-									*
-								</span>
-							</label>
-							<input
+						<Field label={tModal("note")} htmlFor="lost-note" required>
+							<Input
+								id="lost-note"
 								type="text"
 								required
 								value={note}
 								onChange={(e) => setNote(e.target.value)}
-								className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 							/>
-						</div>
+						</Field>
 					)}
 					<div className="flex gap-2">
-						<button
+						<Button
 							type="submit"
-							disabled={saving}
-							className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+							loading={saving}
+							variant="danger"
+							size="md"
+							className="flex-1"
 						>
 							{saving ? tButtons("saving") : tModal("confirm")}
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
 							onClick={onClose}
-							className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							variant="secondary"
+							size="md"
+							className="flex-1"
 						>
 							{tButtons("cancel")}
-						</button>
+						</Button>
 					</div>
 				</form>
-			</div>
+			</Card>
 		</div>
 	);
 }
@@ -622,99 +619,102 @@ function ConvertToJobModal({
 			aria-labelledby="job-title"
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
 		>
-			<div className="w-full max-w-sm rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 shadow-xl space-y-4">
+			<Card className="w-full max-w-sm p-6 shadow-token-md space-y-4">
 				<h3
 					id="job-title"
-					className="text-base font-semibold text-gray-900 dark:text-white"
+					className="text-base font-semibold text-ink"
 				>
 					{tModal("title", { name: customerName })}
 				</h3>
-				{error && (
-					<div role="alert" className="text-xs text-red-600 dark:text-red-400">
-						{error}
-					</div>
-				)}
+				{error && <FormError>{error}</FormError>}
 				<form onSubmit={handleConfirm} className="space-y-4">
 					<div className="grid grid-cols-2 gap-3">
-						<div>
-							<label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">
-								{tModal("startDate")}{" "}
-								<span aria-hidden="true" className="text-red-500">
-									*
-								</span>
-							</label>
-							<input
+						<Field
+							label={tModal("startDate")}
+							htmlFor="job-start-date"
+							required
+						>
+							<Input
+								id="job-start-date"
 								type="date"
 								required
 								value={moveDate}
 								onChange={(e) => setMoveDate(e.target.value)}
-								className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 							/>
-						</div>
-						<div>
-							<label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">
-								{tModal("startTime")}
-							</label>
-							<input
+						</Field>
+						<Field label={tModal("startTime")} htmlFor="job-start-time">
+							<Input
+								id="job-start-time"
 								type="time"
 								value={moveTime}
 								onChange={(e) => setMoveTime(e.target.value)}
-								className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 							/>
-						</div>
+						</Field>
 					</div>
 					<div className="grid grid-cols-2 gap-3">
-						<div>
-							<label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">
-								{tModal("endDate")}{" "}
-								<span className="text-gray-400 font-normal">
-									{tModal("endDateHint")}
-								</span>
-							</label>
-							<input
+						<Field
+							label={
+								<>
+									{tModal("endDate")}{" "}
+									<span className="text-ink-faint font-normal">
+										{tModal("endDateHint")}
+									</span>
+								</>
+							}
+							htmlFor="job-end-date"
+						>
+							<Input
+								id="job-end-date"
 								type="date"
 								min={moveDate || undefined}
 								value={moveEndDate}
 								onChange={(e) => setMoveEndDate(e.target.value)}
-								className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 							/>
-						</div>
-						<div>
-							<label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">
-								{tModal("endTime")}{" "}
-								<span className="text-gray-400 font-normal">
-									{tHints("optionalParen")}
-								</span>
-							</label>
-							<input
+						</Field>
+						<Field
+							label={
+								<>
+									{tModal("endTime")}{" "}
+									<span className="text-ink-faint font-normal">
+										{tHints("optionalParen")}
+									</span>
+								</>
+							}
+							htmlFor="job-end-time"
+						>
+							<Input
+								id="job-end-time"
 								type="time"
 								value={moveEndTime}
 								onChange={(e) => setMoveEndTime(e.target.value)}
-								className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 							/>
-						</div>
+						</Field>
 					</div>
-					<p className="text-sm text-gray-500 dark:text-gray-400">
+					<p className="text-sm text-ink-muted">
 						{tModal("revenueLockedAt", { amount: formatRupiah(revenue) })}
 					</p>
 					<div className="flex gap-2">
-						<button
+						<Button
 							type="submit"
-							disabled={saving}
-							className="flex-1 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							loading={saving}
+							variant="primary"
+							size="md"
+							className="flex-1"
 						>
 							{saving ? tModal("creating") : tModal("createJob")}
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
 							onClick={onClose}
-							className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							variant="secondary"
+							size="md"
+							className="flex-1"
 						>
 							{tButtons("cancel")}
-						</button>
+						</Button>
 					</div>
 				</form>
-			</div>
+			</Card>
 		</div>
 	);
 }

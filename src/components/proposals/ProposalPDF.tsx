@@ -106,6 +106,7 @@ type Outputs = {
 	vehicle_cost?: number;
 	manpower_cost?: number;
 	food_cost?: number;
+	packing_cost?: number;
 	toll_cost?: number;
 	operational_buffer?: number;
 	adjusted_cost?: number;
@@ -153,6 +154,7 @@ export function ProposalPDF({
 		{ label: "Transportation (vehicle)", value: outputs.vehicle_cost },
 		{ label: "Manpower", value: outputs.manpower_cost },
 		{ label: "Meals & refreshments", value: outputs.food_cost },
+		{ label: "Packing materials", value: outputs.packing_cost },
 		{ label: "Toll & parking", value: outputs.toll_cost },
 		{ label: "Operational buffer", value: outputs.operational_buffer },
 	].filter((r) => (r.value ?? 0) > 0);

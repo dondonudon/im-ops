@@ -4,8 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import {
+	Field,
+	Input,
+	Textarea,
+	FormError,
+	Button,
+} from "@/components/ui";
 
-type VendorRow = {
+type FleetRow = {
 	id: string;
 	name: string;
 	contact_person: string | null;
@@ -30,29 +37,29 @@ const VEHICLE_OPTIONS: { value: string; tKey: string }[] = [
 ];
 
 /**
- * Create or edit a vendor.
- * @param vendor - existing vendor data for edit mode; omit for create mode
+ * Create or edit a fleet member.
+ * @param fleet - existing fleet data for edit mode; omit for create mode
  */
-export function VendorForm({ vendor }: { vendor?: VendorRow }) {
+export function FleetForm({ fleet }: { fleet?: FleetRow }) {
 	const router = useRouter();
-	const t = useTranslations("forms.vendor");
+	const t = useTranslations("forms.fleet");
 	const tButtons = useTranslations("common.buttons");
 	const tActions = useTranslations("actions");
 	const tErrors = useTranslations("common.errors");
 	const tHints = useTranslations("common.hints");
 	const tVehicleType = useTranslations("entity.vehicleType");
-	const isEdit = Boolean(vendor);
+	const isEdit = Boolean(fleet);
 
 	const [form, setForm] = useState({
-		name: vendor?.name ?? "",
-		contact_person: vendor?.contact_person ?? "",
-		phone: vendor?.phone ?? "",
-		vehicle_types: vendor?.vehicle_types ?? [],
-		service_areas: vendor?.service_areas?.join(", ") ?? "",
-		bank_name: vendor?.bank_name ?? "",
-		bank_account: vendor?.bank_account ?? "",
-		notes: vendor?.notes ?? "",
-		is_active: vendor?.is_active ?? true,
+		name: fleet?.name ?? "",
+		contact_person: fleet?.contact_person ?? "",
+		phone: fleet?.phone ?? "",
+		vehicle_types: fleet?.vehicle_types ?? [],
+		service_areas: fleet?.service_areas?.join(", ") ?? "",
+		bank_name: fleet?.bank_name ?? "",
+		bank_account: fleet?.bank_account ?? "",
+		notes: fleet?.notes ?? "",
+		is_active: fleet?.is_active ?? true,
 	});
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -94,20 +101,20 @@ export function VendorForm({ vendor }: { vendor?: VendorRow }) {
 
 		const supabase = createClient();
 
-		if (isEdit && vendor) {
+		if (isEdit && fleet) {
 			const { error: err } = await supabase
-				.from("vendors")
+				.from("fleet")
 				.update(payload)
-				.eq("id", vendor.id);
+				.eq("id", fleet.id);
 			if (err) {
 				setError(err.message);
 				setSaving(false);
 				return;
 			}
-			router.push(`/vendors/${vendor.id}`);
+			router.push(`/fleet/${fleet.id}`);
 		} else {
 			const { data, error: err } = await supabase
-				.from("vendors")
+				.from("fleet")
 				.insert(payload)
 				.select("id")
 				.single();
@@ -116,78 +123,47 @@ export function VendorForm({ vendor }: { vendor?: VendorRow }) {
 				setSaving(false);
 				return;
 			}
-			router.push(`/vendors/${data.id}`);
+			router.push(`/fleet/${data.id}`);
 		}
 	}
 
 	return (
 		<form onSubmit={handleSubmit} className="max-w-lg space-y-5" noValidate>
-			{error && (
-				<div
-					role="alert"
-					className="rounded bg-red-50 dark:bg-red-900/20 border border-red-200 px-3 py-2 text-sm text-red-700 dark:text-red-300"
-				>
-					{error}
-				</div>
-			)}
+			{error && <FormError>{error}</FormError>}
 
-			<div>
-				<label
-					htmlFor="v-name"
-					className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-				>
-					{t("name")}{" "}
-					<span aria-hidden="true" className="text-red-500">
-						*
-					</span>
-				</label>
-				<input
+			<Field label={t("name")} htmlFor="v-name" required>
+				<Input
 					id="v-name"
 					type="text"
 					required
 					value={form.name}
 					onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 				/>
-			</div>
+			</Field>
 
 			<div className="grid grid-cols-2 gap-4">
-				<div>
-					<label
-						htmlFor="v-contact"
-						className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-					>
-						{t("contactPerson")}
-					</label>
-					<input
+				<Field label={t("contactPerson")} htmlFor="v-contact">
+					<Input
 						id="v-contact"
 						type="text"
 						value={form.contact_person}
 						onChange={(e) =>
 							setForm((p) => ({ ...p, contact_person: e.target.value }))
 						}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 					/>
-				</div>
-				<div>
-					<label
-						htmlFor="v-phone"
-						className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-					>
-						{t("phone")}
-					</label>
-					<input
+				</Field>
+				<Field label={t("phone")} htmlFor="v-phone">
+					<Input
 						id="v-phone"
 						type="tel"
 						value={form.phone}
 						onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 					/>
-				</div>
+				</Field>
 			</div>
 
 			<div>
-				<span className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+				<span className="block text-sm font-medium mb-2 text-ink">
 					{t("vehicleTypes")}
 				</span>
 				<div
@@ -204,25 +180,20 @@ export function VendorForm({ vendor }: { vendor?: VendorRow }) {
 								type="checkbox"
 								checked={form.vehicle_types.includes(v.value)}
 								onChange={() => toggleVehicle(v.value)}
-								className="rounded border-gray-400 text-brand-600 focus:ring-brand-500"
+								className="rounded border-line-strong text-primary focus-visible:ring-[var(--ring)]"
 							/>
-							<span className="text-sm">{tVehicleType(v.tKey)}</span>
+							<span className="text-sm text-ink">{tVehicleType(v.tKey)}</span>
 						</label>
 					))}
 				</div>
 			</div>
 
-			<div>
-				<label
-					htmlFor="v-areas"
-					className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-				>
-					{t("serviceAreas")}{" "}
-					<span className="text-gray-400 font-normal">
-						{tHints("commaSeparated")}
-					</span>
-				</label>
-				<input
+			<Field
+				label={t("serviceAreas")}
+				htmlFor="v-areas"
+				hint={tHints("commaSeparated")}
+			>
+				<Input
 					id="v-areas"
 					type="text"
 					value={form.service_areas}
@@ -230,62 +201,40 @@ export function VendorForm({ vendor }: { vendor?: VendorRow }) {
 						setForm((p) => ({ ...p, service_areas: e.target.value }))
 					}
 					placeholder="Jakarta, Bekasi, Tangerang"
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 				/>
-			</div>
+			</Field>
 
 			<div className="grid grid-cols-2 gap-4">
-				<div>
-					<label
-						htmlFor="v-bank"
-						className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-					>
-						{t("bankName")}
-					</label>
-					<input
+				<Field label={t("bankName")} htmlFor="v-bank">
+					<Input
 						id="v-bank"
 						type="text"
 						value={form.bank_name}
 						onChange={(e) =>
 							setForm((p) => ({ ...p, bank_name: e.target.value }))
 						}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 					/>
-				</div>
-				<div>
-					<label
-						htmlFor="v-account"
-						className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-					>
-						{t("bankAccount")}
-					</label>
-					<input
+				</Field>
+				<Field label={t("bankAccount")} htmlFor="v-account">
+					<Input
 						id="v-account"
 						type="text"
 						value={form.bank_account}
 						onChange={(e) =>
 							setForm((p) => ({ ...p, bank_account: e.target.value }))
 						}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 					/>
-				</div>
+				</Field>
 			</div>
 
-			<div>
-				<label
-					htmlFor="v-notes"
-					className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-				>
-					{t("notes")}
-				</label>
-				<textarea
+			<Field label={t("notes")} htmlFor="v-notes">
+				<Textarea
 					id="v-notes"
 					rows={3}
 					value={form.notes}
 					onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 				/>
-			</div>
+			</Field>
 
 			<label className="flex items-center gap-2 cursor-pointer">
 				<input
@@ -294,30 +243,22 @@ export function VendorForm({ vendor }: { vendor?: VendorRow }) {
 					onChange={(e) =>
 						setForm((p) => ({ ...p, is_active: e.target.checked }))
 					}
-					className="rounded border-gray-400 text-brand-600 focus:ring-brand-500"
+					className="rounded border-line-strong text-primary focus-visible:ring-[var(--ring)]"
 				/>
-				<span className="text-sm text-gray-700 dark:text-gray-300">{t("active")}</span>
+				<span className="text-sm text-ink">{t("active")}</span>
 			</label>
 
 			<div className="flex gap-3 pt-2">
-				<button
-					type="submit"
-					disabled={saving}
-					className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
-				>
+				<Button type="submit" loading={saving}>
 					{saving
 						? tButtons("saving")
 						: isEdit
 							? tButtons("saveChanges")
-							: tActions("addVendor")}
-				</button>
-				<button
-					type="button"
-					onClick={() => router.back()}
-					className="rounded-lg border border-gray-300 dark:border-gray-700 px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
-				>
+							: tActions("addFleet")}
+				</Button>
+				<Button type="button" variant="secondary" onClick={() => router.back()}>
 					{tButtons("cancel")}
-				</button>
+				</Button>
 			</div>
 		</form>
 	);

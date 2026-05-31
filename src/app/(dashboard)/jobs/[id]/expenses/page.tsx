@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ExpensePanel } from "@/components/jobs/ExpensePanel";
+import { PageHeader } from "@/components/ui";
 
 export default async function ExpensesPage({
 	params,
@@ -27,17 +28,17 @@ export default async function ExpensesPage({
 
 	return (
 		<div className="space-y-6 max-w-lg">
-			<div className="flex items-center gap-3">
-				<Link
-					href={`/jobs/${id}`}
-					className="text-sm text-brand-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
-				>
-					← {job.job_number}
-				</Link>
-				<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-					{t("expenses")}
-				</h1>
-			</div>
+			<PageHeader
+				title={t("expenses")}
+				subtitle={
+					<Link
+						href={`/jobs/${id}`}
+						className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+					>
+						← {job.job_number}
+					</Link>
+				}
+			/>
 
 			<ExpensePanel jobId={id} expenses={expenses ?? []} />
 		</div>

@@ -4,7 +4,7 @@ export default function SurveyDetailLoading() {
 	return (
 		<div className="max-w-3xl mx-auto space-y-5">
 			<Skeleton className="h-4 w-28" />
-			<div className="bg-white dark:bg-gray-900 rounded-2xl border border-slate-100 dark:border-gray-800 p-6 space-y-4">
+			<div className="bg-surface rounded-2xl border border-line p-6 space-y-4">
 				<div className="flex items-start justify-between gap-4">
 					<div className="space-y-2">
 						<Skeleton className="h-6 w-48" />
@@ -25,7 +25,7 @@ export default function SurveyDetailLoading() {
 					))}
 				</div>
 			</div>
-			<div className="bg-white dark:bg-gray-900 rounded-2xl border border-slate-100 dark:border-gray-800 p-6 space-y-3">
+			<div className="bg-surface rounded-2xl border border-line p-6 space-y-3">
 				<Skeleton className="h-3 w-24" />
 				<div className="grid grid-cols-3 gap-2">
 					{Array.from({ length: 3 }).map((_, i) => (

@@ -10,6 +10,7 @@ import {
 	PhotoLightbox,
 	type LightboxPhoto,
 } from "@/components/shared/PhotoLightbox";
+import { Card, buttonStyles } from "@/components/ui";
 
 type Photo = {
 	id: string;
@@ -104,17 +105,17 @@ export function LeadPhotoGallery({
 	}
 
 	return (
-		<section
+		<Card
 			aria-label={t("sectionAria")}
-			className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-4"
+			className="p-5 space-y-4"
 		>
 			<div className="flex items-center justify-between">
-				<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+				<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
 					{t("titleCount", { count: photos.length })}
 				</h2>
 				<label
 					htmlFor="photo-upload"
-					className="inline-flex items-center gap-2 cursor-pointer rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-within:ring-2 focus-within:ring-brand-500 transition-colors"
+					className={buttonStyles({ variant: "secondary", size: "sm", className: "cursor-pointer" })}
 				>
 					<Upload size={14} aria-hidden="true" />
 					{uploading ? t("uploading") : t("upload")}
@@ -133,13 +134,13 @@ export function LeadPhotoGallery({
 			</div>
 
 			{error && (
-				<div role="alert" className="text-xs text-red-600 dark:text-red-400">
+				<div role="alert" className="text-xs text-danger">
 					{error}
 				</div>
 			)}
 
 			{photos.length === 0 ? (
-				<p className="text-sm text-gray-400 text-center py-4">{t("empty")}</p>
+				<p className="text-sm text-ink-faint text-center py-4">{t("empty")}</p>
 			) : (
 				<ul
 					className="grid grid-cols-2 sm:grid-cols-3 gap-3"
@@ -148,7 +149,7 @@ export function LeadPhotoGallery({
 					{photos.map((photo, i) => (
 						<li
 							key={photo.id}
-							className="relative group rounded-lg overflow-hidden aspect-square bg-gray-100 dark:bg-gray-800"
+							className="relative group rounded-lg overflow-hidden aspect-square bg-subtle"
 						>
 							<Image
 								src={getPublicUrl(photo.storage_path)}
@@ -205,6 +206,6 @@ export function LeadPhotoGallery({
 					}
 				/>
 			)}
-		</section>
+		</Card>
 	);
 }

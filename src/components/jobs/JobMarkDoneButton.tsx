@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui";
 
 /**
  * Button that transitions a job status to "completed" and logs a timeline event.
@@ -49,11 +50,12 @@ export function JobMarkDoneButton({ jobId }: { jobId: string }) {
 
 	return (
 		<div>
-			<button
+			<Button
 				type="button"
 				onClick={handleClick}
-				disabled={loading}
-				className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 transition-colors"
+				loading={loading}
+				variant="primary"
+				size="sm"
 				aria-label="Mark job as completed"
 			>
 				{loading ? (
@@ -62,9 +64,9 @@ export function JobMarkDoneButton({ jobId }: { jobId: string }) {
 					<CheckCircle size={13} aria-hidden="true" />
 				)}
 				{loading ? tButtons("saving") : tActions("markDone")}
-			</button>
+			</Button>
 			{error && (
-				<p role="alert" className="mt-1 text-xs text-red-600">
+				<p role="alert" className="mt-1 text-xs text-danger">
 					{error}
 				</p>
 			)}

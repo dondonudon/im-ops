@@ -2,6 +2,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { EstimationForm } from "@/components/estimation/EstimationForm";
 import { notFound } from "next/navigation";
+import { PageHeader } from "@/components/ui";
 
 export default async function NewEstimationPage({
 	searchParams,
@@ -27,9 +28,7 @@ export default async function NewEstimationPage({
 
 	return (
 		<div className="space-y-6">
-			<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-				{existing ? "Edit Estimation" : "New Estimation"}
-			</h1>
+			<PageHeader title={existing ? "Edit Estimation" : "New Estimation"} />
 			<EstimationForm
 				proposalId={proposal_id}
 				settingRows={settingRows ?? []}

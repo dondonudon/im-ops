@@ -6,6 +6,8 @@ import { ArrowLeft, CalendarDays, User, ClipboardList } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { SurveyDetailClient } from "@/components/surveys/SurveyDetailClient";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
+import { Badge, Card } from "@/components/ui";
+import { buttonStyles } from "@/components/ui";
 
 /**
  * Survey detail page — shows survey info, special items, media gallery,
@@ -51,18 +53,18 @@ export default async function SurveyDetailPage({
 			{/* Back link */}
 			<Link
 				href={`/leads/${survey.lead_id}`}
-				className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+				className={buttonStyles({ variant: "ghost", size: "sm" })}
 			>
 				<ArrowLeft size={15} aria-hidden="true" />
 				Back to Lead
 			</Link>
 
 			{/* Header */}
-			<div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+			<Card className="p-6">
 				<div className="flex items-start justify-between flex-wrap gap-4">
 					<div>
-						<h1 className="text-xl font-bold text-slate-800">{customerName}</h1>
-						<p className="text-sm text-slate-500 mt-0.5">In-Home Survey</p>
+						<h1 className="text-xl font-bold text-ink">{customerName}</h1>
+						<p className="text-sm text-ink-muted mt-0.5">In-Home Survey</p>
 					</div>
 					<div className="flex items-center gap-2 flex-wrap">
 						<GCalRetryButton
@@ -70,45 +72,35 @@ export default async function SurveyDetailPage({
 							id={survey.id}
 							hasEvent={Boolean(survey.gcal_event_id)}
 						/>
-						<span
-							className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${
-								isDone
-									? "bg-green-100 text-green-700"
-									: "bg-amber-100 text-amber-700"
-							}`}
-						>
-							<span
-								className="w-1.5 h-1.5 rounded-full bg-current opacity-70"
-								aria-hidden="true"
-							/>
+						<Badge tone={isDone ? "positive" : "pending"} dot>
 							{isDone ? "Completed" : "Scheduled"}
-						</span>
+						</Badge>
 					</div>
 				</div>
 
 				<dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-					<div className="flex items-center gap-2 text-slate-600">
+					<div className="flex items-center gap-2 text-ink-muted">
 						<CalendarDays
 							size={15}
-							className="text-slate-400 shrink-0"
+							className="text-ink-faint shrink-0"
 							aria-hidden="true"
 						/>
 						<div>
-							<dt className="text-xs text-slate-400 leading-none mb-0.5">
+							<dt className="text-xs text-ink-faint leading-none mb-0.5">
 								Scheduled
 							</dt>
 							<dd className="font-medium">{formatDate(survey.scheduled_at)}</dd>
 						</div>
 					</div>
 					{survey.conducted_at && (
-						<div className="flex items-center gap-2 text-slate-600">
+						<div className="flex items-center gap-2 text-ink-muted">
 							<CalendarDays
 								size={15}
-								className="text-green-400 shrink-0"
+								className="text-success shrink-0"
 								aria-hidden="true"
 							/>
 							<div>
-								<dt className="text-xs text-slate-400 leading-none mb-0.5">
+								<dt className="text-xs text-ink-faint leading-none mb-0.5">
 									Completed
 								</dt>
 								<dd className="font-medium">
@@ -118,14 +110,14 @@ export default async function SurveyDetailPage({
 						</div>
 					)}
 					{lead?.pickup_address && (
-						<div className="flex items-start gap-2 text-slate-600">
+						<div className="flex items-start gap-2 text-ink-muted">
 							<User
 								size={15}
-								className="text-slate-400 shrink-0 mt-0.5"
+								className="text-ink-faint shrink-0 mt-0.5"
 								aria-hidden="true"
 							/>
 							<div>
-								<dt className="text-xs text-slate-400 leading-none mb-0.5">
+								<dt className="text-xs text-ink-faint leading-none mb-0.5">
 									Pickup
 								</dt>
 								<dd className="font-medium">{lead.pickup_address}</dd>
@@ -133,14 +125,14 @@ export default async function SurveyDetailPage({
 						</div>
 					)}
 					{lead?.destination_address && (
-						<div className="flex items-start gap-2 text-slate-600">
+						<div className="flex items-start gap-2 text-ink-muted">
 							<ClipboardList
 								size={15}
-								className="text-slate-400 shrink-0 mt-0.5"
+								className="text-ink-faint shrink-0 mt-0.5"
 								aria-hidden="true"
 							/>
 							<div>
-								<dt className="text-xs text-slate-400 leading-none mb-0.5">
+								<dt className="text-xs text-ink-faint leading-none mb-0.5">
 									Destination
 								</dt>
 								<dd className="font-medium">{lead.destination_address}</dd>
@@ -148,7 +140,7 @@ export default async function SurveyDetailPage({
 						</div>
 					)}
 				</dl>
-			</div>
+			</Card>
 
 			{/* Interactive client section: notes, items, media, actions */}
 			<SurveyDetailClient

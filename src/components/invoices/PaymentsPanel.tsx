@@ -6,6 +6,15 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { formatDate, formatRupiah } from "@/lib/utils";
 import { NumericInput } from "@/components/shared/NumericInput";
+import {
+	Button,
+	Card,
+	Field,
+	Select,
+	Input,
+	FormError,
+	Money,
+} from "@/components/ui";
 
 type Payment = {
 	id: string;
@@ -117,172 +126,129 @@ export function PaymentsPanel({
 		<div className="space-y-4">
 			{/* Summary */}
 			<div className="grid grid-cols-3 gap-3 text-center">
-				<div className="rounded-xl bg-gray-50 dark:bg-gray-800 p-3">
-					<p className="text-xs text-gray-500 mb-1">{tPanel("total")}</p>
-					<p className="tabular-nums font-bold text-sm">
+				<div className="rounded-xl bg-subtle p-3">
+					<p className="text-xs text-ink-muted mb-1">{tPanel("total")}</p>
+					<p className="tabular-nums font-bold text-sm text-ink">
 						{formatRupiah(totalAmount)}
 					</p>
 				</div>
-				<div className="rounded-xl bg-green-50 dark:bg-green-900/20 p-3">
-					<p className="text-xs text-gray-500 mb-1">{tPanel("paid")}</p>
-					<p className="tabular-nums font-bold text-sm text-green-600">
-						{formatRupiah(totalPaid)}
-					</p>
+				<div className="rounded-xl bg-success-bg p-3">
+					<p className="text-xs text-ink-muted mb-1">{tPanel("paid")}</p>
+					<Money value={totalPaid} tone="positive" className="font-bold text-sm" />
 				</div>
-				<div
-					className={`rounded-xl p-3 ${outstanding > 0 ? "bg-red-50 dark:bg-red-900/20" : "bg-gray-50 dark:bg-gray-800"}`}
-				>
-					<p className="text-xs text-gray-500 mb-1">{tPanel("outstanding")}</p>
-					<p
-						className={`tabular-nums font-bold text-sm ${outstanding > 0 ? "text-red-600" : "text-gray-400"}`}
-					>
-						{formatRupiah(outstanding > 0 ? outstanding : 0)}
-					</p>
+				<div className={`rounded-xl p-3 ${outstanding > 0 ? "bg-danger-bg" : "bg-subtle"}`}>
+					<p className="text-xs text-ink-muted mb-1">{tPanel("outstanding")}</p>
+					<Money
+						value={outstanding > 0 ? outstanding : 0}
+						tone={outstanding > 0 ? "danger" : "muted"}
+						className="font-bold text-sm"
+					/>
 				</div>
 			</div>
 
 			{/* Record payment button */}
 			{!isFullyPaid && invoiceStatus !== "cancelled" && (
-				<button
+				<Button
 					type="button"
+					variant={showForm ? "secondary" : "primary"}
+					size="md"
 					onClick={() => setShowForm((v) => !v)}
-					className="w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+					className="w-full"
 				>
 					{showForm ? tCommonButtons("cancel") : tPanel("recordPayment")}
-				</button>
+				</Button>
 			)}
 
 			{/* Payment form */}
 			{showForm && (
 				<form
 					onSubmit={handleSubmit}
-					className="rounded-xl border border-gray-200 dark:border-gray-800 p-4 space-y-3"
+					className="rounded-xl border border-line p-4 space-y-3"
 				>
-					{error && (
-						<div
-							role="alert"
-							className="text-sm text-red-600 dark:text-red-400"
-						>
-							{error}
-						</div>
-					)}
+					{error && <FormError>{error}</FormError>}
 					<div className="grid grid-cols-2 gap-3">
-						<div>
-							<label
-								htmlFor="pt-type"
-								className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400"
-							>
-								{tForm("type")}
-							</label>
-							<select
+						<Field label={tForm("type")} htmlFor="pt-type">
+							<Select
 								id="pt-type"
 								value={form.payment_type}
 								onChange={(e) =>
 									setForm((p) => ({ ...p, payment_type: e.target.value }))
 								}
-								className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 							>
 								{PAYMENT_TYPES.map((t) => (
 									<option key={t} value={t}>
 										{tPaymentType(t)}
 									</option>
 								))}
-							</select>
-						</div>
-						<div>
-							<label
-								htmlFor="pt-method"
-								className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400"
-							>
-								{tForm("method")}
-							</label>
-							<select
+							</Select>
+						</Field>
+						<Field label={tForm("method")} htmlFor="pt-method">
+							<Select
 								id="pt-method"
 								value={form.method}
 								onChange={(e) =>
 									setForm((p) => ({ ...p, method: e.target.value }))
 								}
-								className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 							>
 								{PAYMENT_METHODS.map((m) => (
 									<option key={m} value={m}>
 										{tPaymentMethod(m)}
 									</option>
 								))}
-							</select>
-						</div>
+							</Select>
+						</Field>
 					</div>
 					<div className="grid grid-cols-2 gap-3">
-						<div>
-							<label
-								htmlFor="pt-amount"
-								className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400"
-							>
-								{tForm("amountIdr")}{" "}
-								<span aria-hidden="true" className="text-red-500">
-									*
-								</span>
-							</label>
+						<Field label={tForm("amountIdr")} htmlFor="pt-amount" required>
 							<NumericInput
 								id="pt-amount"
 								required
 								value={Number(form.amount) || 0}
 								onChange={(v) => setForm((p) => ({ ...p, amount: v > 0 ? String(v) : "" }))}
-								className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+								className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed"
 							/>
-						</div>
-						<div>
-							<label
-								htmlFor="pt-date"
-								className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400"
-							>
-								{tForm("date")}
-							</label>
-							<input
+						</Field>
+						<Field label={tForm("date")} htmlFor="pt-date">
+							<Input
 								id="pt-date"
 								type="date"
 								value={form.paid_at}
 								onChange={(e) =>
 									setForm((p) => ({ ...p, paid_at: e.target.value }))
 								}
-								className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 							/>
-						</div>
+						</Field>
 					</div>
-					<div>
-						<label
-							htmlFor="pt-notes"
-							className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400"
-						>
-							{tForm("notes")}
-						</label>
-						<input
+					<Field label={tForm("notes")} htmlFor="pt-notes">
+						<Input
 							id="pt-notes"
 							type="text"
 							value={form.notes}
 							onChange={(e) =>
 								setForm((p) => ({ ...p, notes: e.target.value }))
 							}
-							className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 						/>
-					</div>
-					<button
+					</Field>
+					<Button
 						type="submit"
+						variant="primary"
+						size="md"
 						disabled={saving || isPending}
-						className="w-full rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 transition-colors"
+						loading={saving}
+						className="w-full"
 					>
 						{saving ? tCommonButtons("saving") : tForm("savePayment")}
-					</button>
+					</Button>
 				</form>
 			)}
 
 			{/* Payment history */}
-			<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
-				<p className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+			<Card className="divide-y divide-line">
+				<p className="px-4 py-2 text-xs font-semibold text-ink-muted uppercase tracking-wide">
 					{tPanel("history")}
 				</p>
 				{payments.length === 0 && (
-					<p className="px-4 py-4 text-sm text-center text-gray-400">
+					<p className="px-4 py-4 text-sm text-center text-ink-faint">
 						{tPanel("noPayments")}
 					</p>
 				)}
@@ -292,30 +258,29 @@ export function PaymentsPanel({
 						className="flex items-center justify-between px-4 py-3 text-sm"
 					>
 						<div>
-							<span className="font-medium">
+							<span className="font-medium text-ink">
 								{tPaymentType(p.payment_type)}
 							</span>
-							<span className="text-xs text-gray-400 ml-2">
+							<span className="text-xs text-ink-faint ml-2">
 								{tPanel("via", {
 									method: p.method ? tPaymentMethod(p.method) : "—",
 								})}
 							</span>
 							{p.notes && (
-								<span className="block text-xs text-gray-400">{p.notes}</span>
+								<span className="block text-xs text-ink-faint">{p.notes}</span>
 							)}
-							<span className="block text-xs text-gray-400">
+							<span className="block text-xs text-ink-faint">
 								{formatDate(p.paid_at)}
 							</span>
 						</div>
-						<span
-							className={`tabular-nums font-medium ${p.payment_type === "refund" ? "text-red-600" : "text-green-600"}`}
-						>
-							{p.payment_type === "refund" ? "−" : "+"}
-							{formatRupiah(p.amount)}
-						</span>
+						<Money
+							value={p.amount}
+							tone={p.payment_type === "refund" ? "danger" : "positive"}
+							className="font-medium"
+						/>
 					</div>
 				))}
-			</div>
+			</Card>
 		</div>
 	);
 }

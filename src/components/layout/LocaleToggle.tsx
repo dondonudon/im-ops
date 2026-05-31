@@ -26,7 +26,7 @@ export function LocaleToggle() {
 		<div
 			role="group"
 			aria-label={t("language")}
-			className="inline-flex items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden text-[10px] font-semibold"
+			className="inline-flex items-center rounded-lg border border-line bg-surface overflow-hidden text-[10px] font-semibold"
 		>
 			{LOCALES.map((loc) => {
 				const active = loc === current;
@@ -38,10 +38,10 @@ export function LocaleToggle() {
 						disabled={pending}
 						aria-pressed={active}
 						className={[
-							"px-2 py-1 uppercase tracking-wide transition-colors min-w-[28px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500",
+							"px-2 py-1 uppercase tracking-wide transition-colors min-w-[28px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]",
 							active
-								? "bg-brand-600 text-white"
-								: "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700",
+								? "bg-primary text-primary-fg"
+								: "text-ink-muted hover:bg-subtle hover:text-ink",
 						].join(" ")}
 					>
 						{pending && active ? (

@@ -104,9 +104,12 @@ function Inner() {
 	return (
 		<div
 			aria-hidden="true"
-			className="fixed top-0 left-0 right-0 z-[100] h-0.5 overflow-hidden pointer-events-none"
+			className="fixed top-0 left-0 right-0 z-[100] h-[3px] overflow-hidden pointer-events-none"
 		>
-			<div className="h-full w-full bg-brand-500 origin-left animate-progress-indeterminate" />
+			<div
+				className="h-full w-full bg-primary origin-left animate-progress-indeterminate"
+				style={{ boxShadow: "0 0 8px 1px var(--primary)" }}
+			/>
 		</div>
 	);
 }

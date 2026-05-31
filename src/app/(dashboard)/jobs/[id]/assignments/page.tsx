@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { AssignmentsPanel } from "@/components/jobs/AssignmentsPanel";
+import { PageHeader } from "@/components/ui";
 
 export default async function AssignmentsPage({
 	params,
@@ -17,7 +18,7 @@ export default async function AssignmentsPage({
 	const [
 		{ data: job },
 		{ data: assignments },
-		{ data: vendors },
+		{ data: fleetData },
 		{ data: crew },
 	] = await Promise.all([
 		supabase
@@ -28,11 +29,11 @@ export default async function AssignmentsPage({
 		supabase
 			.from("job_assignments")
 			.select(
-				"id, assignment_type, role, vendor_id, crew_id, vendors(name), crew(name)",
+				"id, assignment_type, role, fleet_id, crew_id, fleet(name), crew(name)",
 			)
 			.eq("job_id", id),
 		supabase
-			.from("vendors")
+			.from("fleet")
 			.select("id, name")
 			.eq("is_active", true)
 			.order("name"),
@@ -47,23 +48,23 @@ export default async function AssignmentsPage({
 
 	return (
 		<div className="space-y-6 max-w-2xl">
-			<div className="flex items-center gap-3">
-				<Link
-					href={`/jobs/${id}`}
-					className="text-sm text-brand-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
-				>
-					← {job.job_number}
-				</Link>
-				<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-					{t("title")}
-				</h1>
-			</div>
+			<PageHeader
+				title={t("title")}
+				subtitle={
+					<Link
+						href={`/jobs/${id}`}
+						className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+					>
+						← {job.job_number}
+					</Link>
+				}
+			/>
 
 			<AssignmentsPanel
 				jobId={id}
 				moveDate={job.move_date}
 				assignments={assignments ?? []}
-				vendors={vendors ?? []}
+				fleetList={fleetData ?? []}
 				crewList={crew ?? []}
 			/>
 		</div>

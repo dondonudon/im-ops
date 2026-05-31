@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { NumericInput } from "@/components/shared/NumericInput";
+import {
+	Field,
+	Input,
+	Select,
+	Textarea,
+	FormError,
+	Button,
+} from "@/components/ui";
 
 type CrewRow = {
 	id: string;
@@ -118,70 +126,39 @@ export function CrewForm({ member }: { member?: CrewRow }) {
 
 	return (
 		<form onSubmit={handleSubmit} className="max-w-lg space-y-5" noValidate>
-			{error && (
-				<div
-					role="alert"
-					className="rounded bg-red-50 dark:bg-red-900/20 border border-red-200 px-3 py-2 text-sm text-red-700 dark:text-red-300"
-				>
-					{error}
-				</div>
-			)}
+			{error && <FormError>{error}</FormError>}
 
-			<div>
-				<label
-					htmlFor="c-name"
-					className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-				>
-					{t("name")}{" "}
-					<span aria-hidden="true" className="text-red-500">
-						*
-					</span>
-				</label>
-				<input
+			<Field label={t("name")} htmlFor="c-name" required>
+				<Input
 					id="c-name"
 					type="text"
 					required
 					value={form.name}
 					onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 				/>
-			</div>
+			</Field>
 
 			<div className="grid grid-cols-2 gap-4">
-				<div>
-					<label
-						htmlFor="c-phone"
-						className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-					>
-						{t("phone")}
-					</label>
-					<input
+				<Field label={t("phone")} htmlFor="c-phone">
+					<Input
 						id="c-phone"
 						type="tel"
 						value={form.phone}
 						onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 					/>
-				</div>
-				<div>
-					<label
-						htmlFor="c-rate"
-						className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-					>
-						{t("dailyRate")}{" "}
-						<span className="text-gray-400 font-normal">{tHints("idr")}</span>
-					</label>
+				</Field>
+				<Field label={t("dailyRate")} htmlFor="c-rate" hint={tHints("idr")}>
 					<NumericInput
 						id="c-rate"
 						value={Number(form.daily_rate) || 0}
 						onChange={(v) => setForm((p) => ({ ...p, daily_rate: v > 0 ? String(v) : "" }))}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+						className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 					/>
-				</div>
+				</Field>
 			</div>
 
 			<div>
-				<span className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+				<span className="block text-sm font-medium mb-2 text-ink">
 					{t("skills")}
 				</span>
 				<div role="group" aria-label={t("skills")} className="flex flex-wrap gap-2">
@@ -194,45 +171,32 @@ export function CrewForm({ member }: { member?: CrewRow }) {
 								type="checkbox"
 								checked={form.skills.includes(s.value)}
 								onChange={() => toggleSkill(s.value)}
-								className="rounded border-gray-400 text-brand-600 focus:ring-brand-500"
+								className="rounded border-line-strong text-primary focus-visible:ring-[var(--ring)]"
 							/>
-							<span className="text-sm">{tSkill(s.tKey)}</span>
+							<span className="text-sm text-ink">{tSkill(s.tKey)}</span>
 						</label>
 					))}
 				</div>
 			</div>
 
-			<div>
-				<label
-					htmlFor="c-avail"
-					className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-				>
-					{t("availability")}
-				</label>
-				<select
+			<Field label={t("availability")} htmlFor="c-avail">
+				<Select
 					id="c-avail"
 					value={form.availability_status}
 					onChange={(e) =>
 						setForm((p) => ({ ...p, availability_status: e.target.value }))
 					}
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 				>
 					{AVAIL_OPTS.map((o) => (
 						<option key={o.value} value={o.value}>
 							{tAvail(o.tKey)}
 						</option>
 					))}
-				</select>
-			</div>
+				</Select>
+			</Field>
 
-			<div>
-				<label
-					htmlFor="c-emergency"
-					className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-				>
-					{t("emergencyContact")}
-				</label>
-				<input
+			<Field label={t("emergencyContact")} htmlFor="c-emergency">
+				<Input
 					id="c-emergency"
 					type="text"
 					value={form.emergency_contact}
@@ -240,25 +204,17 @@ export function CrewForm({ member }: { member?: CrewRow }) {
 						setForm((p) => ({ ...p, emergency_contact: e.target.value }))
 					}
 					placeholder={t("emergencyPlaceholder")}
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 				/>
-			</div>
+			</Field>
 
-			<div>
-				<label
-					htmlFor="c-notes"
-					className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-				>
-					{t("notes")}
-				</label>
-				<textarea
+			<Field label={t("notes")} htmlFor="c-notes">
+				<Textarea
 					id="c-notes"
 					rows={2}
 					value={form.notes}
 					onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 				/>
-			</div>
+			</Field>
 
 			<label className="flex items-center gap-2 cursor-pointer">
 				<input
@@ -267,30 +223,22 @@ export function CrewForm({ member }: { member?: CrewRow }) {
 					onChange={(e) =>
 						setForm((p) => ({ ...p, is_active: e.target.checked }))
 					}
-					className="rounded border-gray-400 text-brand-600 focus:ring-brand-500"
+					className="rounded border-line-strong text-primary focus-visible:ring-[var(--ring)]"
 				/>
-				<span className="text-sm text-gray-700 dark:text-gray-300">{t("active")}</span>
+				<span className="text-sm text-ink">{t("active")}</span>
 			</label>
 
 			<div className="flex gap-3 pt-2">
-				<button
-					type="submit"
-					disabled={saving}
-					className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
-				>
+				<Button type="submit" loading={saving}>
 					{saving
 						? tButtons("saving")
 						: isEdit
 							? tButtons("saveChanges")
 							: tActions("addCrewMember")}
-				</button>
-				<button
-					type="button"
-					onClick={() => router.back()}
-					className="rounded-lg border border-gray-300 dark:border-gray-700 px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
-				>
+				</Button>
+				<Button type="button" variant="secondary" onClick={() => router.back()}>
 					{tButtons("cancel")}
-				</button>
+				</Button>
 			</div>
 		</form>
 	);

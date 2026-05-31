@@ -7,7 +7,7 @@ export default function CalendarLoading() {
 				<Skeleton className="h-7 w-32" />
 				<Skeleton className="h-8 w-40" />
 			</div>
-			<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3">
+			<div className="rounded-xl border border-line bg-surface p-4 space-y-3">
 				<div className="flex items-center gap-2">
 					<Skeleton className="h-9 w-9 rounded-lg" />
 					<Skeleton className="h-9 flex-1" />

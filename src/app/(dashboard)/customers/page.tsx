@@ -1,144 +1,158 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate } from "@/lib/utils";
+import { formatDate, sanitizeSearch } from "@/lib/utils";
+import {
+	PageHeader,
+	Input,
+	Badge,
+	EmptyState,
+	Table,
+	THead,
+	TH,
+	TBody,
+	TR,
+	TD,
+	Pagination,
+} from "@/components/ui";
+
+const PAGE_SIZE = 25;
 
 /**
- * Customer list page — shows all customers with a link to create new.
+ * Customer list page — desktop table + mobile card list, both on the UI kit.
  */
 export default async function CustomersPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ q?: string }>;
+	searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-	const { q } = await searchParams;
+	const { q, page: rawPage } = await searchParams;
+	const page = Math.max(1, Number(rawPage) || 1);
+	const from = (page - 1) * PAGE_SIZE;
 	const supabase = await createClient();
 	const t = await getTranslations("pages.customers");
 	const tType = await getTranslations("entity.customerType");
 
 	let query = supabase
 		.from("customers")
-		.select("id, name, phone, email, type, company_name, created_at")
-		.order("created_at", { ascending: false });
+		.select("id, name, phone, email, type, company_name, created_at", { count: "exact" });
 
 	if (q) {
-		query = query.or(`name.ilike.%${q}%,phone.ilike.%${q}%,email.ilike.%${q}%`);
+		const safe = sanitizeSearch(q);
+		query = query.or(
+			`name.ilike.%${safe}%,phone.ilike.%${safe}%,email.ilike.%${safe}%`,
+		);
 	}
 
-	const { data: customers } = await query;
+	const { data: customers, count } = await query
+		.order("created_at", { ascending: false })
+		.range(from, from + PAGE_SIZE - 1);
+	const rows = customers ?? [];
 
 	return (
 		<div className="space-y-5">
-			<h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-				{t("title")}
-			</h1>
+			<PageHeader title={t("title")} />
 
 			{/* Search */}
 			<form method="GET" role="search">
-				<input
+				<Input
 					type="search"
 					name="q"
 					defaultValue={q}
 					placeholder={t("searchPlaceholder")}
 					aria-label={t("searchPlaceholder")}
-					className="w-full max-w-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+					className="max-w-sm"
 				/>
 			</form>
 
 			{/* Desktop table */}
-			<div className="hidden md:block overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-				<table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800 text-sm">
-					<thead className="bg-gray-50 dark:bg-gray-800">
-						<tr>
-							<th scope="col" className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-								{t("columns.name")}
-							</th>
-							<th scope="col" className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-								{t("columns.phone")}
-							</th>
-							<th scope="col" className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-								{t("columns.type")}
-							</th>
-							<th scope="col" className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-								{t("columns.since")}
-							</th>
-						</tr>
-					</thead>
-					<tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-						{(customers ?? []).map((c) => (
-							<tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-								<td className="px-4 py-3 font-medium">
+			<div className="hidden md:block">
+				<Table>
+					<THead>
+						<TH>{t("columns.name")}</TH>
+						<TH>{t("columns.phone")}</TH>
+						<TH>{t("columns.type")}</TH>
+						<TH>{t("columns.since")}</TH>
+					</THead>
+					<TBody>
+						{rows.map((c) => (
+							<TR key={c.id}>
+								<TD className="font-medium">
 									<Link
 										href={`/customers/${c.id}`}
-										className="text-brand-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+										className="text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 									>
 										{c.name}
-										{c.company_name && (
-											<span className="ml-1 text-xs text-gray-400">
-												({c.company_name})
-											</span>
-										)}
 									</Link>
-								</td>
-								<td className="px-4 py-3 text-gray-600 dark:text-gray-400">
-									{c.phone ?? "—"}
-								</td>
-								<td className="px-4 py-3 text-gray-600 dark:text-gray-400">
-									{tType(c.type as never)}
-								</td>
-								<td className="px-4 py-3 text-gray-500 dark:text-gray-500">
+									{c.company_name && (
+										<span className="ml-1 text-xs text-ink-faint">
+											({c.company_name})
+										</span>
+									)}
+								</TD>
+								<TD className="text-ink-muted">{c.phone ?? "—"}</TD>
+								<TD>
+									<Badge tone={c.type === "corporate" ? "info" : "neutral"}>
+										{tType(c.type as never)}
+									</Badge>
+								</TD>
+								<TD className="text-ink-faint tabular-nums">
 									{formatDate(c.created_at)}
-								</td>
-							</tr>
+								</TD>
+							</TR>
 						))}
-						{(customers ?? []).length === 0 && (
+						{rows.length === 0 && (
 							<tr>
-								<td colSpan={4} className="px-4 py-8 text-center text-gray-400">
-									{q ? t("emptyFiltered") : t("empty")}
+								<td colSpan={4}>
+									<EmptyState title={q ? t("emptyFiltered") : t("empty")} />
 								</td>
 							</tr>
 						)}
-					</tbody>
-				</table>
+					</TBody>
+				</Table>
 			</div>
 
 			{/* Mobile cards */}
 			<div className="md:hidden space-y-3">
-				{(customers ?? []).map((c) => (
+				{rows.map((c) => (
 					<Link
 						key={c.id}
 						href={`/customers/${c.id}`}
-						className="block bg-white rounded-xl border border-gray-200 p-4 shadow-sm active:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+						className="block rounded-xl border border-line bg-surface shadow-token p-4 transition-colors active:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 					>
-						<div className="flex items-start justify-between">
-							<div>
-								<p className="font-semibold text-gray-900">{c.name}</p>
+						<div className="flex items-start justify-between gap-3">
+							<div className="min-w-0">
+								<p className="font-semibold text-ink truncate">{c.name}</p>
 								{c.company_name && (
-									<p className="text-xs text-gray-400 mt-0.5">{c.company_name}</p>
+									<p className="text-xs text-ink-faint mt-0.5 truncate">
+										{c.company_name}
+									</p>
 								)}
 							</div>
-							<span className="text-xs bg-gray-100 text-gray-600 rounded-full px-2 py-0.5">
+							<Badge tone={c.type === "corporate" ? "info" : "neutral"}>
 								{tType(c.type as never)}
-							</span>
+							</Badge>
 						</div>
 						<div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 text-sm">
 							<div>
-								<p className="text-xs text-gray-400">{t("columns.phone")}</p>
-								<p className="text-gray-700">{c.phone ?? "—"}</p>
+								<p className="text-xs text-ink-faint">{t("columns.phone")}</p>
+								<p className="text-ink-muted">{c.phone ?? "—"}</p>
 							</div>
 							<div>
-								<p className="text-xs text-gray-400">{t("columns.since")}</p>
-								<p className="text-gray-700">{formatDate(c.created_at)}</p>
+								<p className="text-xs text-ink-faint">{t("columns.since")}</p>
+								<p className="text-ink-muted tabular-nums">
+									{formatDate(c.created_at)}
+								</p>
 							</div>
 						</div>
 					</Link>
 				))}
-				{(customers ?? []).length === 0 && (
-					<p className="py-10 text-center text-sm text-gray-400">
-						{q ? t("emptyFiltered") : t("empty")}
-					</p>
+				{rows.length === 0 && (
+					<EmptyState title={q ? t("emptyFiltered") : t("empty")} />
 				)}
 			</div>
+
+			<Pagination page={page} pageSize={PAGE_SIZE} total={count ?? 0} />
 		</div>
 	);
 }

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatJobSchedule, formatDate, formatRupiah } from "@/lib/utils";
-import { StatusChip, jobStatusVariant } from "@/components/shared/StatusChip";
+import { Badge, toneFor, Card, CardHeader, PageHeader, buttonStyles } from "@/components/ui";
 import { Pencil } from "lucide-react";
 import { JobMarkDoneButton } from "@/components/jobs/JobMarkDoneButton";
 import { JobStartButton } from "@/components/jobs/JobStartButton";
@@ -52,7 +52,7 @@ export default async function JobDetailPage({
 		supabase
 			.from("job_assignments")
 			.select(
-				"id, assignment_type, vendor_id, crew_id, role, daily_rate, days, vendors(name), crew(name)",
+				"id, assignment_type, fleet_id, crew_id, role, daily_rate, days, fleet(name), crew(name)",
 			)
 			.eq("job_id", id),
 		supabase
@@ -100,18 +100,17 @@ export default async function JobDetailPage({
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<div className="flex items-start justify-between flex-wrap gap-4">
-				<div>
-					<div className="flex items-center gap-3 mb-1">
-						<h1 className="text-2xl font-bold font-mono text-gray-900 dark:text-white">
-							{job.job_number}
-						</h1>
-						<StatusChip
-							label={tStatus(job.status as never)}
-							variant={jobStatusVariant(job.status)}
-						/>
-					</div>
-					<p className="text-sm text-gray-500 dark:text-gray-400">
+			<PageHeader
+				title={
+					<span className="flex items-center gap-3">
+						<span className="font-mono">{job.job_number}</span>
+						<Badge tone={toneFor("job", job.status)} dot>
+							{tStatus(job.status as never)}
+						</Badge>
+					</span>
+				}
+				subtitle={
+					<>
 						{customer?.name ?? "—"} ·{" "}
 						{job.move_date
 							? formatJobSchedule(
@@ -126,212 +125,232 @@ export default async function JobDetailPage({
 								·{" "}
 								<Link
 									href={`/proposals/${proposal.id}`}
-									className="text-brand-600 hover:underline"
+									className="text-primary-text hover:underline"
 								>
 									{proposal.proposal_number}
 								</Link>
 							</>
 						)}
-					</p>
-				</div>
-				<div className="flex items-center gap-2 flex-wrap">
-					<Link
-						href={`/jobs/${id}/edit`}
-						className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-					>
-						<Pencil size={14} aria-hidden="true" />
-						{tCommon("edit")}
-					</Link>
-					<GCalRetryButton
-						kind="job"
-						id={id}
-						hasEvent={Boolean(job.gcal_event_id)}
-					/>
-					{job.status === "scheduled" && <JobStartButton jobId={id} />}
-					{job.status === "in_progress" && <JobMarkDoneButton jobId={id} />}
-					<JobStatusActions jobId={id} status={job.status} />
-				</div>
-			</div>
+					</>
+				}
+				actions={
+					<div className="flex items-center gap-2 flex-wrap">
+						<Link
+							href={`/jobs/${id}/edit`}
+							className={buttonStyles({ variant: "secondary", size: "sm" })}
+						>
+							<Pencil size={14} aria-hidden="true" />
+							{tCommon("edit")}
+						</Link>
+						<GCalRetryButton
+							kind="job"
+							id={id}
+							hasEvent={Boolean(job.gcal_event_id)}
+						/>
+						{job.status === "scheduled" && <JobStartButton jobId={id} />}
+						{job.status === "in_progress" && <JobMarkDoneButton jobId={id} />}
+						<JobStatusActions jobId={id} status={job.status} />
+					</div>
+				}
+			/>
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 				{/* Left: details */}
 				<div className="lg:col-span-2 space-y-6">
 					{/* Move summary */}
 					{proposal?.leads && (
-						<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 grid grid-cols-2 gap-4 text-sm">
+						<Card className="p-5 grid grid-cols-2 gap-4 text-sm">
 							<div>
-								<p className="text-gray-500">{t("pickup")}</p>
+								<p className="text-ink-muted">{t("pickup")}</p>
 								<p className="font-medium mt-0.5">
 									{proposal.leads.pickup_address ?? "—"}
 								</p>
 							</div>
 							<div>
-								<p className="text-gray-500">{t("destination")}</p>
+								<p className="text-ink-muted">{t("destination")}</p>
 								<p className="font-medium mt-0.5">
 									{proposal.leads.destination_address ?? "—"}
 								</p>
 							</div>
 							<div>
-								<p className="text-gray-500">{t("revenue")}</p>
-								<p className="font-bold text-lg text-brand-600 mt-0.5">
+								<p className="text-ink-muted">{t("revenue")}</p>
+								<p className="font-bold text-lg text-primary-text mt-0.5">
 									{job.revenue ? formatRupiah(job.revenue) : "—"}
 								</p>
 							</div>
 							<div>
-								<p className="text-gray-500">{t("expenses")}</p>
+								<p className="text-ink-muted">{t("expenses")}</p>
 								<p className="font-bold text-lg mt-0.5">
 									{formatRupiah(totalExpenses)}
 								</p>
 							</div>
-						</section>
+						</Card>
 					)}
 
 					{/* Assignments */}
-					<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-						<div className="flex items-center justify-between mb-3">
-							<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-								{t("assignments")}
-							</h2>
-							<Link
-								href={`/jobs/${id}/assignments`}
-								className="text-xs text-brand-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
-							>
-								{tAssign("manage")}
-							</Link>
+					<Card>
+						<CardHeader
+							title={
+								<span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
+									{t("assignments")}
+								</span>
+							}
+							action={
+								<Link
+									href={`/jobs/${id}/assignments`}
+									className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+								>
+									{tAssign("manage")}
+								</Link>
+							}
+						/>
+						<div className="p-5">
+							{(assignments ?? []).length === 0 ? (
+								<p className="text-sm text-ink-faint">{t("noAssignments")}</p>
+							) : (
+								<ul className="space-y-2 text-sm">
+									{(assignments ?? []).map((a) => {
+										const name =
+											a.assignment_type === "fleet"
+												? (a.fleet as { name: string } | null)?.name
+												: (a.crew as { name: string } | null)?.name;
+										return (
+											<li
+												key={a.id}
+												className="flex items-center justify-between"
+											>
+												<span>
+													{name ?? "—"}{" "}
+													<span className="text-ink-faint text-xs">
+														({a.role ?? a.assignment_type})
+													</span>
+												</span>
+												{a.daily_rate && a.days && (
+													<span className="tabular-nums text-xs text-ink-muted">
+														{formatRupiah(a.daily_rate * a.days)}
+													</span>
+												)}
+											</li>
+										);
+									})}
+								</ul>
+							)}
 						</div>
-						{(assignments ?? []).length === 0 ? (
-							<p className="text-sm text-gray-400">{t("noAssignments")}</p>
-						) : (
-							<ul className="space-y-2 text-sm">
-								{(assignments ?? []).map((a) => {
-									const name =
-										a.assignment_type === "vendor"
-											? (a.vendors as { name: string } | null)?.name
-											: (a.crew as { name: string } | null)?.name;
-									return (
-										<li
-											key={a.id}
-											className="flex items-center justify-between"
-										>
-											<span>
-												{name ?? "—"}{" "}
-												<span className="text-gray-400 text-xs">
-													({a.role ?? a.assignment_type})
-												</span>
-											</span>
-											{a.daily_rate && a.days && (
-												<span className="tabular-nums text-xs text-gray-500">
-													{formatRupiah(a.daily_rate * a.days)}
-												</span>
-											)}
-										</li>
-									);
-								})}
-							</ul>
-						)}
-					</section>
+					</Card>
 
 					{/* Recent expenses */}
-					<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-						<div className="flex items-center justify-between mb-3">
-							<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-								{t("expenses")}
-							</h2>
-							<Link
-								href={`/jobs/${id}/expenses`}
-								className="text-xs text-brand-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
-							>
-								{t("addOrViewAll")}
-							</Link>
-						</div>
-						{(expenses ?? []).slice(0, 5).map((e) => (
-							<div
-								key={e.id}
-								className="flex items-center justify-between py-1 text-sm"
-							>
-								<span className="text-gray-600 dark:text-gray-400">
-									{e.category} {e.description ? `— ${e.description}` : ""}
+					<Card>
+						<CardHeader
+							title={
+								<span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
+									{t("expenses")}
 								</span>
-								<span className="tabular-nums">{formatRupiah(e.amount)}</span>
-							</div>
-						))}
-						{(expenses ?? []).length === 0 && (
-							<p className="text-sm text-gray-400">{t("noExpenses")}</p>
-						)}
-					</section>
+							}
+							action={
+								<Link
+									href={`/jobs/${id}/expenses`}
+									className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+								>
+									{t("addOrViewAll")}
+								</Link>
+							}
+						/>
+						<div className="p-5">
+							{(expenses ?? []).slice(0, 5).map((e) => (
+								<div
+									key={e.id}
+									className="flex items-center justify-between py-1 text-sm"
+								>
+									<span className="text-ink-muted">
+										{e.category} {e.description ? `— ${e.description}` : ""}
+									</span>
+									<span className="tabular-nums">{formatRupiah(e.amount)}</span>
+								</div>
+							))}
+							{(expenses ?? []).length === 0 && (
+								<p className="text-sm text-ink-faint">{t("noExpenses")}</p>
+							)}
+						</div>
+					</Card>
 
 					{/* Timeline */}
-					<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-						<div className="flex items-center justify-between mb-4">
-							<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-								{t("timeline")}
-							</h2>
-							<div className="flex items-center gap-2">
-								<TimelineLogEventButton jobId={id} />
-								<Link
-									href={`/jobs/${id}/timeline`}
-									className="text-xs text-brand-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
-								>
-									{tCommon("viewAll")} →
-								</Link>
-							</div>
-						</div>
-						{(timeline ?? []).length === 0 ? (
-							<p className="text-sm text-gray-400">
-								{t("noTimelineEvents")}
-							</p>
-						) : (
-							<ol className="space-y-3">
-								{(timeline ?? []).map((t, idx) => (
-									<li key={t.id} className="flex gap-3 text-sm">
-										<div className="flex flex-col items-center">
-											<div
-												className={`w-2.5 h-2.5 rounded-full mt-0.5 ${idx === 0 ? "bg-brand-500" : "bg-gray-300 dark:bg-gray-600"}`}
-												aria-hidden="true"
-											/>
-											{idx < (timeline ?? []).length - 1 && (
+					<Card>
+						<CardHeader
+							title={
+								<span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
+									{t("timeline")}
+								</span>
+							}
+							action={
+								<div className="flex items-center gap-2">
+									<TimelineLogEventButton jobId={id} />
+									<Link
+										href={`/jobs/${id}/timeline`}
+										className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+									>
+										{tCommon("viewAll")} →
+									</Link>
+								</div>
+							}
+						/>
+						<div className="p-5">
+							{(timeline ?? []).length === 0 ? (
+								<p className="text-sm text-ink-faint">
+									{t("noTimelineEvents")}
+								</p>
+							) : (
+								<ol className="space-y-3">
+									{(timeline ?? []).map((t, idx) => (
+										<li key={t.id} className="flex gap-3 text-sm">
+											<div className="flex flex-col items-center">
 												<div
-													className="flex-1 w-px bg-gray-200 dark:bg-gray-700 mt-1"
+													className={`w-2.5 h-2.5 rounded-full mt-0.5 ${idx === 0 ? "bg-primary" : "bg-line-strong"}`}
 													aria-hidden="true"
 												/>
-											)}
-										</div>
-										<div className="pb-3">
-											<p className="font-medium capitalize">
-												{t.event_type.replace(/_/g, " ")}
-											</p>
-											{t.notes && (
-												<p className="text-gray-500 text-xs mt-0.5">
-													{t.notes}
+												{idx < (timeline ?? []).length - 1 && (
+													<div
+														className="flex-1 w-px bg-line mt-1"
+														aria-hidden="true"
+													/>
+												)}
+											</div>
+											<div className="pb-3">
+												<p className="font-medium capitalize">
+													{t.event_type.replace(/_/g, " ")}
 												</p>
-											)}
-											<p className="text-gray-400 text-xs">
-												{formatDate(t.occurred_at)}
-											</p>
-										</div>
-									</li>
-								))}
-							</ol>
-						)}
-					</section>
+												{t.notes && (
+													<p className="text-ink-muted text-xs mt-0.5">
+														{t.notes}
+													</p>
+												)}
+												<p className="text-ink-faint text-xs">
+													{formatDate(t.occurred_at)}
+												</p>
+											</div>
+										</li>
+									))}
+								</ol>
+							)}
+						</div>
+					</Card>
 				</div>
 
 				{/* Right: profit + invoice panel */}
 				<div className="space-y-4">
 					{/* Quick profit */}
-					<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
-						<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+					<Card className="p-5 space-y-3">
+						<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
 							{t("profit")}
 						</h2>
 						<div
 							className="text-2xl font-bold"
 							aria-label={`${t("profit")}: ${formatRupiah(profit)}`}
 						>
-							<span className={profit >= 0 ? "text-green-600" : "text-red-600"}>
+							<span className={profit >= 0 ? "text-success" : "text-danger"}>
 								{formatRupiah(profit)}
 							</span>
 						</div>
-						<div className="text-xs text-gray-500 space-y-1">
+						<div className="text-xs text-ink-muted space-y-1">
 							<div className="flex justify-between">
 								<span>{t("revenue")}</span>
 								<span className="tabular-nums">
@@ -340,42 +359,42 @@ export default async function JobDetailPage({
 							</div>
 							<div className="flex justify-between">
 								<span>{t("expenses")}</span>
-								<span className="tabular-nums text-red-500">
+								<span className="tabular-nums text-danger">
 									−{formatRupiah(totalExpenses)}
 								</span>
 							</div>
 						</div>
 						<Link
 							href={`/jobs/${id}/expenses`}
-							className="block w-full text-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							className={buttonStyles({ variant: "primary", size: "md", className: "w-full" })}
 						>
 							{t("logExpense")}
 						</Link>
-					</section>
+					</Card>
 
 					{/* Invoice */}
-					<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
-						<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+					<Card className="p-5 space-y-3">
+						<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
 							{t("invoice")}
 						</h2>
 						{invoice ? (
 							<div className="space-y-2 text-sm">
 								<p className="font-mono text-xs">{invoice.invoice_number}</p>
 								<div className="flex justify-between">
-									<span className="text-gray-500">{tLabels("total")}</span>
+									<span className="text-ink-muted">{tLabels("total")}</span>
 									<span className="tabular-nums font-medium">
 										{formatRupiah(invoice.total_amount)}
 									</span>
 								</div>
 								<div className="flex justify-between">
-									<span className="text-gray-500">{tPay("paid")}</span>
-									<span className="tabular-nums text-green-600">
+									<span className="text-ink-muted">{tPay("paid")}</span>
+									<span className="tabular-nums text-success">
 										{formatRupiah(invoice.paid_amount ?? 0)}
 									</span>
 								</div>
 								<Link
 									href={`/invoices/${invoice.id}`}
-									className="block w-full text-center rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+									className={buttonStyles({ variant: "secondary", size: "md", className: "w-full" })}
 								>
 									{t("manageInvoice")}
 								</Link>
@@ -383,11 +402,11 @@ export default async function JobDetailPage({
 						) : (
 							<GenerateInvoiceButton jobId={id} jobRevenue={job.revenue ?? 0} />
 						)}
-					</section>
+					</Card>
 
 					{/* Payments — recordable even before an invoice exists (e.g. DP) */}
-					<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
-						<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+					<Card className="p-5 space-y-3">
+						<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
 							{t("payments")}
 						</h2>
 						<PaymentsPanel
@@ -396,7 +415,7 @@ export default async function JobDetailPage({
 							payments={payments ?? []}
 							invoiceStatus={invoice?.status ?? null}
 						/>
-					</section>
+					</Card>
 				</div>
 			</div>
 		</div>
@@ -417,7 +436,7 @@ async function JobStatusActions({
 			{status === "scheduled" && (
 				<Link
 					href={`/jobs/${jobId}/assignments`}
-					className="rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+					className={buttonStyles({ variant: "secondary", size: "sm" })}
 				>
 					{t("assignResources")}
 				</Link>
@@ -425,7 +444,7 @@ async function JobStatusActions({
 			{(status === "scheduled" || status === "in_progress") && (
 				<Link
 					href={`/jobs/${jobId}/expenses`}
-					className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+					className={buttonStyles({ variant: "primary", size: "sm" })}
 				>
 					{t("expense")}
 				</Link>

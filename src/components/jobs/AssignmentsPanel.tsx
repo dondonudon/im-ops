@@ -4,19 +4,20 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { Button, Card, Field, Input, Select, FormError, EmptyState } from "@/components/ui";
 
-type Vendor = { id: string; name: string };
+type FleetMember = { id: string; name: string };
 type Crew = { id: string; name: string; daily_rate: number | null };
 type Assignment = {
 	id: string;
 	assignment_type: string;
 	role: string | null;
-	vendors: { name: string } | null;
+	fleet: { name: string } | null;
 	crew: { name: string } | null;
 };
 
 /**
- * Assignments manager — records WHO is working on a job (vendor or crew).
+ * Assignments manager — records WHO is working on a job (fleet or crew).
  * Costs are tracked separately via the Expense panel (Log Expense button).
  * Calls check_resource_overlap RPC before adding to warn on double-booking.
  */
@@ -24,13 +25,13 @@ export function AssignmentsPanel({
 	jobId,
 	moveDate,
 	assignments: initialAssignments,
-	vendors,
+	fleetList,
 	crewList,
 }: {
 	jobId: string;
 	moveDate: string | null;
 	assignments: Assignment[];
-	vendors: Vendor[];
+	fleetList: FleetMember[];
 	crewList: Crew[];
 }) {
 	const router = useRouter();
@@ -44,7 +45,7 @@ export function AssignmentsPanel({
 	const [error, setError] = useState<string | null>(null);
 
 	const [form, setForm] = useState({
-		type: "vendor" as "vendor" | "crew",
+		type: "fleet" as "fleet" | "crew",
 		resourceId: "",
 		role: "",
 	});
@@ -68,7 +69,7 @@ export function AssignmentsPanel({
 				setOverlap(
 					t("overlapWarning", {
 						type:
-							form.type === "vendor" ? t("vendorLabel") : t("crewLabel"),
+							form.type === "fleet" ? t("fleetLabel") : t("crewLabel"),
 						date: moveDate,
 					}),
 				);
@@ -86,11 +87,11 @@ export function AssignmentsPanel({
 			.insert({
 				job_id: jobId,
 				assignment_type: form.type,
-				vendor_id: form.type === "vendor" ? form.resourceId : null,
+				fleet_id: form.type === "fleet" ? form.resourceId : null,
 				crew_id: form.type === "crew" ? form.resourceId : null,
 				role: form.role.trim() || null,
 			})
-			.select("id, assignment_type, role, vendors(name), crew(name)")
+			.select("id, assignment_type, role, fleet(name), crew(name)")
 			.single();
 
 		if (err) {
@@ -100,7 +101,7 @@ export function AssignmentsPanel({
 		setAssignments((p) => [...p, data as Assignment]);
 		setOverlap(null);
 		setShowModal(false);
-		setForm({ type: "vendor", resourceId: "", role: "" });
+		setForm({ type: "fleet", resourceId: "", role: "" });
 		startTransition(() => router.refresh());
 	}
 
@@ -111,53 +112,52 @@ export function AssignmentsPanel({
 		startTransition(() => router.refresh());
 	}
 
-	const options = form.type === "vendor" ? vendors : crewList;
+	const options = form.type === "fleet" ? fleetList : crewList;
 
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
-				<h2 className="text-base font-semibold text-gray-900 dark:text-white">
+				<h2 className="text-base font-semibold text-ink">
 					{t("title")}
 				</h2>
-				<button
+				<Button
 					type="button"
+					variant="primary"
+					size="sm"
 					onClick={() => setShowModal(true)}
-					className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
 				>
 					+ {t("add")}
-				</button>
+				</Button>
 			</div>
 
 			{error && (
-				<div role="alert" className="text-sm text-red-600 dark:text-red-400">
+				<p role="alert" className="text-sm text-danger">
 					{error}
-				</div>
+				</p>
 			)}
 
-			<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
+			<Card className="divide-y divide-line">
 				{assignments.length === 0 && (
-					<p className="px-4 py-6 text-sm text-center text-gray-400">
-						{t("empty")}
-					</p>
+					<EmptyState title={t("empty")} />
 				)}
 				{assignments.map((a) => {
 					const name =
-						a.assignment_type === "vendor" ? a.vendors?.name : a.crew?.name;
+						a.assignment_type === "fleet" ? a.fleet?.name : a.crew?.name;
 					return (
 						<div
 							key={a.id}
 							className="flex items-center justify-between px-4 py-3 text-sm"
 						>
 							<div>
-								<span className="font-medium text-gray-900 dark:text-white">
+								<span className="font-medium text-ink">
 									{name ?? "—"}
 								</span>
 								{a.role && (
-									<span className="text-gray-400 text-xs ml-2">({a.role})</span>
+									<span className="text-ink-faint text-xs ml-2">({a.role})</span>
 								)}
-								<span className="ml-2 text-xs text-brand-600 dark:text-brand-400">
-									{a.assignment_type === "vendor"
-										? t("vendorLabel")
+								<span className="ml-2 text-xs text-primary-text">
+									{a.assignment_type === "fleet"
+										? t("fleetLabel")
 										: t("crewLabel")}
 								</span>
 							</div>
@@ -165,14 +165,14 @@ export function AssignmentsPanel({
 								type="button"
 								onClick={() => handleRemove(a.id)}
 								aria-label={t("removeAria", { name: name ?? "" })}
-								className="text-red-500 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded text-xs"
+								className="text-danger hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded text-xs"
 							>
 								{t("remove")}
 							</button>
 						</div>
 					);
 				})}
-			</div>
+			</Card>
 
 			{/* Add modal */}
 			{showModal && (
@@ -182,10 +182,10 @@ export function AssignmentsPanel({
 					aria-labelledby="assign-title"
 					className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
 				>
-					<div className="w-full max-w-sm rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 shadow-xl space-y-4">
+					<div className="w-full max-w-sm bg-surface border border-line rounded-xl p-6 shadow-token-md space-y-4">
 						<h3
 							id="assign-title"
-							className="text-base font-semibold text-gray-900 dark:text-white"
+							className="text-base font-semibold text-ink"
 						>
 							{t("addAssignment")}
 						</h3>
@@ -193,37 +193,39 @@ export function AssignmentsPanel({
 						{overlap && (
 							<div
 								role="alert"
-								className="rounded bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 px-3 py-2 text-sm text-yellow-800 dark:text-yellow-300"
+								className="rounded bg-warning-bg border border-warning px-3 py-2 text-sm text-warning-text"
 							>
 								{overlap}
 								<div className="mt-2 flex gap-2">
-									<button
+									<Button
 										type="button"
+										variant="subtle"
+										size="sm"
 										onClick={commitAdd}
-										className="rounded bg-yellow-600 px-3 py-1 text-xs font-medium text-white hover:bg-yellow-700"
 									>
 										{tCommonButtons("addAnyway")}
-									</button>
-									<button
+									</Button>
+									<Button
 										type="button"
+										variant="ghost"
+										size="sm"
 										onClick={() => setOverlap(null)}
-										className="rounded border border-yellow-400 px-3 py-1 text-xs font-medium text-yellow-700"
 									>
 										{tCommonButtons("cancel")}
-									</button>
+									</Button>
 								</div>
 							</div>
 						)}
 
 						{!overlap && (
 							<form onSubmit={handleAdd} className="space-y-4">
-								{/* Vendor / Crew toggle */}
+								{/* Fleet / Crew toggle */}
 								<div>
-									<label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+									<label className="block text-sm font-medium mb-1 text-ink">
 										{t("type")}
 									</label>
 									<div className="flex gap-4">
-										{(["vendor", "crew"] as const).map((opt) => (
+										{(["fleet", "crew"] as const).map((opt) => (
 											<label
 												key={opt}
 												className="flex items-center gap-1.5 cursor-pointer"
@@ -236,11 +238,11 @@ export function AssignmentsPanel({
 													onChange={() =>
 														setForm((p) => ({ ...p, type: opt, resourceId: "" }))
 													}
-													className="text-brand-600 focus:ring-brand-500"
+													className="text-primary focus:ring-[var(--ring)]"
 												/>
-												<span className="text-sm">
-													{opt === "vendor"
-														? t("vendorLabel")
+												<span className="text-sm text-ink">
+													{opt === "fleet"
+														? t("fleetLabel")
 														: t("crewLabel")}
 												</span>
 											</label>
@@ -249,24 +251,24 @@ export function AssignmentsPanel({
 								</div>
 
 								{/* Resource selector */}
-								<div>
-									<label
-										htmlFor="assign-res"
-										className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-									>
-										{form.type === "vendor" ? t("vendor") : t("crewMember")}{" "}
-										<span aria-hidden="true" className="text-red-500">
-											*
-										</span>
-									</label>
-									<select
+								<Field
+									label={
+										<>
+											{form.type === "fleet" ? t("fleet") : t("crewMember")}{" "}
+											<span aria-hidden="true" className="text-danger">
+												*
+											</span>
+										</>
+									}
+									htmlFor="assign-res"
+								>
+									<Select
 										id="assign-res"
 										required
 										value={form.resourceId}
 										onChange={(e) =>
 											setForm((p) => ({ ...p, resourceId: e.target.value }))
 										}
-										className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 									>
 										<option value="">{tCommonHints("select")}</option>
 										{options.map((o) => (
@@ -274,18 +276,12 @@ export function AssignmentsPanel({
 												{o.name}
 											</option>
 										))}
-									</select>
-								</div>
+									</Select>
+								</Field>
 
 								{/* Role */}
-								<div>
-									<label
-										htmlFor="assign-role"
-										className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-									>
-										{t("role")}
-									</label>
-									<input
+								<Field label={t("role")} htmlFor="assign-role">
+									<Input
 										id="assign-role"
 										type="text"
 										value={form.role}
@@ -293,25 +289,28 @@ export function AssignmentsPanel({
 											setForm((p) => ({ ...p, role: e.target.value }))
 										}
 										placeholder={t("rolePlaceholder")}
-										className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 									/>
-								</div>
+								</Field>
 
 								<div className="flex gap-2">
-									<button
+									<Button
 										type="submit"
-										disabled={isPending}
-										className="flex-1 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+										loading={isPending}
+										variant="primary"
+										size="md"
+										className="flex-1"
 									>
 										{tCommonButtons("add")}
-									</button>
-									<button
+									</Button>
+									<Button
 										type="button"
+										variant="secondary"
+										size="md"
+										className="flex-1"
 										onClick={() => setShowModal(false)}
-										className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
 									>
 										{tCommonButtons("cancel")}
-									</button>
+									</Button>
 								</div>
 							</form>
 						)}

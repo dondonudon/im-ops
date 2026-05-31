@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { CalendarSync, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { syncAllToCalendar } from "@/lib/gcal/actions";
+import { Button } from "@/components/ui";
 
 /**
  * Bulk-syncs every future job + scheduled survey to Google Calendar.
@@ -57,11 +58,12 @@ export function SyncAllButton() {
 
 	return (
 		<div className="flex items-center gap-3">
-			<button
+			<Button
 				type="button"
 				onClick={handleClick}
-				disabled={loading}
-				className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+				loading={loading}
+				variant="secondary"
+				size="sm"
 			>
 				{loading ? (
 					<Loader2 size={13} className="animate-spin" aria-hidden="true" />
@@ -69,11 +71,11 @@ export function SyncAllButton() {
 					<CalendarSync size={13} aria-hidden="true" />
 				)}
 				{loading ? tActions("syncing") : tActions("syncAll")}
-			</button>
+			</Button>
 			{result && (
 				<span
 					role="status"
-					className="text-xs text-slate-500 max-w-[260px] truncate"
+					className="text-xs text-ink-muted max-w-[260px] truncate"
 					title={result}
 				>
 					{result}

@@ -1,5 +1,9 @@
 # IM Ops — Implementation Spec
 
+> ⚠️ **Original blueprint.** The data model, workflows and action map below remain
+> current (note: the `vendors` table/concept is now **`fleet`**). The UI / screen /
+> IA descriptions are **superseded by the redesign** — see `imops_redesign_plan_1.md`.
+
 > Built around workflows, not modules. Every action is specified: what triggers it, what it writes, what it unlocks next.
 > Last updated: May 2026
 
@@ -63,14 +67,14 @@ Every screen in the app and what it owns:
 /jobs/[id]                      ← Job detail hub
 /jobs/[id]/expenses             ← Quick expense entry (mobile-optimized)
 /jobs/[id]/timeline             ← Chronological job log
-/jobs/[id]/assignments          ← Crew + vendor assignment
+/jobs/[id]/assignments          ← Crew + fleet assignment
 
 /calendar                       ← FullCalendar: surveys + jobs
 
 /customers                      ← Customer list
 /customers/[id]                 ← Customer history (leads, jobs, invoices)
 
-/vendors                        ← Vendor list + reliability
+/fleet                        ← Fleet list + reliability
 /crew                           ← Crew list + availability
 
 /invoices                       ← Invoice list
@@ -240,9 +244,9 @@ CREATE TABLE jobs (
 );
 
 -- ============================================================
--- VENDORS / CREW
+-- FLEET / CREW
 -- ============================================================
-CREATE TABLE vendors (
+CREATE TABLE fleet (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name             TEXT NOT NULL,
   phone            TEXT,
@@ -268,12 +272,12 @@ CREATE TABLE crew (
 
 -- ============================================================
 -- JOB ASSIGNMENTS
--- polymorphic: resource_type + resource_id points to vendor or crew
+-- polymorphic: resource_type + resource_id points to fleet or crew
 -- ============================================================
 CREATE TABLE job_assignments (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   job_id        UUID REFERENCES jobs(id) ON DELETE CASCADE,
-  resource_type TEXT NOT NULL CHECK (resource_type IN ('vendor','crew')),
+  resource_type TEXT NOT NULL CHECK (resource_type IN ('fleet','crew')),
   resource_id   UUID NOT NULL,
   role          TEXT,
   agreed_rate   BIGINT,
@@ -823,7 +827,7 @@ PAGE LAYOUT:
   Header:   Job number, status badge, move date, customer name
   Tabs:
     [Overview]      Job summary, proposal link, revenue, profit snapshot
-    [Assignments]   Crew + vendor assignment
+    [Assignments]   Crew + fleet assignment
     [Expenses]      Expense list + quick entry button
     [Timeline]      Chronological log
     [Payments]      Customer payment log
@@ -907,33 +911,33 @@ ON CLICK:
 
 ```
 PAGE LAYOUT:
-  Vendors section:
-    List of assigned vendors (vehicle type, agreed rate)
-    [+ Add Vendor] button
+  Fleet section:
+    List of assigned fleet (vehicle type, agreed rate)
+    [+ Add Fleet] button
 
   Crew section:
     List of assigned crew (name, role, agreed rate)
     [+ Add Crew] button
 ```
 
-**Add Vendor:**
+**Add Fleet:**
 
 ```
 MODAL opens:
-  Search vendors (by name, vehicle type, area)
-  Select vendor
-  Vehicle type: dropdown (from vendor.vehicle_types)
-  Agreed rate: number (pre-filled from vendor.rate_assumptions)
+  Search fleet (by name, vehicle type, area)
+  Select fleet
+  Vehicle type: dropdown (from fleet.vehicle_types)
+  Agreed rate: number (pre-filled from fleet.rate_assumptions)
   Role: text (optional)
 
-  Overlap check: query job_assignments for this date, warn if vendor already assigned
-    → "⚠ Vendor X has another job on this date. Proceed anyway?"
+  Overlap check: query job_assignments for this date, warn if fleet already assigned
+    → "⚠ Fleet X has another job on this date. Proceed anyway?"
 
 ON CONFIRM:
   INSERT into job_assignments {
     job_id,
-    resource_type: 'vendor',
-    resource_id: vendor.id,
+    resource_type: 'fleet',
+    resource_id: fleet.id,
     role,
     agreed_rate
   }
@@ -942,7 +946,7 @@ ON CONFIRM:
 **Add Crew:**
 
 ```
-Same pattern as vendor.
+Same pattern as fleet.
 Overlap check same pattern.
 
 INSERT into job_assignments {
@@ -1287,7 +1291,7 @@ Every button in the app, what it does, and what it requires.
 | `/proposals/[id]`     | Mark Lost            | status = sent/negotiating      | UPDATE status + closed_reason, UPDATE lead     | status → lost                      |
 | `/proposals/[id]`     | Convert to Job       | status = approved              | INSERT job, UPDATE lead, push GCal             | → `/jobs/[id]`                     |
 | `/jobs/[id]`          | Start Job            | status = scheduled             | UPDATE status, INSERT timeline                 | status → in_progress               |
-| `/jobs/[id]`          | Add Vendor           | job exists                     | check overlap, INSERT job_assignment           | Assignment appears                 |
+| `/jobs/[id]`          | Add Fleet           | job exists                     | check overlap, INSERT job_assignment           | Assignment appears                 |
 | `/jobs/[id]`          | Add Crew             | job exists                     | check overlap, INSERT job_assignment           | Assignment appears                 |
 | `/jobs/[id]/expenses` | + Add Expense        | job status = in_progress       | INSERT expense                                 | Live profit recalculates           |
 | `/jobs/[id]`          | Complete Job         | status = in_progress           | UPDATE status, INSERT timeline                 | status → completed                 |
@@ -1344,8 +1348,8 @@ app/jobs/[id]/page.tsx
         │     │     ├── LiveProfitPanel   (real-time calc, alert badge)
         │     │     └── JobStatusActions (Start / Complete / Generate Invoice)
         │     ├── AssignmentsTab
-        │     │     ├── VendorAssignmentList
-        │     │     ├── AddVendorButton  → AddVendorModal (overlap check)
+        │     │     ├── FleetAssignmentList
+        │     │     ├── AddFleetButton  → AddFleetModal (overlap check)
         │     │     ├── CrewAssignmentList
         │     │     └── AddCrewButton    → AddCrewModal (overlap check)
         │     ├── ExpensesTab          (→ /jobs/[id]/expenses)

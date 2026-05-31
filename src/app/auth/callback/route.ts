@@ -9,13 +9,26 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
+
+  // Resolve `next` safely: only same-origin relative paths are allowed, so a
+  // crafted `next` (e.g. "//evil.com", "@evil.com", ".evil.com") can't turn
+  // this into an open redirect off our domain.
+  let destination = `${origin}/today`
+  const next = searchParams.get('next')
+  if (next) {
+    try {
+      const target = new URL(next, origin)
+      if (target.origin === origin) destination = target.toString()
+    } catch {
+      // Malformed `next` — fall back to the default destination.
+    }
+  }
 
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      return NextResponse.redirect(destination)
     }
   }
 

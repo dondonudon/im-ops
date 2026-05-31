@@ -6,6 +6,16 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import {
+	Button,
+	buttonStyles,
+	Card,
+	Field,
+	Input,
+	Select,
+	Textarea,
+	FormError,
+} from "@/components/ui";
 
 const LEAD_TYPES = ["whatsapp", "onsite", "returning", "corporate"] as const;
 const CHANNELS = ["whatsapp", "call", "referral", "walkin"] as const;
@@ -97,12 +107,9 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 		}
 	}
 
-	const inputClass =
-		"w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-300 bg-white transition-colors";
-
 	if (loading) {
 		return (
-			<div className="flex items-center justify-center h-40 text-slate-400">
+			<div className="flex items-center justify-center h-40 text-ink-faint">
 				<Loader2 size={20} className="animate-spin" aria-hidden="true" />
 			</div>
 		);
@@ -112,163 +119,117 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 		<div className="max-w-lg mx-auto space-y-5">
 			<Link
 				href={`/leads/${id}`}
-				className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+				className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 			>
 				<ArrowLeft size={15} aria-hidden="true" />
 				{tJob("backToLead")}
 			</Link>
 
-			<div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-				<h1 className="text-xl font-bold text-slate-800 mb-1">
+			<Card className="p-6">
+				<h1 className="text-xl font-bold text-ink mb-1">
 					{t("editTitle")}
 				</h1>
 				{customerName && (
-					<p className="text-sm text-slate-500 mb-5">
+					<p className="text-sm text-ink-muted mb-5">
 						{t("customer")}:{" "}
-						<span className="font-medium text-slate-700">{customerName}</span>
+						<span className="font-medium text-ink">{customerName}</span>
 					</p>
 				)}
 
-				{error && (
-					<div
-						role="alert"
-						className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"
-					>
-						{error}
-					</div>
-				)}
+				{error && <FormError>{error}</FormError>}
 
-				<form onSubmit={handleSubmit} className="space-y-4" noValidate>
+				<form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate>
 					{/* Pickup address */}
-					<div>
-						<label
-							htmlFor="pickup_address"
-							className="block text-sm font-medium text-slate-700 mb-1.5"
-						>
-							{t("pickup")}
-						</label>
-						<input
+					<Field label={t("pickup")} htmlFor="pickup_address">
+						<Input
 							id="pickup_address"
 							name="pickup_address"
 							type="text"
 							value={form.pickup_address}
 							onChange={handleChange}
-							className={inputClass}
 						/>
-					</div>
+					</Field>
 
 					{/* Destination address */}
-					<div>
-						<label
-							htmlFor="destination_address"
-							className="block text-sm font-medium text-slate-700 mb-1.5"
-						>
-							{t("destination")}
-						</label>
-						<input
+					<Field label={t("destination")} htmlFor="destination_address">
+						<Input
 							id="destination_address"
 							name="destination_address"
 							type="text"
 							value={form.destination_address}
 							onChange={handleChange}
-							className={inputClass}
 						/>
-					</div>
+					</Field>
 
 					{/* Preferred date */}
-					<div>
-						<label
-							htmlFor="preferred_date"
-							className="block text-sm font-medium text-slate-700 mb-1.5"
-						>
-							{t("preferredDate")}
-						</label>
-						<input
+					<Field label={t("preferredDate")} htmlFor="preferred_date">
+						<Input
 							id="preferred_date"
 							name="preferred_date"
 							type="date"
 							value={form.preferred_date}
 							onChange={handleChange}
-							className={inputClass}
 						/>
-					</div>
+					</Field>
 
 					{/* Lead type + Channel */}
 					<div className="grid grid-cols-2 gap-3">
-						<div>
-							<label
-								htmlFor="lead_type"
-								className="block text-sm font-medium text-slate-700 mb-1.5"
-							>
-								{t("leadType")}
-							</label>
-							<select
+						<Field label={t("leadType")} htmlFor="lead_type">
+							<Select
 								id="lead_type"
 								name="lead_type"
 								value={form.lead_type}
 								onChange={handleChange}
-								className={inputClass}
 							>
 								{LEAD_TYPES.map((v) => (
 									<option key={v} value={v}>
 										{tLeadType(v)}
 									</option>
 								))}
-							</select>
-						</div>
-						<div>
-							<label
-								htmlFor="origin_channel"
-								className="block text-sm font-medium text-slate-700 mb-1.5"
-							>
-								{t("originChannel")}
-							</label>
-							<select
+							</Select>
+						</Field>
+						<Field label={t("originChannel")} htmlFor="origin_channel">
+							<Select
 								id="origin_channel"
 								name="origin_channel"
 								value={form.origin_channel}
 								onChange={handleChange}
-								className={inputClass}
 							>
 								{CHANNELS.map((v) => (
 									<option key={v} value={v}>
 										{tChannel(v)}
 									</option>
 								))}
-							</select>
-						</div>
+							</Select>
+						</Field>
 					</div>
 
 					{/* Notes */}
-					<div>
-						<label
-							htmlFor="notes"
-							className="block text-sm font-medium text-slate-700 mb-1.5"
-						>
-							{t("notes")}
-						</label>
-						<textarea
+					<Field label={t("notes")} htmlFor="notes">
+						<Textarea
 							id="notes"
 							name="notes"
 							value={form.notes}
 							onChange={handleChange}
 							rows={4}
-							className={inputClass + " resize-none"}
+							className="resize-none"
 						/>
-					</div>
+					</Field>
 
 					{/* Actions */}
 					<div className="flex gap-3 pt-1">
 						<Link
 							href={`/leads/${id}`}
-							className="flex-1 text-center rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+							className={buttonStyles({ variant: "secondary", size: "md", className: "flex-1 justify-center" })}
 						>
 							{tButtons("cancel")}
 						</Link>
-						<button
+						<Button
 							type="submit"
-							disabled={saving}
-							className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+							loading={saving}
+							variant="primary"
+							size="md"
+							className="flex-1"
 						>
 							{saving && (
 								<Loader2
@@ -278,10 +239,10 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 								/>
 							)}
 							{saving ? tButtons("saving") : tButtons("saveChanges")}
-						</button>
+						</Button>
 					</div>
 				</form>
-			</div>
+			</Card>
 		</div>
 	);
 }

@@ -2,7 +2,7 @@
 
 Internal operational platform for moving/logistics coordination. Captures leads from first contact, runs them through estimation and proposal negotiation, converts approved proposals into scheduled jobs, tracks expenses + live profit during execution, and closes the loop with invoicing and payments.
 
-Built around workflows, not modules — see `imops_implementation_spec_1.md` and `imops_detailed_plan_1.md` for the full design.
+Built around workflows, not modules. **Current UI/UX + design system: `imops_redesign_plan_1.md`.** The original blueprints (`imops_implementation_spec_1.md`, `imops_detailed_plan_1.md`) document the data model + workflows; their UI/IA sections are superseded by the redesign.
 
 ## Stack
 
@@ -67,13 +67,17 @@ Built around workflows, not modules — see `imops_implementation_spec_1.md` and
 
 ## Routes
 
+> UI/UX is organized around a flat workflow nav — **Today · Pipeline · Jobs · Calendar · Money · Directory · Settings** — with sub-tabs grouping the underlying routes. See `imops_redesign_plan_1.md` for the design system + IA. Routes stay backward-compatible (the URLs below still resolve).
+
 ```
 /login                          Google OAuth entry
-/dashboard                      KPI summary
+/today                          Operator triage cockpit (replaces /dashboard, which redirects here)
+
+/pipeline                       Deal funnel board (drag-to-advance) — groups Leads + Proposals
 
 /leads                          List of all leads
-/leads/new                      Create lead
-/leads/[id]                     Lead detail + status-driven action panel
+/leads/new                      Create lead  (also: global Quick-Lead modal via the "+ New lead" button)
+/leads/[id]                     Deal hub — lifecycle timeline + status-driven action panel
 /leads/[id]/edit
 
 /surveys/[id]                   Survey detail + media upload
@@ -83,26 +87,28 @@ Built around workflows, not modules — see `imops_implementation_spec_1.md` and
 /proposals                      Proposal list
 /proposals/[id]                 Detail + negotiation history + actions
 
-/jobs                           Job list
+/jobs                           Job list / Board view toggle (?view=board)
 /jobs/[id]                      Job hub (overview, assignments, expenses, timeline, invoice)
 /jobs/[id]/edit
-/jobs/[id]/assignments          Crew + vendor assignment
+/jobs/[id]/assignments          Crew + fleet assignment
 /jobs/[id]/expenses             Mobile-optimized quick expense entry
 
 /calendar                       FullCalendar — surveys + jobs
 
-/customers                      Customer list
+/money                          "Where's the cash" hub — AR aging, payments, invoice breakdown
+
+/customers                      Customer list   (Directory tab)
 /customers/[id]                 Customer history (leads, jobs)
 /customers/[id]/edit
 /customers/new
 
-/vendors  /vendors/[id]  /vendors/[id]/edit  /vendors/new
-/crew     /crew/[id]     /crew/[id]/edit     /crew/new
+/fleet  /fleet/[id]  /fleet/[id]/edit  /fleet/new   (Directory tab — formerly "vendors")
+/crew   /crew/[id]   /crew/[id]/edit   /crew/new     (Directory tab)
 
-/invoices                       Invoice list
+/invoices                       Invoice list   (Money tab)
 /invoices/[id]                  Detail + payment recording + PDF download
 
-/reports                        Sales / operational / financial summary
+/reports                        Sales / operational / financial summary   (Money tab)
 /settings                       system_settings editor (pricing, margins, etc.)
 ```
 
@@ -118,7 +124,7 @@ src/
 │   └── globals.css             Tailwind layers + brand tokens
 ├── components/
 │   ├── calendar/               FullCalendar + mobile variant
-│   ├── crew/  customers/  vendors/
+│   ├── crew/  customers/  fleet/
 │   ├── dashboard/
 │   ├── estimation/             EstimationForm
 │   ├── invoices/               InvoicePDF, PaymentsPanel, GenerateInvoiceButton
@@ -155,7 +161,7 @@ Lead Intake  →  Survey (optional)  →  Estimation  →  Proposal
             ┌─────────────┼─────────────┐
             ▼             ▼             ▼
         Schedule     Assign Crew    Push to
-        (move_date)  + Vendors      Google Calendar
+        (move_date)  + Fleet         Google Calendar
                           │
                           ▼
                    Execute the move
@@ -202,4 +208,4 @@ These are tracked but not yet implemented:
 - No proposal/lead duplication for re-quotes.
 - `/estimations/[id]` (edit existing estimation) — only the `new` route exists.
 - `next-pwa` is installed but the service worker + offline expense queue aren't wired.
-- Reports are minimal — missing avg discount, lost-reason breakdown, AR aging, vendor/crew utilization.
+- Reports are minimal — missing avg discount, lost-reason breakdown, AR aging, fleet/crew utilization.

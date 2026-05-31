@@ -1,6 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
 import { getTranslations } from "next-intl/server";
 import { formatRupiah } from "@/lib/utils";
+import {
+	PageHeader,
+	Card,
+	CardHeader,
+	Table,
+	THead,
+	TH,
+	TBody,
+	TR,
+	TD,
+	Money,
+} from "@/components/ui";
 
 export default async function ReportsPage() {
 	const supabase = await createClient();
@@ -90,9 +102,7 @@ export default async function ReportsPage() {
 
 	return (
 		<div className="space-y-8">
-			<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-				{t("title")}
-			</h1>
+			<PageHeader title={t("title")} />
 
 			{/* KPI summary */}
 			<section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -100,230 +110,218 @@ export default async function ReportsPage() {
 					{
 						label: t("kpi.totalRevenue"),
 						value: formatRupiah(totalRevenue),
-						color: "text-brand-600",
+						className: "text-primary-text",
 					},
 					{
 						label: t("kpi.totalProfit"),
 						value: formatRupiah(totalProfit),
-						color: totalProfit >= 0 ? "text-green-600" : "text-red-600",
+						className: totalProfit >= 0 ? "text-success" : "text-danger",
 					},
 					{
 						label: t("kpi.leadConversion"),
 						value: `${conversionRate}%`,
-						color: "text-gray-900 dark:text-white",
+						className: "text-ink",
 					},
 					{
 						label: t("kpi.totalLeads"),
 						value: String(totalLeads),
-						color: "text-gray-900 dark:text-white",
+						className: "text-ink",
 					},
 				].map((kpi) => (
-					<div
-						key={kpi.label}
-						className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5"
-					>
-						<p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+					<Card key={kpi.label} className="p-5">
+						<p className="text-xs text-ink-muted uppercase tracking-wide mb-1">
 							{kpi.label}
 						</p>
-						<p className={`text-2xl font-bold tabular-nums ${kpi.color}`}>
+						<p className={`text-2xl font-bold tabular-nums ${kpi.className}`}>
 							{kpi.value}
 						</p>
-					</div>
+					</Card>
 				))}
 			</section>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-					<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-						{t("profitByJob.title")}
-					</h2>
-					<table className="w-full text-sm">
-						<thead>
-							<tr className="text-left text-xs text-gray-400">
-								<th scope="col" className="pb-2">
-									{t("profitByJob.job")}
-								</th>
-								<th scope="col" className="pb-2 text-right">
-									{t("profitByJob.revenue")}
-								</th>
-								<th scope="col" className="pb-2 text-right">
-									{t("profitByJob.cost")}
-								</th>
-								<th scope="col" className="pb-2 text-right">
-									{t("profitByJob.profit")}
-								</th>
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-							{(profitRows ?? []).slice(0, 10).map((r) => (
-								<tr key={r.job_number}>
-									<td className="py-2 font-mono text-xs">{r.job_number}</td>
-									<td className="py-2 text-right tabular-nums">
-										{formatRupiah(r.revenue ?? 0)}
-									</td>
-									<td className="py-2 text-right tabular-nums text-red-500">
-										{formatRupiah(r.actual_spend ?? 0)}
-									</td>
-									<td
-										className={`py-2 text-right tabular-nums font-medium ${(r.current_profit ?? 0) >= 0 ? "text-green-600" : "text-red-600"}`}
-									>
-										{formatRupiah(r.current_profit ?? 0)}
-									</td>
-								</tr>
-							))}
-							{(profitRows ?? []).length === 0 && (
-								<tr>
-									<td colSpan={4} className="py-4 text-center text-gray-400">
-										—
-									</td>
-								</tr>
-							)}
-						</tbody>
-					</table>
-				</section>
+				<Card>
+					<CardHeader title={t("profitByJob.title")} />
+					<div className="p-5">
+						<Table>
+							<THead>
+								<TH>{t("profitByJob.job")}</TH>
+								<TH align="right">{t("profitByJob.revenue")}</TH>
+								<TH align="right">{t("profitByJob.cost")}</TH>
+								<TH align="right">{t("profitByJob.profit")}</TH>
+							</THead>
+							<TBody>
+								{(profitRows ?? []).slice(0, 10).map((r) => (
+									<TR key={r.job_number}>
+										<TD className="font-mono text-xs">{r.job_number}</TD>
+										<TD align="right">
+											<Money value={r.revenue ?? 0} />
+										</TD>
+										<TD align="right">
+											<Money value={r.actual_spend ?? 0} tone="danger" />
+										</TD>
+										<TD align="right">
+											<Money
+												value={r.current_profit ?? 0}
+												tone={(r.current_profit ?? 0) >= 0 ? "positive" : "danger"}
+												className="font-medium"
+											/>
+										</TD>
+									</TR>
+								))}
+								{(profitRows ?? []).length === 0 && (
+									<tr>
+										<td colSpan={4} className="py-4 text-center text-ink-faint">
+											—
+										</td>
+									</tr>
+								)}
+							</TBody>
+						</Table>
+					</div>
+				</Card>
 
 				<div className="space-y-6">
-					<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-						<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-							{t("expensesThisMonth")}
-						</h2>
-						{Object.keys(expenseByCategory).length === 0 ? (
-							<p className="text-sm text-gray-400">{t("noExpensesThisMonth")}</p>
-						) : (
-							<ul className="space-y-2">
-								{Object.entries(expenseByCategory)
-									.sort(([, a], [, b]) => b - a)
-									.map(([cat, amt]) => {
-										let label: string;
-										try {
-											label = tExpenseCat(cat as never);
-										} catch {
-											label = cat;
-										}
-										return (
-											<li key={cat} className="flex justify-between text-sm">
-												<span className="text-gray-600 dark:text-gray-400">
-													{label}
-												</span>
-												<span className="tabular-nums font-medium">
-													{formatRupiah(amt)}
-												</span>
-											</li>
-										);
-									})}
-							</ul>
-						)}
-					</section>
-
-					<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-						<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-							{t("leadFunnel")}
-						</h2>
-						<ul className="space-y-2">
-							{Object.entries(funnelCounts).map(([status, count]) => (
-								<li key={status} className="flex justify-between text-sm">
-									<span className="text-gray-600 dark:text-gray-400">
-										{tLeadStatus(status as never)}
-									</span>
-									<span className="font-medium">{count}</span>
-								</li>
-							))}
-							{Object.keys(funnelCounts).length === 0 && (
-								<li className="text-sm text-gray-400">{t("noLeads")}</li>
+					<Card>
+						<CardHeader title={t("expensesThisMonth")} />
+						<div className="p-5">
+							{Object.keys(expenseByCategory).length === 0 ? (
+								<p className="text-sm text-ink-faint">{t("noExpensesThisMonth")}</p>
+							) : (
+								<ul className="space-y-2">
+									{Object.entries(expenseByCategory)
+										.sort(([, a], [, b]) => b - a)
+										.map(([cat, amt]) => {
+											// Stored categories may be labels ("Packing materials") or
+											// keys ("packing_materials"); normalize, then fall back to
+											// the raw value if there's no translation.
+											const key = cat
+												.toLowerCase()
+												.replace(/[\s-]+/g, "_");
+											const label = tExpenseCat.has(key as never)
+												? tExpenseCat(key as never)
+												: cat;
+											return (
+												<li key={cat} className="flex justify-between text-sm">
+													<span className="text-ink-muted">{label}</span>
+													<Money value={amt} className="font-medium" />
+												</li>
+											);
+										})}
+								</ul>
 							)}
-						</ul>
-					</section>
+						</div>
+					</Card>
+
+					<Card>
+						<CardHeader title={t("leadFunnel")} />
+						<div className="p-5">
+							<ul className="space-y-2">
+								{Object.entries(funnelCounts).map(([status, count]) => (
+									<li key={status} className="flex justify-between text-sm">
+										<span className="text-ink-muted">
+											{tLeadStatus(status as never)}
+										</span>
+										<span className="font-medium text-ink">{count}</span>
+									</li>
+								))}
+								{Object.keys(funnelCounts).length === 0 && (
+									<li className="text-sm text-ink-faint">{t("noLeads")}</li>
+								)}
+							</ul>
+						</div>
+					</Card>
 				</div>
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				{/* AR aging */}
-				<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-					<div className="flex items-center justify-between mb-4">
-						<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-							{t("arAging.title")}
-						</h2>
-						<span className="text-xs text-gray-500 tabular-nums">
-							{t("arAging.totalLabel", { amount: formatRupiah(totalOutstanding) })}
-						</span>
-					</div>
-					{totalOutstanding === 0 ? (
-						<p className="text-sm text-gray-400">{t("arAging.noOutstanding")}</p>
-					) : (
-						<ul className="space-y-2">
-							{Object.entries(aging).map(([bucket, amount]) => {
-								const pct =
-									totalOutstanding > 0
-										? Math.round((amount / totalOutstanding) * 100)
-										: 0;
-								return (
-									<li key={bucket} className="text-sm">
-										<div className="flex justify-between mb-1">
-											<span className="text-gray-600 dark:text-gray-400">
-												{bucket === "current"
-													? t("arAging.current")
-													: t("arAging.overdue", { range: bucket })}
-											</span>
-											<span className="tabular-nums font-medium">
-												{formatRupiah(amount)}
-											</span>
-										</div>
-										<div
-											className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded overflow-hidden"
-											aria-hidden="true"
-										>
+				<Card>
+					<CardHeader
+						title={t("arAging.title")}
+						action={
+							<span className="text-xs text-ink-muted tabular-nums">
+								{t("arAging.totalLabel", { amount: formatRupiah(totalOutstanding) })}
+							</span>
+						}
+					/>
+					<div className="p-5">
+						{totalOutstanding === 0 ? (
+							<p className="text-sm text-ink-faint">{t("arAging.noOutstanding")}</p>
+						) : (
+							<ul className="space-y-2">
+								{Object.entries(aging).map(([bucket, amount]) => {
+									const pct =
+										totalOutstanding > 0
+											? Math.round((amount / totalOutstanding) * 100)
+											: 0;
+									return (
+										<li key={bucket} className="text-sm">
+											<div className="flex justify-between mb-1">
+												<span className="text-ink-muted">
+													{bucket === "current"
+														? t("arAging.current")
+														: t("arAging.overdue", { range: bucket })}
+												</span>
+												<Money value={amount} className="font-medium" />
+											</div>
 											<div
-												className={`h-full ${
-													bucket === "current"
-														? "bg-green-500"
-														: bucket === "1-30"
-															? "bg-yellow-500"
-															: bucket === "31-60"
-																? "bg-orange-500"
-																: "bg-red-500"
-												}`}
-												style={{ width: `${pct}%` }}
-											/>
-										</div>
-									</li>
-								);
-							})}
-						</ul>
-					)}
-				</section>
+												className="h-1.5 bg-subtle rounded overflow-hidden"
+												aria-hidden="true"
+											>
+												<div
+													className={`h-full ${
+														bucket === "current"
+															? "bg-success"
+															: bucket === "1-30"
+																? "bg-warning"
+																: bucket === "31-60"
+																	? "bg-warning"
+																	: "bg-danger"
+													}`}
+													style={{ width: `${pct}%` }}
+												/>
+											</div>
+										</li>
+									);
+								})}
+							</ul>
+						)}
+					</div>
+				</Card>
 
 				{/* Lost reasons */}
-				<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-					<div className="flex items-center justify-between mb-4">
-						<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-							{t("lostProposals.title")}
-						</h2>
-						<span className="text-xs text-gray-500 tabular-nums">
-							{t("lostProposals.totalCount", { count: totalLost })}
-						</span>
-					</div>
-					{totalLost === 0 ? (
-						<p className="text-sm text-gray-400">{t("lostProposals.empty")}</p>
-					) : (
-						<ul className="space-y-2">
-							{Object.entries(lostReasons)
-								.sort(([, a], [, b]) => b - a)
-								.map(([reason, count]) => (
-									<li key={reason} className="flex justify-between text-sm">
-										<span className="text-gray-600 dark:text-gray-400">
-											{reason}
-										</span>
-										<span className="font-medium tabular-nums">
-											{count}{" "}
-											<span className="text-gray-400 text-xs">
-												({Math.round((count / totalLost) * 100)}%)
+				<Card>
+					<CardHeader
+						title={t("lostProposals.title")}
+						action={
+							<span className="text-xs text-ink-muted tabular-nums">
+								{t("lostProposals.totalCount", { count: totalLost })}
+							</span>
+						}
+					/>
+					<div className="p-5">
+						{totalLost === 0 ? (
+							<p className="text-sm text-ink-faint">{t("lostProposals.empty")}</p>
+						) : (
+							<ul className="space-y-2">
+								{Object.entries(lostReasons)
+									.sort(([, a], [, b]) => b - a)
+									.map(([reason, count]) => (
+										<li key={reason} className="flex justify-between text-sm">
+											<span className="text-ink-muted">{reason}</span>
+											<span className="font-medium tabular-nums text-ink">
+												{count}{" "}
+												<span className="text-ink-faint text-xs">
+													({Math.round((count / totalLost) * 100)}%)
+												</span>
 											</span>
-										</span>
-									</li>
-								))}
-						</ul>
-					)}
-				</section>
+										</li>
+									))}
+							</ul>
+						)}
+					</div>
+				</Card>
 			</div>
 		</div>
 	);

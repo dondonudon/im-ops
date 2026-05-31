@@ -8,9 +8,16 @@ import { syncSurveyToCalendar } from "@/lib/gcal/actions";
 import Link from "next/link";
 import { formatDate, formatRupiah } from "@/lib/utils";
 import {
-	StatusChip,
-	proposalStatusVariant,
-} from "@/components/shared/StatusChip";
+	Badge,
+	toneFor,
+	Button,
+	buttonStyles,
+	Card,
+	Field,
+	Input,
+	Textarea,
+	FormError,
+} from "@/components/ui";
 
 type Lead = {
 	id: string;
@@ -146,38 +153,35 @@ export function LeadActionPanel({
 	}
 
 	return (
-		<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-4">
-			<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+		<Card className="p-5 space-y-4">
+			<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
 				{t("title")}
 			</h2>
 
-			{error && (
-				<div
-					role="alert"
-					className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-3 py-2 text-xs text-red-700 dark:text-red-300"
-				>
-					{error}
-				</div>
-			)}
+			{error && <FormError>{error}</FormError>}
 
 			{/* ── STATUS: new ── */}
 			{lead.status === "new" && (
 				<div className="space-y-2">
-					<button
+					<Button
 						type="button"
 						onClick={() => setShowSurveyModal(true)}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						variant="secondary"
+						size="md"
+						className="w-full"
 					>
 						{t("scheduleSurvey")}
-					</button>
-					<button
+					</Button>
+					<Button
 						type="button"
 						onClick={handleSkipToEstimate}
-						disabled={isPending}
-						className="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						loading={isPending}
+						variant="primary"
+						size="md"
+						className="w-full"
 					>
 						{t("skipToEstimate")}
-					</button>
+					</Button>
 				</div>
 			)}
 
@@ -185,26 +189,28 @@ export function LeadActionPanel({
 			{lead.status === "survey_scheduled" && survey && (
 				<div className="space-y-3">
 					<div className="text-sm">
-						<p className="text-gray-500 dark:text-gray-400">{t("surveyScheduled")}</p>
-						<p className="font-medium mt-0.5">
+						<p className="text-ink-muted">{t("surveyScheduled")}</p>
+						<p className="font-medium mt-0.5 text-ink">
 							{formatDate(survey.scheduled_at)}
 						</p>
 					</div>
 					<div className="flex gap-2">
 						<Link
 							href={`/surveys/${survey.id}`}
-							className="flex-1 text-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							className={buttonStyles({ variant: "secondary", size: "md", className: "flex-1 justify-center" })}
 						>
 							{t("viewSurvey")}
 						</Link>
-						<button
+						<Button
 							type="button"
 							onClick={handleMarkSurveyDone}
-							disabled={isPending}
-							className="flex-1 rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							loading={isPending}
+							variant="primary"
+							size="md"
+							className="flex-1"
 						>
 							{t("markDone")}
-						</button>
+						</Button>
 					</div>
 				</div>
 			)}
@@ -212,30 +218,32 @@ export function LeadActionPanel({
 			{/* ── STATUS: survey_done ── */}
 			{lead.status === "survey_done" && (
 				<div className="space-y-3">
-					<p className="text-sm text-gray-500 dark:text-gray-400">
+					<p className="text-sm text-ink-muted">
 						{t("surveyCompleted")}{" "}
 						{survey?.conducted_at ? formatDate(survey.conducted_at) : ""}
 					</p>
-					<button
+					<Button
 						type="button"
 						onClick={handleCreateEstimation}
-						disabled={isPending}
-						className="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						loading={isPending}
+						variant="primary"
+						size="md"
+						className="w-full"
 					>
 						{t("createEstimation")}
-					</button>
+					</Button>
 				</div>
 			)}
 
 			{/* ── STATUS: estimating ── */}
 			{lead.status === "estimating" && proposals.length > 0 && (
 				<div className="space-y-2">
-					<p className="text-sm text-gray-500 dark:text-gray-400">
+					<p className="text-sm text-ink-muted">
 						{t("estimationInProgress")}
 					</p>
 					<Link
 						href={`/proposals/${proposals[0].id}`}
-						className="block w-full text-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						className={buttonStyles({ variant: "primary", size: "md", className: "w-full justify-center" })}
 					>
 						{t("openProposal")}
 					</Link>
@@ -250,20 +258,19 @@ export function LeadActionPanel({
 							key={p.id}
 							className="flex items-center justify-between text-sm"
 						>
-							<span className="font-mono text-xs text-gray-600 dark:text-gray-400">
+							<span className="font-mono text-xs text-ink-muted">
 								{p.proposal_number}
 							</span>
 							<div className="flex items-center gap-2">
 								{p.final_price && (
-									<span className="text-xs">{formatRupiah(p.final_price)}</span>
+									<span className="text-xs text-ink">{formatRupiah(p.final_price)}</span>
 								)}
-								<StatusChip
-									label={p.status}
-									variant={proposalStatusVariant(p.status)}
-								/>
+								<Badge tone={toneFor("proposal", p.status)} dot>
+									{p.status}
+								</Badge>
 								<Link
 									href={`/proposals/${p.id}`}
-									className="text-brand-600 text-xs hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500 rounded"
+									className="text-primary-text text-xs hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ring)] rounded"
 								>
 										{tButtons("view")} →
 								</Link>
@@ -275,14 +282,14 @@ export function LeadActionPanel({
 
 			{/* ── STATUS: converted ── */}
 			{lead.status === "converted" && (
-				<p className="text-sm text-green-600 dark:text-green-400 font-medium">
+				<p className="text-sm text-success font-medium">
 					{t("convertedToJob")}
 				</p>
 			)}
 
 			{/* ── STATUS: closed_lost ── */}
 			{lead.status === "closed_lost" && (
-				<p className="text-sm text-red-500 font-medium">{t("closedLost")}</p>
+				<p className="text-sm text-danger font-medium">{t("closedLost")}</p>
 			)}
 
 			{/* Schedule survey modal */}
@@ -296,7 +303,7 @@ export function LeadActionPanel({
 					}}
 				/>
 			)}
-		</div>
+		</Card>
 	);
 }
 
@@ -364,35 +371,19 @@ function SurveyScheduleModal({
 			aria-labelledby="survey-modal-title"
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
 		>
-			<div className="w-full max-w-sm rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 shadow-xl space-y-4">
+			<Card className="w-full max-w-sm p-6 shadow-token-md space-y-4">
 				<h3
 					id="survey-modal-title"
-					className="text-base font-semibold text-gray-900 dark:text-white"
+					className="text-base font-semibold text-ink"
 				>
 					{tModal("title")}
 				</h3>
 
-				{error && (
-					<div
-						role="alert"
-						className="rounded bg-red-50 dark:bg-red-900/20 border border-red-200 px-3 py-2 text-xs text-red-700 dark:text-red-300"
-					>
-						{error}
-					</div>
-				)}
+				{error && <FormError>{error}</FormError>}
 
 				<form onSubmit={handleSubmit} className="space-y-4">
-					<div>
-						<label
-							htmlFor="survey_scheduled_at"
-							className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-						>
-							{tModal("dateTime")}{" "}
-							<span aria-hidden="true" className="text-red-500">
-								*
-							</span>
-						</label>
-						<input
+					<Field label={tModal("dateTime")} htmlFor="survey_scheduled_at" required>
+						<Input
 							id="survey_scheduled_at"
 							type="datetime-local"
 							value={form.scheduled_at}
@@ -400,44 +391,41 @@ function SurveyScheduleModal({
 								setForm((p) => ({ ...p, scheduled_at: e.target.value }))
 							}
 							required
-							className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 						/>
-					</div>
-					<div>
-						<label
-							htmlFor="survey_notes"
-							className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-						>
-							{tModal("notes")}
-						</label>
-						<textarea
+					</Field>
+					<Field label={tModal("notes")} htmlFor="survey_notes">
+						<Textarea
 							id="survey_notes"
 							rows={2}
 							value={form.notes}
 							onChange={(e) =>
 								setForm((p) => ({ ...p, notes: e.target.value }))
 							}
-							className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+							className="resize-none"
 						/>
-					</div>
+					</Field>
 					<div className="flex gap-2">
-						<button
+						<Button
 							type="submit"
-							disabled={saving}
-							className="flex-1 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							loading={saving}
+							variant="primary"
+							size="md"
+							className="flex-1"
 						>
 							{saving ? tButtons("scheduling") : tButtons("confirm")}
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
 							onClick={onClose}
-							className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							variant="secondary"
+							size="md"
+							className="flex-1"
 						>
 							{tButtons("cancel")}
-						</button>
+						</Button>
 					</div>
 				</form>
-			</div>
+			</Card>
 		</div>
 	);
 }

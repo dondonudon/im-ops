@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import type { ProposalPDFProps } from "./ProposalPDF";
 import { buildProposalFilename } from "./ProposalPDF";
+import { buttonStyles } from "@/components/ui";
 
 /**
  * Renders a PDF download link for a proposal.
@@ -32,7 +33,7 @@ export function ProposalPDFDownloadButton({
 					<PDFDownloadLink
 						document={<ProposalPDF {...pdfProps} />}
 						fileName={filename}
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+						className={buttonStyles({ variant: "secondary", size: "sm" })}
 						aria-label={`${tActions("downloadPdf")} — ${filename}`}
 					>
 						{({ loading }: { loading: boolean }) =>
@@ -50,7 +51,7 @@ export function ProposalPDFDownloadButton({
 
 	if (!DownloadLink) {
 		return (
-			<span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-400 cursor-wait">
+			<span className={buttonStyles({ variant: "secondary", size: "sm", className: "opacity-60 cursor-wait" })}>
 				{tActions("loadingPdf")}
 			</span>
 		);

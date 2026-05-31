@@ -6,6 +6,7 @@ import { FileText, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { toRomanMonth } from "@/lib/utils";
+import { Button, FormError } from "@/components/ui";
 
 /**
  * Generates a draft invoice for a given job and redirects to its detail page.
@@ -73,30 +74,28 @@ export function GenerateInvoiceButton({
 
 	return (
 		<div>
-			<button
+			<Button
 				type="button"
+				variant="primary"
+				size="md"
 				onClick={handleClick}
-				disabled={loading}
-				className="block w-full text-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+				loading={loading}
+				className="w-full"
 				aria-label="Generate draft invoice for this job"
 			>
 				{loading ? (
-					<span className="inline-flex items-center justify-center gap-2">
+					<>
 						<Loader2 size={14} className="animate-spin" aria-hidden="true" />
 						{t("generating")}
-					</span>
+					</>
 				) : (
-					<span className="inline-flex items-center justify-center gap-2">
+					<>
 						<FileText size={14} aria-hidden="true" />
 						{t("generateInvoice")}
-					</span>
+					</>
 				)}
-			</button>
-			{error && (
-				<p role="alert" className="mt-1.5 text-xs text-red-600">
-					{error}
-				</p>
-			)}
+			</Button>
+			{error && <FormError>{error}</FormError>}
 		</div>
 	);
 }

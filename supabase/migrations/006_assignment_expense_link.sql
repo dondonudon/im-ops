@@ -1,3 +1,0 @@
--- Migration 006: (no schema changes)
--- Expense costs are entered directly via the ExpensePanel (Log Expense).
--- Assignments track WHO is on a job; costs are separate expense records.

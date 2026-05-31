@@ -19,6 +19,7 @@ import {
 	PhotoLightbox,
 	type LightboxPhoto,
 } from "@/components/shared/PhotoLightbox";
+import { Button, Card, FormError } from "@/components/ui";
 
 type SpecialItem = { type: string; qty: number; note: string };
 
@@ -197,18 +198,11 @@ export function SurveyDetailClient({
 
 	return (
 		<div className="space-y-5">
-			{error && (
-				<div
-					role="alert"
-					className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"
-				>
-					{error}
-				</div>
-			)}
+			{error && <FormError>{error}</FormError>}
 
 			{/* Access Notes */}
-			<section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-				<h2 className="text-sm font-semibold text-slate-700 mb-3">
+			<Card className="p-5">
+				<h2 className="text-sm font-semibold text-ink mb-3">
 					{t("accessNotes")}
 				</h2>
 				<label htmlFor="access-notes" className="sr-only">
@@ -221,21 +215,21 @@ export function SurveyDetailClient({
 					placeholder={t("accessNotesPlaceholder")}
 					rows={3}
 					disabled={isDone}
-					className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-300 resize-none disabled:bg-slate-50 disabled:text-slate-400 transition-colors"
+					className="w-full rounded-xl border border-line-strong bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-[var(--ring)] resize-none disabled:opacity-60 transition-colors"
 				/>
-			</section>
+			</Card>
 
 			{/* Special Items */}
-			<section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+			<Card className="p-5">
 				<div className="flex items-center justify-between mb-3">
-					<h2 className="text-sm font-semibold text-slate-700">
+					<h2 className="text-sm font-semibold text-ink">
 						{t("specialItems")}
 					</h2>
 					{!isDone && (
 						<button
 							type="button"
 							onClick={addItem}
-							className="flex items-center gap-1.5 text-xs font-medium text-brand-600 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded transition-colors"
+							className="flex items-center gap-1.5 text-xs font-medium text-primary-text hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded transition-colors"
 						>
 							<Plus size={13} aria-hidden="true" />
 							{t("addItem")}
@@ -244,7 +238,7 @@ export function SurveyDetailClient({
 				</div>
 
 				{items.length === 0 ? (
-					<p className="text-sm text-slate-400 text-center py-4">
+					<p className="text-sm text-ink-faint text-center py-4">
 						{t("noSpecialItems")}
 					</p>
 				) : (
@@ -258,14 +252,14 @@ export function SurveyDetailClient({
 									onChange={(e) => updateItem(i, { type: e.target.value })}
 									placeholder={t("itemType")}
 									disabled={isDone}
-									className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-50 disabled:text-slate-400"
+									className="flex-1 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-[var(--ring)] disabled:opacity-60"
 								/>
 								<NumericInput
 									aria-label={`${t("qty")} ${i + 1}`}
 									value={item.qty}
 									onChange={(v) => updateItem(i, { qty: Math.max(1, v || 1) })}
 									disabled={isDone}
-									className="w-16 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-50 disabled:text-slate-400"
+									className="w-16 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-sm text-ink text-center focus:outline-none focus:ring-2 focus:ring-[var(--ring)] disabled:opacity-60"
 								/>
 								<input
 									type="text"
@@ -274,14 +268,14 @@ export function SurveyDetailClient({
 									onChange={(e) => updateItem(i, { note: e.target.value })}
 									placeholder={t("itemNote")}
 									disabled={isDone}
-									className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:bg-slate-50 disabled:text-slate-400"
+									className="flex-1 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-[var(--ring)] disabled:opacity-60"
 								/>
 								{!isDone && (
 									<button
 										type="button"
 										onClick={() => removeItem(i)}
 										aria-label={t("removeItem")}
-										className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+										className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-ink-faint hover:text-danger hover:bg-danger-bg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 									>
 										<Trash2 size={14} aria-hidden="true" />
 									</button>
@@ -290,20 +284,20 @@ export function SurveyDetailClient({
 						))}
 					</ul>
 				)}
-			</section>
+			</Card>
 
 			{/* Media Gallery */}
-			<section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+			<Card className="p-5">
 				<div className="flex items-center justify-between mb-3">
-					<h2 className="text-sm font-semibold text-slate-700">
+					<h2 className="text-sm font-semibold text-ink">
 						{t("media")}
 					</h2>
 					<label
 						htmlFor="survey-media-upload"
-						className={`flex items-center gap-1.5 text-xs font-medium transition-colors cursor-pointer focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-500 rounded ${
+						className={`flex items-center gap-1.5 text-xs font-medium transition-colors cursor-pointer focus-within:outline-none focus-within:ring-2 focus-within:ring-[var(--ring)] rounded ${
 							uploading
-								? "text-slate-400 cursor-not-allowed"
-								: "text-brand-600 hover:text-brand-700"
+								? "text-ink-faint cursor-not-allowed"
+								: "text-primary-text hover:opacity-80"
 						}`}
 					>
 						{uploading ? (
@@ -327,7 +321,7 @@ export function SurveyDetailClient({
 				</div>
 
 				{media.length === 0 ? (
-					<p className="text-sm text-slate-400 text-center py-6">
+					<p className="text-sm text-ink-faint text-center py-6">
 						{t("noMedia")}
 					</p>
 				) : (
@@ -343,7 +337,7 @@ export function SurveyDetailClient({
 							return (
 								<li
 									key={m.id}
-									className="relative group rounded-xl overflow-hidden aspect-square bg-slate-100"
+									className="relative group rounded-xl overflow-hidden aspect-square bg-subtle"
 								>
 									<Image
 										src={urlData.publicUrl}
@@ -409,11 +403,11 @@ export function SurveyDetailClient({
 							/>
 						);
 					})()}
-			</section>
+			</Card>
 
 			{/* General Notes */}
-			<section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-				<h2 className="text-sm font-semibold text-slate-700 mb-3">
+			<Card className="p-5">
+				<h2 className="text-sm font-semibold text-ink mb-3">
 					{t("generalNotes")}
 				</h2>
 				<label htmlFor="general-notes" className="sr-only">
@@ -426,30 +420,31 @@ export function SurveyDetailClient({
 					placeholder={t("generalNotesPlaceholder")}
 					rows={4}
 					disabled={isDone}
-					className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-300 resize-none disabled:bg-slate-50 disabled:text-slate-400 transition-colors"
+					className="w-full rounded-xl border border-line-strong bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-[var(--ring)] resize-none disabled:opacity-60 transition-colors"
 				/>
-			</section>
+			</Card>
 
 			{/* Actions */}
 			{!isDone && (
 				<div className="flex gap-3">
-					<button
+					<Button
 						type="button"
 						onClick={handleSave}
-						disabled={saving}
-						className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						loading={saving}
+						variant="secondary"
 					>
 						{saving ? (
 							<Loader2 size={15} className="animate-spin" aria-hidden="true" />
 						) : null}
 						{saving ? tButtons("saving") : t("saveSurveyNotes")}
-					</button>
+					</Button>
 
-					<button
+					<Button
 						type="button"
 						onClick={handleMarkDone}
 						disabled={markingDone || isPending}
-						className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 transition-colors"
+						loading={markingDone}
+						variant="primary"
 					>
 						{markingDone ? (
 							<Loader2 size={15} className="animate-spin" aria-hidden="true" />
@@ -457,12 +452,12 @@ export function SurveyDetailClient({
 							<CheckCircle2 size={15} aria-hidden="true" />
 						)}
 						{markingDone ? tButtons("saving") : t("markAsDone")}
-					</button>
+					</Button>
 				</div>
 			)}
 
 			{isDone && (
-				<div className="flex items-center gap-2 text-sm text-green-600 font-medium">
+				<div className="flex items-center gap-2 text-sm text-success font-medium">
 					<CheckCircle2 size={16} aria-hidden="true" />
 					{t("markedAsCompleted")}
 				</div>

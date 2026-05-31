@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getTranslations } from "next-intl/server";
 import { CalendarView } from "@/components/calendar/CalendarView";
 import { SyncAllButton } from "@/components/calendar/SyncAllButton";
+import { PageHeader } from "@/components/ui";
 
 export default async function CalendarPage() {
 	const supabase = await createClient();
@@ -71,20 +72,20 @@ export default async function CalendarPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between flex-wrap gap-4">
-				<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-					{t("title")}
-				</h1>
-				<div className="flex items-center gap-3 flex-wrap">
-					<div className="flex items-center gap-3 text-xs text-gray-500">
-						<LegendDot color="#3b82f6" label={t("legend.survey")} />
-						<LegendDot color="#22c55e" label={t("legend.scheduled")} />
-						<LegendDot color="#0ea5e9" label={t("legend.inProgress")} />
-						<LegendDot color="#64748b" label={t("legend.completed")} />
-					</div>
-					<SyncAllButton />
-				</div>
-			</div>
+			<PageHeader
+				title={t("title")}
+				actions={
+					<>
+						<div className="flex items-center gap-3 text-xs text-ink-muted">
+							<LegendDot color="#3b82f6" label={t("legend.survey")} />
+							<LegendDot color="#22c55e" label={t("legend.scheduled")} />
+							<LegendDot color="#0ea5e9" label={t("legend.inProgress")} />
+							<LegendDot color="#64748b" label={t("legend.completed")} />
+						</div>
+						<SyncAllButton />
+					</>
+				}
+			/>
 			<CalendarView events={events} />
 		</div>
 	);

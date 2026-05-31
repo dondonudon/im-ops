@@ -4,6 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import {
+	Field,
+	Input,
+	Select,
+	Textarea,
+	FormError,
+	Button,
+} from "@/components/ui";
 
 /**
  * Create / edit customer form.
@@ -93,26 +101,10 @@ export function CustomerForm({
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-5 max-w-lg" noValidate>
-			{error && (
-				<div
-					role="alert"
-					className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300"
-				>
-					{error}
-				</div>
-			)}
+			{error && <FormError>{error}</FormError>}
 
-			<div>
-				<label
-					htmlFor="name"
-					className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-				>
-					{t("fullName")}{" "}
-					<span aria-hidden="true" className="text-red-500">
-						*
-					</span>
-				</label>
-				<input
+			<Field label={t("fullName")} htmlFor="name" required>
+				<Input
 					id="name"
 					name="name"
 					type="text"
@@ -120,56 +112,35 @@ export function CustomerForm({
 					value={form.name}
 					onChange={handleChange}
 					autoComplete="name"
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 				/>
-			</div>
+			</Field>
 
-			<div>
-				<label
-					htmlFor="type"
-					className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-				>
-					{t("type")}
-				</label>
-				<select
+			<Field label={t("type")} htmlFor="type">
+				<Select
 					id="type"
 					name="type"
 					value={form.type}
 					onChange={handleChange}
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 				>
 					<option value="individual">{tCustomerType("individual")}</option>
 					<option value="corporate">{tCustomerType("corporate")}</option>
-				</select>
-			</div>
+				</Select>
+			</Field>
 
 			{form.type === "corporate" && (
-				<div>
-					<label
-						htmlFor="company_name"
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-					>
-						{t("companyName")}
-					</label>
-					<input
+				<Field label={t("companyName")} htmlFor="company_name">
+					<Input
 						id="company_name"
 						name="company_name"
 						type="text"
 						value={form.company_name}
 						onChange={handleChange}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 					/>
-				</div>
+				</Field>
 			)}
 
-			<div>
-				<label
-					htmlFor="phone"
-					className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-				>
-					{t("phone")}
-				</label>
-				<input
+			<Field label={t("phone")} htmlFor="phone">
+				<Input
 					id="phone"
 					name="phone"
 					type="tel"
@@ -177,64 +148,41 @@ export function CustomerForm({
 					onChange={handleChange}
 					autoComplete="tel"
 					placeholder={t("phonePlaceholder")}
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 				/>
-			</div>
+			</Field>
 
-			<div>
-				<label
-					htmlFor="email"
-					className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-				>
-					{t("email")}
-				</label>
-				<input
+			<Field label={t("email")} htmlFor="email">
+				<Input
 					id="email"
 					name="email"
 					type="email"
 					value={form.email}
 					onChange={handleChange}
 					autoComplete="email"
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 				/>
-			</div>
+			</Field>
 
-			<div>
-				<label
-					htmlFor="notes"
-					className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-				>
-					{t("notes")}
-				</label>
-				<textarea
+			<Field label={t("notes")} htmlFor="notes">
+				<Textarea
 					id="notes"
 					name="notes"
 					rows={3}
 					value={form.notes}
 					onChange={handleChange}
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
 				/>
-			</div>
+			</Field>
 
 			<div className="flex gap-3">
-				<button
-					type="submit"
-					disabled={saving}
-					className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
-				>
+				<Button type="submit" loading={saving}>
 					{saving
 						? tButtons("saving")
 						: isEdit
 							? tButtons("saveChanges")
 							: tActions("createCustomer")}
-				</button>
-				<button
-					type="button"
-					onClick={() => router.back()}
-					className="rounded-lg border border-gray-300 dark:border-gray-700 px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
-				>
+				</Button>
+				<Button type="button" variant="secondary" onClick={() => router.back()}>
 					{tButtons("cancel")}
-				</button>
+				</Button>
 			</div>
 		</form>
 	);

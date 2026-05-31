@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { Input, Textarea } from "@/components/ui";
+import { NumericInput } from "@/components/shared/NumericInput";
+import { MarginTiersEditor } from "./MarginTiersEditor";
 
 type Setting = {
 	key: string;
@@ -93,7 +96,7 @@ function inferInputType(
 	if (value.includes("\n") || /_terms$|_note$|_tagline$/.test(key)) {
 		return "textarea";
 	}
-	if (/_rate$|_pct$|_days$|_fee$|_per_|_buffer_pct$|_target$/.test(key)) {
+	if (/_rate|_pct$|_days$|_fee$|_per_|_buffer_pct$|_target|_profit$|_increment$/.test(key)) {
 		return "number";
 	}
 	return "text";
@@ -133,7 +136,7 @@ export function SettingsEditor({ settings }: { settings: Setting[] }) {
 			<div
 				role="tablist"
 				aria-label={tPage("sectionsAria")}
-				className="flex gap-1 border-b border-gray-200 dark:border-gray-800 mb-6 overflow-x-auto"
+				className="flex gap-1 border-b border-line mb-6 overflow-x-auto"
 			>
 				{TABS.map((tab) => {
 					const hasSettings = tab.categories.some((cat) =>
@@ -151,10 +154,10 @@ export function SettingsEditor({ settings }: { settings: Setting[] }) {
 							id={`tab-${tab.id}`}
 							onClick={() => setActiveTab(tab.id)}
 							className={[
-								"shrink-0 px-4 py-2.5 text-sm font-medium rounded-t-lg border-b-2 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2",
+								"shrink-0 px-4 py-2.5 text-sm font-medium rounded-t-lg border-b-2 -mb-px transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2",
 								isActive
-									? "border-brand-600 text-brand-600 dark:text-brand-400"
-									: "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600",
+									? "border-primary text-primary-text"
+									: "border-transparent text-ink-muted hover:text-ink hover:border-line-strong",
 							].join(" ")}
 						>
 							{tGroups(tab.labelKey)}
@@ -169,12 +172,12 @@ export function SettingsEditor({ settings }: { settings: Setting[] }) {
 				role="tabpanel"
 				aria-labelledby={`tab-${currentTab.id}`}
 			>
-				<p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+				<p className="text-sm text-ink-muted mb-6">
 					{tDescriptions(currentTab.descriptionKey)}
 				</p>
 
 				{visibleCategories.length === 0 ? (
-					<p className="text-sm text-gray-400 dark:text-gray-600 italic">
+					<p className="text-sm text-ink-faint italic">
 						{tPage("noSettings")}
 					</p>
 				) : (
@@ -190,11 +193,11 @@ export function SettingsEditor({ settings }: { settings: Setting[] }) {
 									{/* Only show the section heading when there are multiple
 									    categories in this tab */}
 									{visibleCategories.length > 1 && (
-										<h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">
+										<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-widest mb-3">
 											{heading}
 										</h2>
 									)}
-									<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
+									<div className="rounded-xl border border-line bg-surface divide-y divide-line">
 										{rows.map((s) => (
 											<SettingRow key={s.key} setting={s} />
 										))}
@@ -214,6 +217,15 @@ export function SettingsEditor({ settings }: { settings: Setting[] }) {
 // ---------------------------------------------------------------------------
 
 function SettingRow({ setting }: { setting: Setting }) {
+	// Structured settings get a bespoke editor instead of the generic input.
+	if (setting.key === "margin_tiers") {
+		return <MarginTiersEditor setting={setting} />;
+	}
+
+	return <GenericSettingRow setting={setting} />;
+}
+
+function GenericSettingRow({ setting }: { setting: Setting }) {
 	const router = useRouter();
 	const tButtons = useTranslations("common.buttons");
 	const [value, setValue] = useState(setting.value);
@@ -247,29 +259,29 @@ function SettingRow({ setting }: { setting: Setting }) {
 			<div className="px-4 py-4">
 				<div className="flex items-start justify-between gap-4 mb-2">
 					<div className="min-w-0">
-						<p className="text-sm font-medium text-gray-900 dark:text-white leading-snug">
+						<p className="text-sm font-medium text-ink leading-snug">
 							{label}
 						</p>
-						<p className="text-xs font-mono text-gray-400 dark:text-gray-600 mt-0.5">
+						<p className="text-xs font-mono text-ink-faint mt-0.5">
 							{setting.key}
 						</p>
 					</div>
 					{saveState !== "idle" && (
 						<span
-							className={`shrink-0 text-xs mt-0.5 ${saveState === "saved" ? "text-green-500" : "text-gray-400"}`}
+							className={`shrink-0 text-xs mt-0.5 ${saveState === "saved" ? "text-success" : "text-ink-faint"}`}
 							aria-live="polite"
 						>
 							{saveState === "saved" ? tButtons("saved") : tButtons("saving")}
 						</span>
 					)}
 				</div>
-				<textarea
+				<Textarea
 					value={value}
 					onChange={(e) => setValue(e.target.value)}
 					onBlur={handleSave}
 					rows={Math.max(3, value.split("\n").length + 1)}
 					aria-label={label}
-					className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 resize-y leading-relaxed"
+					className="leading-relaxed"
 				/>
 			</div>
 		);
@@ -278,25 +290,35 @@ function SettingRow({ setting }: { setting: Setting }) {
 	return (
 		<div className="flex items-start gap-4 px-4 py-3">
 			<div className="flex-1 min-w-0">
-				<p className="text-sm font-medium text-gray-900 dark:text-white leading-snug">
+				<p className="text-sm font-medium text-ink leading-snug">
 					{label}
 				</p>
-				<p className="text-xs font-mono text-gray-400 dark:text-gray-600 mt-0.5">
+				<p className="text-xs font-mono text-ink-faint mt-0.5">
 					{setting.key}
 				</p>
 			</div>
 			<div className="flex items-center gap-2 shrink-0">
-				<input
-					type={inputType}
-					value={value}
-					onChange={(e) => setValue(e.target.value)}
-					onBlur={handleSave}
-					aria-label={label}
-					className="w-48 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-500"
-				/>
+				{inputType === "number" ? (
+					<NumericInput
+						value={Number(value)}
+						onChange={(v) => setValue(String(v))}
+						onBlur={handleSave}
+						aria-label={label}
+						className="w-48 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink text-right tabular-nums transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent"
+					/>
+				) : (
+					<Input
+						type={inputType}
+						value={value}
+						onChange={(e) => setValue(e.target.value)}
+						onBlur={handleSave}
+						aria-label={label}
+						className="w-48 text-right tabular-nums"
+					/>
+				)}
 				{saveState !== "idle" && (
 					<span
-						className={`text-xs w-14 text-right ${saveState === "saved" ? "text-green-500" : "text-gray-400"}`}
+						className={`text-xs w-14 text-right ${saveState === "saved" ? "text-success" : "text-ink-faint"}`}
 						aria-live="polite"
 					>
 						{saveState === "saved" ? tButtons("saved") : tButtons("saving")}

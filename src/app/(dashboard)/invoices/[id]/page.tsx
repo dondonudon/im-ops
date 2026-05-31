@@ -8,18 +8,15 @@ import {
 	buildCompanySettings,
 	buildInvoiceTemplateSettings,
 } from "@/lib/pdfSettings";
-import { StatusChip } from "@/components/shared/StatusChip";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { InvoicePDFDownloadButton } from "@/components/invoices/InvoicePDFDownloadButton";
-
-const STATUS_COLOR: Record<string, string> = {
-	draft: "gray",
-	sent: "blue",
-	partially_paid: "yellow",
-	paid: "green",
-	overdue: "red",
-	cancelled: "gray",
-};
+import {
+	PageHeader,
+	Card,
+	Badge,
+	toneFor,
+	Money,
+} from "@/components/ui";
 
 export default async function InvoiceDetailPage({
 	params,
@@ -85,22 +82,17 @@ export default async function InvoiceDetailPage({
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<div className="flex items-start justify-between flex-wrap gap-4">
-				<div>
-					<div className="flex items-center gap-3 mb-1">
-						<h1 className="text-2xl font-bold font-mono text-gray-900 dark:text-white">
-							{invoice.invoice_number}
-						</h1>
-						<StatusChip
-							label={tStatus(invoice.status as never)}
-							variant={
-								(STATUS_COLOR[invoice.status] as Parameters<
-									typeof StatusChip
-								>[0]["variant"]) ?? "gray"
-							}
-						/>
-					</div>
-					<p className="text-sm text-gray-500 dark:text-gray-400">
+			<PageHeader
+				title={
+					<span className="flex items-center gap-3">
+						<span className="font-mono">{invoice.invoice_number}</span>
+						<Badge tone={toneFor("invoice", invoice.status)} dot>
+							{tStatus(invoice.status as never)}
+						</Badge>
+					</span>
+				}
+				subtitle={
+					<>
 						{customer?.name ?? "—"}
 						{invoice.due_date &&
 							` · ${t("due", { date: formatDate(invoice.due_date) })}`}
@@ -110,94 +102,94 @@ export default async function InvoiceDetailPage({
 								·{" "}
 								<Link
 									href={`/jobs/${job.id}`}
-									className="text-brand-600 hover:underline"
+									className="text-primary-text hover:underline"
 								>
 									{job.job_number}
 								</Link>
 							</>
 						)}
-					</p>
-				</div>
-				{customer && job && (
-					<InvoicePDFDownloadButton
-						pdfProps={{
-							invoice: {
-								invoice_number: invoice.invoice_number,
-								total_amount: invoice.total_amount,
-								paid_amount: invoice.paid_amount ?? 0,
-								status: invoice.status,
-								due_date: invoice.due_date ?? null,
-								notes: invoice.notes ?? null,
-								created_at: invoice.created_at,
-							},
-							job: {
-								job_number: job.job_number,
-								move_date: job.move_date ?? null,
-							},
-							customer: {
-								name: customer.name,
-								phone: customer.phone ?? null,
-								email: customer.email ?? null,
-							},
-							company: pdfCompany,
-							template: pdfTemplate,
-						}}
-					/>
-				)}
-			</div>
+					</>
+				}
+				actions={
+					customer && job ? (
+						<InvoicePDFDownloadButton
+							pdfProps={{
+								invoice: {
+									invoice_number: invoice.invoice_number,
+									total_amount: invoice.total_amount,
+									paid_amount: invoice.paid_amount ?? 0,
+									status: invoice.status,
+									due_date: invoice.due_date ?? null,
+									notes: invoice.notes ?? null,
+									created_at: invoice.created_at,
+								},
+								job: {
+									job_number: job.job_number,
+									move_date: job.move_date ?? null,
+								},
+								customer: {
+									name: customer.name,
+									phone: customer.phone ?? null,
+									email: customer.email ?? null,
+								},
+								company: pdfCompany,
+								template: pdfTemplate,
+							}}
+						/>
+					) : undefined
+				}
+			/>
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 				<div className="lg:col-span-2 space-y-6">
-					<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 text-sm space-y-3">
+					<Card className="p-5 text-sm space-y-3">
 						{customer && (
 							<>
 								<div className="flex gap-4">
-									<span className="w-32 text-gray-500">{t("customer")}</span>
-									<span className="font-medium">{customer.name}</span>
+									<span className="w-32 text-ink-muted">{t("customer")}</span>
+									<span className="font-medium text-ink">{customer.name}</span>
 								</div>
 								{customer.phone && (
 									<div className="flex gap-4">
-										<span className="w-32 text-gray-500">{t("phone")}</span>
-										<span>{customer.phone}</span>
+										<span className="w-32 text-ink-muted">{t("phone")}</span>
+										<span className="text-ink">{customer.phone}</span>
 									</div>
 								)}
 								{customer.email && (
 									<div className="flex gap-4">
-										<span className="w-32 text-gray-500">{t("email")}</span>
-										<span>{customer.email}</span>
+										<span className="w-32 text-ink-muted">{t("email")}</span>
+										<span className="text-ink">{customer.email}</span>
 									</div>
 								)}
 							</>
 						)}
 						{job?.move_date && (
 							<div className="flex gap-4">
-								<span className="w-32 text-gray-500">{t("moveDate")}</span>
-								<span>{formatDate(job.move_date)}</span>
+								<span className="w-32 text-ink-muted">{t("moveDate")}</span>
+								<span className="text-ink">{formatDate(job.move_date)}</span>
 							</div>
 						)}
 						<div className="flex gap-4">
-							<span className="w-32 text-gray-500">{t("invoiceDate")}</span>
-							<span>{formatDate(invoice.created_at)}</span>
+							<span className="w-32 text-ink-muted">{t("invoiceDate")}</span>
+							<span className="text-ink">{formatDate(invoice.created_at)}</span>
 						</div>
 						{invoice.due_date && (
 							<div className="flex gap-4">
-								<span className="w-32 text-gray-500">{t("dueDate")}</span>
-								<span>{formatDate(invoice.due_date)}</span>
+								<span className="w-32 text-ink-muted">{t("dueDate")}</span>
+								<span className="text-ink">{formatDate(invoice.due_date)}</span>
 							</div>
 						)}
 						{invoice.notes && (
 							<div className="flex gap-4">
-								<span className="w-32 text-gray-500">{t("notes")}</span>
-								<span className="whitespace-pre-line">{invoice.notes}</span>
+								<span className="w-32 text-ink-muted">{t("notes")}</span>
+								<span className="whitespace-pre-line text-ink">{invoice.notes}</span>
 							</div>
 						)}
-						<div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex justify-between font-bold text-base">
-							<span>{t("total")}</span>
-							<span className="tabular-nums text-brand-600">
-								{formatRupiah(invoice.total_amount)}
-							</span>
+						<div className="pt-2 border-t border-line flex justify-between font-bold text-base">
+							<span className="text-ink">{t("total")}</span>
+							<Money value={invoice.total_amount} tone="positive" />
 						</div>
-					</section>
+					</Card>
 				</div>
 
 				{/* Right: payments */}

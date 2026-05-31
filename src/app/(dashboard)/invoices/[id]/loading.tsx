@@ -15,7 +15,7 @@ export default function InvoiceDetailLoading() {
 			</div>
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 				<div className="lg:col-span-2 space-y-3">
-					<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						{Array.from({ length: 5 }).map((_, i) => (
 							// biome-ignore lint/suspicious/noArrayIndexKey: placeholder
 							<div key={i} className="flex justify-between gap-3">
@@ -26,7 +26,7 @@ export default function InvoiceDetailLoading() {
 					</div>
 				</div>
 				<div className="space-y-3">
-					<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						<Skeleton className="h-3 w-16" />
 						<Skeleton className="h-12 w-full" />
 						<Skeleton className="h-10 w-full" />

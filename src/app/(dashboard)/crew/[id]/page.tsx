@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatRupiah } from "@/lib/utils";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
+import { PageHeader, Badge, buttonStyles } from "@/components/ui";
+import Link from "next/link";
 
 export default async function CrewDetailPage({
 	params,
@@ -25,23 +26,23 @@ export default async function CrewDetailPage({
 
 	return (
 		<div className="space-y-6 max-w-2xl">
-			<div className="flex items-start justify-between flex-wrap gap-4">
-				<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-					{member.name}
-				</h1>
-				<Link
-					href={`/crew/${id}/edit`}
-					className="rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
-				>
-					{tCommon("edit")}
-				</Link>
-			</div>
+			<PageHeader
+				title={member.name}
+				actions={
+					<Link
+						href={`/crew/${id}/edit`}
+						className={buttonStyles({ variant: "secondary" })}
+					>
+						{tCommon("edit")}
+					</Link>
+				}
+			/>
 
-			<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 text-sm space-y-3">
+			<section className="rounded-xl border border-line bg-surface p-5 text-sm space-y-3 shadow-token">
 				{member.phone && (
 					<div className="flex items-center gap-4">
-						<span className="w-36 text-gray-500 shrink-0">{t("phone")}</span>
-						<span>{member.phone}</span>
+						<span className="w-36 text-ink-muted shrink-0">{t("phone")}</span>
+						<span className="text-ink">{member.phone}</span>
 						<WhatsAppButton
 							phone={member.phone}
 							message=""
@@ -52,35 +53,44 @@ export default async function CrewDetailPage({
 				)}
 				{member.daily_rate && (
 					<div className="flex gap-4">
-						<span className="w-36 text-gray-500 shrink-0">{t("dailyRate")}</span>
-						<span className="tabular-nums">
+						<span className="w-36 text-ink-muted shrink-0">{t("dailyRate")}</span>
+						<span className="tabular-nums text-ink">
 							{formatRupiah(member.daily_rate)}
 						</span>
 					</div>
 				)}
 				{member.skills && (
 					<div className="flex gap-4">
-						<span className="w-36 text-gray-500 shrink-0">{t("skills")}</span>
-						<span>{(member.skills as string[]).join(", ")}</span>
+						<span className="w-36 text-ink-muted shrink-0">{t("skills")}</span>
+						<span className="text-ink">{(member.skills as string[]).join(", ")}</span>
 					</div>
 				)}
-				<div className="flex gap-4">
-					<span className="w-36 text-gray-500 shrink-0">{t("availability")}</span>
-					<span>{tAvail((member.availability_status ?? "available") as never)}</span>
+				<div className="flex items-center gap-4">
+					<span className="w-36 text-ink-muted shrink-0">{t("availability")}</span>
+					<Badge tone={availTone(member.availability_status)}>
+						{tAvail((member.availability_status ?? "available") as never)}
+					</Badge>
 				</div>
 				{member.emergency_contact && (
 					<div className="flex gap-4">
-						<span className="w-36 text-gray-500 shrink-0">{t("emergency")}</span>
-						<span>{member.emergency_contact}</span>
+						<span className="w-36 text-ink-muted shrink-0">{t("emergency")}</span>
+						<span className="text-ink">{member.emergency_contact}</span>
 					</div>
 				)}
 				{member.notes && (
 					<div className="flex gap-4">
-						<span className="w-36 text-gray-500 shrink-0">{t("notes")}</span>
-						<span className="whitespace-pre-line">{member.notes}</span>
+						<span className="w-36 text-ink-muted shrink-0">{t("notes")}</span>
+						<span className="whitespace-pre-line text-ink">{member.notes}</span>
 					</div>
 				)}
 			</section>
 		</div>
 	);
+}
+
+function availTone(status: string | null): "positive" | "pending" | "danger" | "neutral" {
+	if (status === "available") return "positive";
+	if (status === "on_job") return "pending";
+	if (status === "unavailable") return "danger";
+	return "neutral";
 }

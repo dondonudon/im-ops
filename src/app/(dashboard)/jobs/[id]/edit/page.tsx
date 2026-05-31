@@ -8,6 +8,7 @@ import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { NumericInput } from "@/components/shared/NumericInput";
+import { Button, buttonStyles, Card, Field, Input, Textarea, Select, FormError } from "@/components/ui";
 
 const JOB_STATUSES = [
 	"scheduled",
@@ -129,9 +130,6 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 		}
 	}
 
-	const inputClass =
-		"w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-300 bg-white transition-colors";
-
 	const STATUS_LABELS: Record<JobStatus, string> = {
 		scheduled: tStatus("scheduled"),
 		in_progress: tStatus("in_progress"),
@@ -142,7 +140,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 
 	if (loading) {
 		return (
-			<div className="flex items-center justify-center h-40 text-slate-400">
+			<div className="flex items-center justify-center h-40 text-ink-faint">
 				<Loader2 size={20} className="animate-spin" aria-hidden="true" />
 			</div>
 		);
@@ -152,186 +150,162 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 		<div className="max-w-lg mx-auto space-y-5">
 			<Link
 				href={`/jobs/${id}`}
-				className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+				className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 			>
 				<ArrowLeft size={15} aria-hidden="true" />
 				{t("backToJob")}
 			</Link>
 
-			<div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+			<Card className="p-6">
 				<div className="mb-5">
-					<p className="text-xs font-mono text-slate-400 mb-0.5">{jobNumber}</p>
-					<h1 className="text-xl font-bold text-slate-800">{t("editTitle")}</h1>
+					<p className="text-xs font-mono text-ink-faint mb-0.5">{jobNumber}</p>
+					<h1 className="text-xl font-bold text-ink">{t("editTitle")}</h1>
 					{customerName && (
-						<p className="text-sm text-slate-500 mt-0.5">
+						<p className="text-sm text-ink-muted mt-0.5">
 							{tCustomer("customer")}:{" "}
-							<span className="font-medium text-slate-700">{customerName}</span>
+							<span className="font-medium text-ink">{customerName}</span>
 						</p>
 					)}
 				</div>
 
-				{error && (
-					<div
-						role="alert"
-						className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"
-					>
-						{error}
-					</div>
-				)}
+				{error && <FormError>{error}</FormError>}
 
-				<form onSubmit={handleSubmit} className="space-y-4" noValidate>
+				<form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate>
 					{/* Status */}
-					<div>
-						<label
-							htmlFor="status"
-							className="block text-sm font-medium text-slate-700 mb-1.5"
-						>
-							{t("status")}
-						</label>
-						<select
+					<Field label={t("status")} htmlFor="status">
+						<Select
 							id="status"
 							name="status"
 							value={form.status}
 							onChange={handleChange}
-							className={inputClass}
 						>
 							{JOB_STATUSES.map((s) => (
 								<option key={s} value={s}>
 									{STATUS_LABELS[s]}
 								</option>
 							))}
-						</select>
-					</div>
+						</Select>
+					</Field>
 
 					{/* Move date + time */}
 					<fieldset className="space-y-3">
-						<legend className="block text-sm font-medium text-slate-700 mb-1">
+						<legend className="block text-sm font-medium text-ink mb-1">
 							{t("schedule")}
 						</legend>
 						<div className="grid grid-cols-2 gap-3">
-							<div>
-								<label
-									htmlFor="move_date"
-									className="block text-xs font-medium text-slate-500 mb-1"
-								>
-									{t("startDate")}{" "}
-									<span aria-hidden="true" className="text-red-500">
-										*
-									</span>
-								</label>
-								<input
+							<Field
+								label={
+									<>
+										{t("startDate")}{" "}
+										<span aria-hidden="true" className="text-danger">
+											*
+										</span>
+									</>
+								}
+								htmlFor="move_date"
+							>
+								<Input
 									id="move_date"
 									name="move_date"
 									type="date"
 									value={form.move_date}
 									onChange={handleChange}
 									required
-									className={inputClass}
 								/>
-							</div>
-							<div>
-								<label
-									htmlFor="move_time"
-									className="block text-xs font-medium text-slate-500 mb-1"
-								>
-									{t("startTime")}{" "}
-									<span className="text-slate-400 font-normal">
-										{tHints("optionalParen")}
-									</span>
-								</label>
-								<input
+							</Field>
+							<Field
+								label={
+									<>
+										{t("startTime")}{" "}
+										<span className="text-ink-faint font-normal">
+											{tHints("optionalParen")}
+										</span>
+									</>
+								}
+								htmlFor="move_time"
+							>
+								<Input
 									id="move_time"
 									name="move_time"
 									type="time"
 									value={form.move_time}
 									onChange={handleChange}
-									className={inputClass}
 								/>
-							</div>
+							</Field>
 						</div>
 						<div className="grid grid-cols-2 gap-3">
-							<div>
-								<label
-									htmlFor="move_end_date"
-									className="block text-xs font-medium text-slate-500 mb-1"
-								>
-									{t("endDate")}{" "}
-									<span className="text-slate-400 font-normal">
-										{t("endDateHint")}
-									</span>
-								</label>
-								<input
+							<Field
+								label={
+									<>
+										{t("endDate")}{" "}
+										<span className="text-ink-faint font-normal">
+											{t("endDateHint")}
+										</span>
+									</>
+								}
+								htmlFor="move_end_date"
+							>
+								<Input
 									id="move_end_date"
 									name="move_end_date"
 									type="date"
 									min={form.move_date || undefined}
 									value={form.move_end_date}
 									onChange={handleChange}
-									className={inputClass}
 								/>
-							</div>
-							<div>
-								<label
-									htmlFor="move_end_time"
-									className="block text-xs font-medium text-slate-500 mb-1"
-								>
-									{t("endTime")}{" "}
-									<span className="text-slate-400 font-normal">
-										{tHints("optionalParen")}
-									</span>
-								</label>
-								<input
+							</Field>
+							<Field
+								label={
+									<>
+										{t("endTime")}{" "}
+										<span className="text-ink-faint font-normal">
+											{tHints("optionalParen")}
+										</span>
+									</>
+								}
+								htmlFor="move_end_time"
+							>
+								<Input
 									id="move_end_time"
 									name="move_end_time"
 									type="time"
 									value={form.move_end_time}
 									onChange={handleChange}
-									className={inputClass}
 								/>
-							</div>
+							</Field>
 						</div>
 					</fieldset>
 
 					{/* Revenue */}
-					<div>
-						<label
-							htmlFor="revenue"
-							className="block text-sm font-medium text-slate-700 mb-1.5"
-						>
-							{t("revenue")}
-						</label>
+					<Field label={t("revenue")} htmlFor="revenue">
 						<NumericInput
 							id="revenue"
 							value={Number(form.revenue) || 0}
 							onChange={(v) => setForm((p) => ({ ...p, revenue: v > 0 ? String(v) : "" }))}
-							className={inputClass}
+							className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent"
 						/>
-					</div>
+					</Field>
 
 					{/* Notes */}
-					<div>
-						<label
-							htmlFor="notes"
-							className="block text-sm font-medium text-slate-700 mb-1.5"
-						>
-							{t("notes")}
-						</label>
-						<textarea
+					<Field label={t("notes")} htmlFor="notes">
+						<Textarea
 							id="notes"
 							name="notes"
 							rows={4}
 							value={form.notes}
 							onChange={handleChange}
-							className={`${inputClass} resize-none`}
+							className="resize-none"
 						/>
-					</div>
+					</Field>
 
 					{/* Actions */}
 					<div className="flex items-center gap-3 pt-2">
-						<button
+						<Button
 							type="submit"
-							disabled={saving}
-							className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+							loading={saving}
+							variant="primary"
+							size="lg"
+							className="flex-1"
 						>
 							{saving && (
 								<Loader2
@@ -341,16 +315,16 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 								/>
 							)}
 							{saving ? tButtons("saving") : tButtons("saveChanges")}
-						</button>
+						</Button>
 						<Link
 							href={`/jobs/${id}`}
-							className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+							className={buttonStyles({ variant: "secondary", size: "lg" })}
 						>
 							{tButtons("cancel")}
 						</Link>
 					</div>
 				</form>
-			</div>
+			</Card>
 		</div>
 	);
 }

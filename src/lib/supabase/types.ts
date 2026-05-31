@@ -397,7 +397,7 @@ export type Database = {
           }
         ]
       }
-      vendors: {
+      fleet: {
         Row: {
           id: string
           name: string
@@ -485,8 +485,8 @@ export type Database = {
         Row: {
           id: string
           job_id: string
-          assignment_type: 'vendor' | 'crew'
-          vendor_id: string | null
+          assignment_type: 'fleet' | 'crew'
+          fleet_id: string | null
           crew_id: string | null
           role: string | null
           daily_rate: number | null
@@ -496,8 +496,8 @@ export type Database = {
         Insert: {
           id?: string
           job_id: string
-          assignment_type: 'vendor' | 'crew'
-          vendor_id?: string | null
+          assignment_type: 'fleet' | 'crew'
+          fleet_id?: string | null
           crew_id?: string | null
           role?: string | null
           daily_rate?: number | null
@@ -507,8 +507,8 @@ export type Database = {
         Update: {
           id?: string
           job_id?: string
-          assignment_type?: 'vendor' | 'crew'
-          vendor_id?: string | null
+          assignment_type?: 'fleet' | 'crew'
+          fleet_id?: string | null
           crew_id?: string | null
           role?: string | null
           daily_rate?: number | null
@@ -524,10 +524,10 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'job_assignments_vendor_id_fkey'
-            columns: ['vendor_id']
+            foreignKeyName: 'job_assignments_fleet_id_fkey'
+            columns: ['fleet_id']
             isOneToOne: false
-            referencedRelation: 'vendors'
+            referencedRelation: 'fleet'
             referencedColumns: ['id']
           },
           {

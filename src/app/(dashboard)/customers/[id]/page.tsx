@@ -8,6 +8,7 @@ import {
 	leadStatusVariant,
 	jobStatusVariant,
 } from "@/components/shared/StatusChip";
+import { PageHeader, Badge, buttonStyles } from "@/components/ui";
 
 /**
  * Customer detail page — history of leads, jobs, invoices.
@@ -46,22 +47,18 @@ export default async function CustomerDetailPage({
 
 	return (
 		<div className="space-y-8">
-			<div className="flex items-start justify-between">
-				<div>
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-						{customer.name}
-					</h1>
-					<p className="text-sm text-gray-500 dark:text-gray-400">
-						{tType(customer.type as never)}
-					</p>
-				</div>
-				<Link
-					href={`/customers/${id}/edit`}
-					className="rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
-				>
-					{tCommon("edit")}
-				</Link>
-			</div>
+			<PageHeader
+				title={customer.name}
+				subtitle={tType(customer.type as never)}
+				actions={
+					<Link
+						href={`/customers/${id}/edit`}
+						className={buttonStyles({ variant: "secondary" })}
+					>
+						{tCommon("edit")}
+					</Link>
+				}
+			/>
 
 			{/* Contact info */}
 			<section
@@ -70,52 +67,52 @@ export default async function CustomerDetailPage({
 			>
 				{customer.phone && (
 					<div>
-						<p className="text-gray-500 dark:text-gray-400">{t("phone")}</p>
-						<p className="font-medium">{customer.phone}</p>
+						<p className="text-ink-muted">{t("phone")}</p>
+						<p className="font-medium text-ink">{customer.phone}</p>
 					</div>
 				)}
 				{customer.email && (
 					<div>
-						<p className="text-gray-500 dark:text-gray-400">{t("email")}</p>
-						<p className="font-medium">{customer.email}</p>
+						<p className="text-ink-muted">{t("email")}</p>
+						<p className="font-medium text-ink">{customer.email}</p>
 					</div>
 				)}
 				{customer.company_name && (
 					<div>
-						<p className="text-gray-500 dark:text-gray-400">{t("company")}</p>
-						<p className="font-medium">{customer.company_name}</p>
+						<p className="text-ink-muted">{t("company")}</p>
+						<p className="font-medium text-ink">{customer.company_name}</p>
 					</div>
 				)}
 				<div>
-					<p className="text-gray-500 dark:text-gray-400">{t("since")}</p>
-					<p className="font-medium">{formatDate(customer.created_at)}</p>
+					<p className="text-ink-muted">{t("since")}</p>
+					<p className="font-medium text-ink">{formatDate(customer.created_at)}</p>
 				</div>
 			</section>
 
 			{/* Leads */}
 			<section>
 				<div className="flex items-center justify-between mb-3">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+					<h2 className="text-lg font-semibold text-ink">
 						{t("leads")}
 					</h2>
 					<Link
 						href={`/leads/new?customer_id=${id}`}
-						className="text-sm text-brand-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+						className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 					>
 						+ {t("newLead")}
 					</Link>
 				</div>
 				{(leads ?? []).length === 0 ? (
-					<p className="text-sm text-gray-400">{t("noLeadsYet")}</p>
+					<p className="text-sm text-ink-faint">{t("noLeadsYet")}</p>
 				) : (
 					<ul className="space-y-2">
 						{leads!.map((l) => (
 							<li key={l.id}>
 								<Link
 									href={`/leads/${l.id}`}
-									className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+									className="flex items-center justify-between rounded-xl border border-line bg-surface px-4 py-3 hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 								>
-									<span className="text-sm font-medium truncate max-w-xs">
+									<span className="text-sm font-medium text-ink truncate max-w-xs">
 										{l.pickup_address ?? "—"} → {l.destination_address ?? "—"}
 									</span>
 									<div className="flex items-center gap-3">
@@ -123,7 +120,7 @@ export default async function CustomerDetailPage({
 											label={tLeadStatus(l.status as never)}
 											variant={leadStatusVariant(l.status)}
 										/>
-										<span className="text-xs text-gray-400">
+										<span className="text-xs text-ink-faint">
 											{formatDate(l.created_at)}
 										</span>
 									</div>
@@ -136,27 +133,27 @@ export default async function CustomerDetailPage({
 
 			{/* Jobs */}
 			<section>
-				<h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+				<h2 className="text-lg font-semibold text-ink mb-3">
 					{t("jobs")}
 				</h2>
 				{(jobs ?? []).length === 0 ? (
-					<p className="text-sm text-gray-400">{t("noJobsYet")}</p>
+					<p className="text-sm text-ink-faint">{t("noJobsYet")}</p>
 				) : (
 					<ul className="space-y-2">
 						{jobs!.map((j) => (
 							<li key={j.id}>
 								<Link
 									href={`/jobs/${j.id}`}
-									className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+									className="flex items-center justify-between rounded-xl border border-line bg-surface px-4 py-3 hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 								>
-									<span className="text-sm font-medium">{j.job_number}</span>
+									<span className="text-sm font-medium text-ink">{j.job_number}</span>
 									<div className="flex items-center gap-3">
-										<span className="text-sm">{formatRupiah(j.revenue)}</span>
+										<span className="text-sm text-ink-muted">{formatRupiah(j.revenue)}</span>
 										<StatusChip
 											label={tJobStatus(j.status as never)}
 											variant={jobStatusVariant(j.status)}
 										/>
-										<span className="text-xs text-gray-400">
+										<span className="text-xs text-ink-faint">
 											{formatDate(j.move_date)}
 										</span>
 									</div>

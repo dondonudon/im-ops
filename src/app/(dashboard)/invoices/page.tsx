@@ -3,6 +3,23 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { formatDate, formatRupiah } from "@/lib/utils";
 import { StatusChip, invoiceStatusVariant } from "@/components/shared/StatusChip";
+import {
+	PageHeader,
+	Select,
+	Table,
+	THead,
+	TH,
+	TBody,
+	TR,
+	TD,
+	EmptyState,
+	Badge,
+	toneFor,
+	Money,
+	Pagination,
+} from "@/components/ui";
+
+const PAGE_SIZE = 25;
 
 const STATUS_OPTS = [
 	"",
@@ -17,9 +34,11 @@ const STATUS_OPTS = [
 export default async function InvoicesPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ status?: string }>;
+	searchParams: Promise<{ status?: string; page?: string }>;
 }) {
-	const { status } = await searchParams;
+	const { status, page: rawPage } = await searchParams;
+	const page = Math.max(1, Number(rawPage) || 1);
+	const from = (page - 1) * PAGE_SIZE;
 	const supabase = await createClient();
 	const t = await getTranslations("pages.invoices");
 	const tStatus = await getTranslations("status.invoice");
@@ -33,60 +52,45 @@ export default async function InvoicesPage({
         job_number,
         proposals(leads(customers(name)))
       )
-    `)
-		.order("created_at", { ascending: false });
+    `, { count: "exact" });
 
 	if (status) query = query.filter("status", "eq", status);
 
-	const { data: invoices } = await query;
+	const { data: invoices, count } = await query
+		.order("created_at", { ascending: false })
+		.range(from, from + PAGE_SIZE - 1);
 
 	return (
 		<div className="space-y-5">
-			<h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-				{t("title")}
-			</h1>
+			<PageHeader title={t("title")} />
 
 			<form method="GET" role="search">
-				<select
+				<Select
 					name="status"
 					defaultValue={status ?? ""}
 					aria-label={t("columns.status")}
-					className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+					className="w-auto"
 				>
 					{STATUS_OPTS.map((s) => (
 						<option key={s} value={s}>
 							{s === "" ? t("filterAll") : tStatus(s as never)}
 						</option>
 					))}
-				</select>
+				</Select>
 			</form>
 
 			{/* Desktop table */}
-			<div className="hidden md:block rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-x-auto">
-				<table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800 text-sm">
-					<thead className="bg-gray-50 dark:bg-gray-800">
-						<tr>
-							<th scope="col" className="px-4 py-3 text-left font-medium text-gray-500">
-								{t("columns.invoiceNumber")}
-							</th>
-							<th scope="col" className="px-4 py-3 text-left font-medium text-gray-500">
-								{t("columns.customer")}
-							</th>
-							<th scope="col" className="px-4 py-3 text-left font-medium text-gray-500">
-								{t("columns.total")}
-							</th>
-							<th scope="col" className="px-4 py-3 text-left font-medium text-gray-500">
-								{t("columns.paid")}
-							</th>
-							<th scope="col" className="px-4 py-3 text-left font-medium text-gray-500">
-								{t("columns.dueDate")}
-							</th>
-							<th scope="col" className="px-4 py-3 text-left font-medium text-gray-500">
-								{t("columns.status")}
-							</th>
-						</tr>
-					</thead>
-					<tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+			<div className="hidden md:block">
+				<Table>
+					<THead>
+						<TH>{t("columns.invoiceNumber")}</TH>
+						<TH>{t("columns.customer")}</TH>
+						<TH align="right">{t("columns.total")}</TH>
+						<TH align="right">{t("columns.paid")}</TH>
+						<TH>{t("columns.dueDate")}</TH>
+						<TH>{t("columns.status")}</TH>
+					</THead>
+					<TBody>
 						{(invoices ?? []).map((inv) => {
 							const customerName =
 								(
@@ -97,43 +101,42 @@ export default async function InvoicesPage({
 									} | null
 								)?.proposals?.leads?.customers?.name ?? "—";
 							return (
-								<tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-									<td className="px-4 py-3 font-mono text-xs">
+								<TR key={inv.id}>
+									<TD className="font-mono text-xs">
 										<Link
 											href={`/invoices/${inv.id}`}
-											className="text-brand-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+											className="text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 										>
 											{inv.invoice_number}
 										</Link>
-									</td>
-									<td className="px-4 py-3">{customerName}</td>
-									<td className="px-4 py-3 tabular-nums">
-										{formatRupiah(inv.total_amount)}
-									</td>
-									<td className="px-4 py-3 tabular-nums text-green-600">
-										{formatRupiah(inv.paid_amount ?? 0)}
-									</td>
-									<td className="px-4 py-3 text-gray-500">
+									</TD>
+									<TD>{customerName}</TD>
+									<TD align="right">
+										<Money value={inv.total_amount} />
+									</TD>
+									<TD align="right">
+										<Money value={inv.paid_amount ?? 0} tone="positive" />
+									</TD>
+									<TD className="text-ink-muted">
 										{inv.due_date ? formatDate(inv.due_date) : "—"}
-									</td>
-									<td className="px-4 py-3">
-										<StatusChip
-											label={tStatus(inv.status as never)}
-											variant={invoiceStatusVariant(inv.status)}
-										/>
-									</td>
-								</tr>
+									</TD>
+									<TD>
+										<Badge tone={toneFor("invoice", inv.status)} dot>
+											{tStatus(inv.status as never)}
+										</Badge>
+									</TD>
+								</TR>
 							);
 						})}
 						{(invoices ?? []).length === 0 && (
 							<tr>
-								<td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-									{t("empty")}
+								<td colSpan={6}>
+									<EmptyState title={t("empty")} />
 								</td>
 							</tr>
 						)}
-					</tbody>
-				</table>
+					</TBody>
+				</Table>
 			</div>
 
 			{/* Mobile cards */}
@@ -152,40 +155,39 @@ export default async function InvoicesPage({
 						<Link
 							key={inv.id}
 							href={`/invoices/${inv.id}`}
-							className="block bg-white rounded-xl border border-gray-200 p-4 shadow-sm active:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+							className="block bg-surface rounded-xl border border-line p-4 shadow-token active:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 						>
 							<div className="flex items-start justify-between mb-2">
 								<div>
-									<p className="font-mono text-xs text-gray-400">
+									<p className="font-mono text-xs text-ink-faint">
 										{inv.invoice_number}
 									</p>
-									<p className="font-semibold text-gray-900 mt-0.5">
+									<p className="font-semibold text-ink mt-0.5">
 										{customerName}
 									</p>
 								</div>
-								<StatusChip
-									label={tStatus(inv.status as never)}
-									variant={invoiceStatusVariant(inv.status)}
-								/>
+								<Badge tone={toneFor("invoice", inv.status)} dot>
+									{tStatus(inv.status as never)}
+								</Badge>
 							</div>
 							<div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 text-sm">
 								<div>
-									<p className="text-xs text-gray-400">{t("columns.total")}</p>
-									<p className="font-semibold text-gray-900 tabular-nums">
+									<p className="text-xs text-ink-faint">{t("columns.total")}</p>
+									<p className="font-semibold text-ink tabular-nums">
 										{formatRupiah(inv.total_amount)}
 									</p>
 								</div>
 								<div>
-									<p className="text-xs text-gray-400">{t("columns.paid")}</p>
-									<p
-										className={`font-semibold tabular-nums ${balance > 0 ? "text-red-600" : "text-green-600"}`}
-									>
-										{formatRupiah(balance)}
-									</p>
+									<p className="text-xs text-ink-faint">{t("columns.paid")}</p>
+									<Money
+										value={balance}
+										tone={balance > 0 ? "danger" : "positive"}
+										className="font-semibold"
+									/>
 								</div>
 								{inv.due_date && (
 									<div className="col-span-2">
-										<p className="text-xs text-gray-400">
+										<p className="text-xs text-ink-faint">
 											{tDetail("due", { date: formatDate(inv.due_date) })}
 										</p>
 									</div>
@@ -195,9 +197,11 @@ export default async function InvoicesPage({
 					);
 				})}
 				{(invoices ?? []).length === 0 && (
-					<p className="py-10 text-center text-sm text-gray-400">{t("empty")}</p>
+					<p className="py-10 text-center text-sm text-ink-faint">{t("empty")}</p>
 				)}
 			</div>
+
+			<Pagination page={page} pageSize={PAGE_SIZE} total={count ?? 0} />
 		</div>
 	);
 }

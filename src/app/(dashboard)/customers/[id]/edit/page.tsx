@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { CustomerForm } from "@/components/customers/CustomerForm";
+import { PageHeader } from "@/components/ui";
 
 export default async function EditCustomerPage({
 	params,
@@ -20,9 +21,7 @@ export default async function EditCustomerPage({
 
 	return (
 		<div className="space-y-6">
-			<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-				{t("editTitle")}
-			</h1>
+			<PageHeader title={t("editTitle")} />
 			<CustomerForm customer={customer} />
 		</div>
 	);

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Play } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui";
 
 /**
  * Transitions a job from "scheduled" to "in_progress".
@@ -47,11 +48,12 @@ export function JobStartButton({ jobId }: { jobId: string }) {
 
 	return (
 		<div>
-			<button
+			<Button
 				type="button"
 				onClick={handleClick}
-				disabled={loading}
-				className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+				loading={loading}
+				variant="primary"
+				size="sm"
 				aria-label="Start job"
 			>
 				{loading ? (
@@ -60,9 +62,9 @@ export function JobStartButton({ jobId }: { jobId: string }) {
 					<Play size={13} aria-hidden="true" />
 				)}
 				{loading ? tActions("starting") : tActions("startJob")}
-			</button>
+			</Button>
 			{error && (
-				<p role="alert" className="mt-1 text-xs text-red-600">
+				<p role="alert" className="mt-1 text-xs text-danger">
 					{error}
 				</p>
 			)}

@@ -6,13 +6,16 @@ import { usePathname } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
+import { SectionTabs } from "@/components/layout/SectionTabs";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { CommandPalette } from "@/components/shared/CommandPalette";
+import { QuickLeadModal } from "@/components/leads/QuickLeadModal";
 
 /** Maps list-page pathnames to their FAB action. Exact match only — detail and edit pages are excluded. */
 const FAB_CONFIG: Record<string, { href: string; label: string }> = {
 	"/leads": { href: "/leads/new", label: "New Lead" },
 	"/customers": { href: "/customers/new", label: "New Customer" },
-	"/vendors": { href: "/vendors/new", label: "New Vendor" },
+	"/fleet": { href: "/fleet/new", label: "New Fleet" },
 	"/crew": { href: "/crew/new", label: "New Crew Member" },
 };
 
@@ -64,8 +67,9 @@ export function DashboardShell({
 
 	return (
 		<div className="flex min-h-screen bg-[var(--background)]">
-			{/* Global ⌘K search palette */}
+			{/* Global ⌘K search palette + fast lead capture */}
 			<CommandPalette />
+			<QuickLeadModal />
 
 			{/* Mobile overlay backdrop */}
 			{mobileOpen && (
@@ -92,9 +96,10 @@ export function DashboardShell({
 				/>
 				<main
 					id="main-content"
-					className="flex-1 overflow-y-auto p-4 md:p-6"
+					className="flex-1 overflow-y-auto p-4 pb-24 md:p-6"
 					tabIndex={-1}
 				>
+					<SectionTabs />
 					{children}
 				</main>
 
@@ -103,11 +108,14 @@ export function DashboardShell({
 					<Link
 						href={fab.href}
 						aria-label={fab.label}
-						className="fixed bottom-6 right-4 md:right-6 w-[52px] h-[52px] rounded-full bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-600/30 flex items-center justify-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 z-30 hover:scale-105 active:scale-95"
+						className="fixed bottom-24 right-4 md:bottom-6 md:right-6 w-[52px] h-[52px] rounded-full bg-primary hover:bg-primary-hover text-primary-fg shadow-token-md flex items-center justify-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 z-30 hover:scale-105 active:scale-95"
 					>
 						<Plus size={22} aria-hidden="true" />
 					</Link>
 				)}
+
+				{/* Mobile field-mode bottom navigation */}
+				<BottomNav onMenu={() => setMobileOpen(true)} />
 			</div>
 		</div>
 	);

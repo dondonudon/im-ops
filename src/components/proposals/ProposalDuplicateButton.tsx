@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Copy, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui";
 
 /**
  * Re-quote a proposal: clones it as a fresh `draft` on the same lead,
@@ -91,11 +92,12 @@ export function ProposalDuplicateButton({
 
 	return (
 		<div>
-			<button
+			<Button
 				type="button"
 				onClick={handleClick}
-				disabled={loading}
-				className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 shadow-sm transition-colors"
+				loading={loading}
+				variant="secondary"
+				size="md"
 			>
 				{loading ? (
 					<Loader2 size={14} className="animate-spin" aria-hidden="true" />
@@ -103,9 +105,9 @@ export function ProposalDuplicateButton({
 					<Copy size={14} aria-hidden="true" />
 				)}
 				{loading ? tButtons("duplicating") : tButtons("duplicate")}
-			</button>
+			</Button>
 			{error && (
-				<p role="alert" className="mt-1 text-xs text-red-600">
+				<p role="alert" className="mt-1 text-xs text-danger">
 					{error}
 				</p>
 			)}

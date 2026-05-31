@@ -19,7 +19,7 @@ export default function LeadDetailLoading() {
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 				<div className="lg:col-span-2 space-y-6">
-					<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						<Skeleton className="h-3 w-24" />
 						<div className="grid grid-cols-2 gap-4">
 							{Array.from({ length: 4 }).map((_, i) => (
@@ -31,7 +31,7 @@ export default function LeadDetailLoading() {
 							))}
 						</div>
 					</div>
-					<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
+					<div className="bg-surface border border-line rounded-xl shadow-token p-5">
 						<Skeleton className="h-3 w-20 mb-3" />
 						<div className="grid grid-cols-3 gap-2">
 							{Array.from({ length: 3 }).map((_, i) => (
@@ -42,7 +42,7 @@ export default function LeadDetailLoading() {
 					</div>
 				</div>
 				<div className="lg:col-span-1">
-					<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						<Skeleton className="h-3 w-16" />
 						<Skeleton className="h-10 w-full" />
 						<Skeleton className="h-10 w-full" />

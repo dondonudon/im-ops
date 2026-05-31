@@ -15,7 +15,7 @@ export function Skeleton({
 		<div
 			role="presentation"
 			aria-hidden="true"
-			className={`animate-pulse rounded-md bg-gray-200 dark:bg-gray-800 ${className}`}
+			className={`animate-pulse rounded-md bg-subtle ${className}`}
 			style={style}
 		/>
 	);
@@ -24,7 +24,7 @@ export function Skeleton({
 export function SkeletonCard({ className = "" }: { className?: string }) {
 	return (
 		<div
-			className={`rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3 ${className}`}
+			className={`rounded-xl border border-line bg-surface shadow-token p-5 space-y-3 ${className}`}
 		>
 			<Skeleton className="h-3 w-24" />
 			<Skeleton className="h-5 w-3/4" />

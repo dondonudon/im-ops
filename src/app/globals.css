@@ -2,117 +2,167 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ════════════════════════════════════════════════════════════════════════
+   REDESIGN — "Dispatch" semantic token system (see imops_redesign_plan_1.md)
+   Light + dark are driven entirely by these tokens. New components reference
+   them via Tailwind (bg-surface, text-ink, border-line, …) and need NO dark:
+   variants. Dark mode = flip the values, nothing else.
+   ════════════════════════════════════════════════════════════════════════ */
 :root {
-  --background: #edf2f7;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --sidebar: #0a0f1a;
-  --sidebar-border: rgba(255,255,255,0.08);
-  --ring: #7c3aed;
+  /* Surfaces & canvas (cool-neutral zinc) */
+  --bg:             #fafafa;
+  --bg-subtle:      #f4f4f5;
+  --surface:        #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f4f4f5;
+
+  /* Lines */
+  --border:         #e4e4e7;
+  --border-strong:  #d4d4d8;
+
+  /* Text */
+  --text:           #18181b;
+  --text-muted:     #52525b;
+  --text-faint:     #71717a;
+
+  /* Brand — cobalt */
+  --primary:        #2563eb;
+  --primary-hover:  #1d4ed8;
+  --primary-fg:     #ffffff;
+  --primary-subtle: #eff4ff;
+  --primary-text:   #1d4ed8;
+
+  /* Semantic — money/positive */
+  --success:        #059669;
+  --success-bg:     #ecfdf5;
+  --success-text:   #047857;
+
+  /* Semantic — pending/attention */
+  --warning:        #d97706;
+  --warning-bg:     #fffbeb;
+  --warning-text:   #b45309;
+
+  /* Semantic — danger/overdue */
+  --danger:         #e11d48;
+  --danger-bg:      #fff1f2;
+  --danger-text:    #be123c;
+
+  /* Focus ring */
+  --ring:           #2563eb;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.06);
+  --shadow:    0 1px 3px rgba(24, 24, 27, 0.08), 0 4px 16px rgba(24, 24, 27, 0.05);
+  --shadow-md: 0 4px 12px rgba(24, 24, 27, 0.10), 0 12px 32px rgba(24, 24, 27, 0.08);
+
+  /* ── Legacy tokens (kept so un-migrated screens keep rendering) ───────── */
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --sidebar: #ffffff;
+  --sidebar-border: var(--border);
 }
 
-/* ── Dark mode token overrides ──────────────────────────────────────────── */
 .dark {
-  --background: #0d1117;
-  --foreground: #e2e8f0;
-  --card: #161d2e;
+  --bg:             #09090b;
+  --bg-subtle:      #131316;
+  --surface:        #18181b;
+  --surface-raised: #1f1f23;
+  --surface-sunken: #131316;
+
+  --border:         #27272a;
+  --border-strong:  #3f3f46;
+
+  --text:           #fafafa;
+  --text-muted:     #a1a1aa;
+  --text-faint:     #71717a;
+
+  --primary:        #3b82f6;
+  --primary-hover:  #60a5fa;
+  --primary-fg:     #ffffff;
+  --primary-subtle: rgba(59, 130, 246, 0.14);
+  --primary-text:   #93b4fd;
+
+  --success:        #10b981;
+  --success-bg:     rgba(16, 185, 129, 0.13);
+  --success-text:   #6ee7b7;
+
+  --warning:        #f59e0b;
+  --warning-bg:     rgba(245, 158, 11, 0.13);
+  --warning-text:   #fcd34d;
+
+  --danger:         #fb7185;
+  --danger-bg:      rgba(244, 63, 94, 0.14);
+  --danger-text:    #fda4af;
+
+  --ring:           #3b82f6;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow:    0 1px 3px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.6);
+
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --sidebar: #131316;
+  --sidebar-border: var(--border);
+
   color-scheme: dark;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--text);
+  background: var(--bg);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 15px;
   font-weight: 500;
+  letter-spacing: -0.006em;
 }
 
-/* ── Dark mode surface overrides ────────────────────────────────────────── */
-/* These override Tailwind utility classes so pages work in dark mode        */
-/* without requiring dark: variants on every component.                      */
-
-/* Backgrounds */
-.dark .bg-white         { background-color: #1a2236; }
-.dark .bg-white\/80     { background-color: rgb(26 34 54 / 0.97); }
-.dark .bg-slate-50      { background-color: #1a2236; }
-.dark .bg-slate-100     { background-color: #232f47; }
-.dark .bg-gray-50       { background-color: #1e2a40; }  /* table headers */
-.dark .bg-gray-100      { background-color: #232f47; }
-.dark .bg-gray-900      { background-color: #1a2236; }
-.dark .bg-gray-800      { background-color: #232f47; }
-
-/* Text */
-.dark .text-slate-800   { color: #f1f5f9; }
-.dark .text-slate-700   { color: #e2e8f0; }
-.dark .text-slate-600   { color: #b4c0d0; }
-.dark .text-slate-500   { color: #94a3b8; }
-.dark .text-slate-400   { color: #94a3b8; }
-.dark .text-gray-900    { color: #f1f5f9; }
-.dark .text-gray-800    { color: #e2e8f0; }
-.dark .text-gray-500    { color: #94a3b8; }
-.dark .text-gray-400    { color: #94a3b8; }
-
-/* Borders & dividers */
-.dark .border-slate-100 { border-color: #2d3f5a; }
-.dark .border-slate-200 { border-color: #2d3f5a; }
-.dark .border-gray-200  { border-color: #2d3f5a; }
-.dark .border-gray-100  { border-color: #2d3f5a; }
-
-/* Divide utilities — target the pseudo-element border */
-.dark .divide-slate-50  > :not([hidden]) ~ :not([hidden]) { border-color: #1e293b; }
-.dark .divide-y         > :not([hidden]) ~ :not([hidden]) { border-color: #334155; }
-
-/* Hover states */
-.dark .hover\:bg-slate-50:hover   { background-color: #243350; }
-.dark .hover\:bg-slate-100:hover  { background-color: #243350; }
-.dark .hover\:bg-gray-50:hover    { background-color: #243350; }
-.dark .hover\:bg-gray-800:hover   { background-color: #273553; }
-.dark .border-gray-700            { border-color: #3d526e; }
-.dark .border-gray-800            { border-color: #2d3f5a; }
-.dark .border-gray-600            { border-color: #4d6382; }
-
-/* Placeholder text */
-.dark input::placeholder,
-.dark textarea::placeholder { color: #475569; }
-
-/* Form inputs */
-.dark input[type="text"],
-.dark input[type="search"],
-.dark input[type="email"],
-.dark input[type="number"],
-.dark input[type="tel"],
-.dark input[type="date"],
-.dark textarea,
-.dark select {
-  background-color: #1a2236;
-  border-color: #3d526e;
-  color: #e2e8f0;
+/* ── Native form controls ───────────────────────────────────────────────── */
+/* Token-based base styling so any raw <input>/<select>/<textarea> is theme-   */
+/* aware in both light and dark. Tailwind utility classes (e.g. the ui/ kit's  */
+/* token classes) still win on top of these via specificity.                   */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+input[type="password"],
+textarea,
+select {
+  background-color: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-faint);
 }
 
-/* Focus ring adjusts automatically via ring-brand-500 */
+/* ── Accessibility: honor reduced-motion ────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 /* ── Ambient brand glow in the content area ─────────────────────────────── */
 main#main-content {
-  background-image: radial-gradient(ellipse 90% 50% at 95% -5%, rgba(124, 58, 237, 0.08) 0%, transparent 60%);
+  background-image: radial-gradient(ellipse 90% 50% at 95% -5%, rgba(37, 99, 235, 0.06) 0%, transparent 60%);
 }
 .dark main#main-content {
-  background-image: radial-gradient(ellipse 90% 50% at 95% -5%, rgba(124, 58, 237, 0.18) 0%, transparent 60%);
-}
-
-/* ── Card elevation ──────────────────────────────────────────────────────── */
-/* Targets any rounded-xl container with a border — the standard card pattern */
-.rounded-xl.border {
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 6px 24px rgba(15, 23, 42, 0.07);
-}
-.dark .rounded-xl.border {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 4px 32px rgba(0, 0, 0, 0.5);
-}
-.rounded-2xl.border {
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 6px 24px rgba(15, 23, 42, 0.07);
-}
-.dark .rounded-2xl.border {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 4px 32px rgba(0, 0, 0, 0.5);
+  background-image: radial-gradient(ellipse 90% 50% at 95% -5%, rgba(59, 130, 246, 0.10) 0%, transparent 60%);
 }
 
 @layer utilities {
@@ -121,16 +171,17 @@ main#main-content {
   }
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.08) transparent;
+    scrollbar-color: var(--border-strong) transparent;
   }
   .scrollbar-thin::-webkit-scrollbar {
     width: 4px;
+    height: 4px;
   }
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: rgba(255,255,255,0.08);
+    background-color: var(--border-strong);
     border-radius: 2px;
   }
 }

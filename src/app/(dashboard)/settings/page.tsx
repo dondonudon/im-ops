@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getTranslations } from "next-intl/server";
 import { SettingsEditor } from "@/components/settings/SettingsEditor";
+import { PageHeader } from "@/components/ui";
 
 export default async function SettingsPage() {
 	const supabase = await createClient();
@@ -14,14 +15,7 @@ export default async function SettingsPage() {
 
 	return (
 		<div className="space-y-6 max-w-3xl">
-			<div>
-				<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-					{t("title")}
-				</h1>
-				<p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-					{t("hint")}
-				</p>
-			</div>
+			<PageHeader title={t("title")} subtitle={t("hint")} />
 			<SettingsEditor settings={settings ?? []} />
 		</div>
 	);

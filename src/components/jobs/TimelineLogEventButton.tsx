@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { Button, Field, Input, Select, FormError } from "@/components/ui";
 
 const EVENT_TYPE_VALUES = [
 	"loading_start",
@@ -85,14 +86,15 @@ export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 
 	return (
 		<>
-			<button
+			<Button
 				type="button"
 				onClick={() => setOpen(true)}
-				className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+				variant="secondary"
+				size="sm"
 			>
 				<Plus size={13} aria-hidden="true" />
 				{tTimeline("logEvent")}
-			</button>
+			</Button>
 
 			{open && (
 				<div
@@ -103,32 +105,29 @@ export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 					onClick={() => !saving && setOpen(false)}
 				>
 					<div
-						className="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl bg-white dark:bg-gray-900 p-5 space-y-4"
+						className="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl bg-surface border border-line p-5 shadow-token-md space-y-4"
 						onClick={(e) => e.stopPropagation()}
 					>
 						<div className="flex items-center justify-between">
-							<h3 className="text-base font-semibold">{tModal("title")}</h3>
+							<h3 className="text-base font-semibold text-ink">{tModal("title")}</h3>
 							<button
 								type="button"
 								onClick={() => setOpen(false)}
 								disabled={saving}
-								className="text-sm text-gray-500 hover:text-gray-700"
+								className="text-sm text-ink-muted hover:text-ink"
 							>
 								{tButtons("cancel")}
 							</button>
 						</div>
 
 						<form onSubmit={handleSubmit} className="space-y-3 text-sm">
-							<div>
-								<label className="block text-xs text-gray-500 mb-1">
-									{tModal("event")}
-								</label>
-								<select
+							<Field label={tModal("event")} htmlFor="timeline-event-type">
+								<Select
+									id="timeline-event-type"
 									value={form.event_type}
 									onChange={(e) =>
 										setForm({ ...form, event_type: e.target.value })
 									}
-									className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2"
 									required
 								>
 									{EVENT_TYPE_VALUES.map((value) => (
@@ -136,51 +135,44 @@ export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 											{tEventType(value)}
 										</option>
 									))}
-								</select>
-							</div>
+								</Select>
+							</Field>
 
-							<div>
-								<label className="block text-xs text-gray-500 mb-1">
-									{tModal("when")}
-								</label>
-								<input
+							<Field label={tModal("when")} htmlFor="timeline-occurred-at">
+								<Input
+									id="timeline-occurred-at"
 									type="datetime-local"
 									value={form.occurred_at}
 									onChange={(e) =>
 										setForm({ ...form, occurred_at: e.target.value })
 									}
-									className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2"
 									required
 								/>
-							</div>
+							</Field>
 
-							<div>
-								<label className="block text-xs text-gray-500 mb-1">
-									{tModal("note")}
-								</label>
+							<Field label={tModal("note")} htmlFor="timeline-notes">
 								<textarea
+									id="timeline-notes"
 									value={form.notes}
 									onChange={(e) => setForm({ ...form, notes: e.target.value })}
 									rows={2}
 									placeholder={tHints("optionalParen").replace(/[()]/g, "")}
-									className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2"
+									className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent"
 								/>
-							</div>
+							</Field>
 
-							{error && (
-								<p role="alert" className="text-xs text-red-600">
-									{error}
-								</p>
-							)}
+							{error && <FormError>{error}</FormError>}
 
-							<button
+							<Button
 								type="submit"
-								disabled={saving}
-								className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+								loading={saving}
+								variant="primary"
+								size="md"
+								className="w-full"
 							>
 								{saving && <Loader2 size={14} className="animate-spin" />}
 								{saving ? tButtons("saving") : tModal("saveEvent")}
-							</button>
+							</Button>
 						</form>
 					</div>
 				</div>

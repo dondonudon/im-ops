@@ -1,12 +1,17 @@
 {
   "nav": {
     "dashboard": "Dashboard",
+    "today": "Today",
+    "board": "Board",
+    "pipeline": "Pipeline",
+    "money": "Money",
+    "directory": "Directory",
     "leads": "Leads",
     "proposals": "Proposals",
     "jobs": "Jobs",
     "calendar": "Calendar",
     "customers": "Customers",
-    "vendors": "Vendors",
+    "fleet": "Fleet",
     "crew": "Crew",
     "invoices": "Invoices",
     "reports": "Reports",
@@ -17,9 +22,9 @@
       "operations": "Operations",
       "resources": "Resources",
       "finance": "Finance"
-    }
+    },
+    "overview": "Overview"
   },
-
   "topbar": {
     "searchPlaceholder": "Search…",
     "openMenu": "Open menu",
@@ -28,7 +33,81 @@
     "account": "Account",
     "language": "Language"
   },
-
+  "field": {
+    "quickAdd": "Quick add",
+    "newLead": "New lead",
+    "newCustomer": "New customer",
+    "search": "Search",
+    "menu": "Menu",
+    "newFleet": "New fleet",
+    "newCrew": "New crew"
+  },
+  "pipeline": {
+    "title": "Pipeline",
+    "subtitle": "{count} active deal(s) in the funnel",
+    "lostCount": "{count} lost",
+    "pipelineValue": "Pipeline value",
+    "empty": "No active deals.",
+    "emptyHint": "New leads will appear here as they come in.",
+    "emptyColumn": "Nothing here.",
+    "dropHere": "Drop here",
+    "stages": {
+      "new": "New",
+      "survey": "Survey",
+      "estimate": "Estimate",
+      "proposal": "Proposal",
+      "won": "Won"
+    },
+    "notices": {
+      "needs_survey": "Schedule a survey from the lead first.",
+      "needs_proposal": "Create a proposal for this lead first.",
+      "needs_job": "Convert the approved proposal to a job first.",
+      "error": "Couldn't move that deal. Please try again."
+    }
+  },
+  "today": {
+    "title": "Today",
+    "subtitleNeeds": "{date} · {count} thing(s) need you",
+    "subtitleClear": "{date} · you're all caught up",
+    "openPipeline": "Open pipeline",
+    "todaysMoves": "Today's moves",
+    "noMovesToday": "No moves scheduled today.",
+    "needsYou": "Needs you",
+    "allClear": "All clear",
+    "allClearHint": "Nothing needs your attention right now.",
+    "money": "Money this month",
+    "revenueTarget": "Revenue vs target",
+    "ofTarget": "{pct}% of monthly target",
+    "revenue": "Revenue",
+    "expenses": "Expenses",
+    "net": "Net this month",
+    "viewReport": "View full report →",
+    "atAGlance": "At a glance",
+    "upcoming": "Upcoming",
+    "viewCalendar": "Calendar",
+    "noUpcoming": "No upcoming moves.",
+    "queue": {
+      "surveyDue": "Survey due",
+      "proposalReady": "Proposal ready to send",
+      "invoiceOverdue": "Invoice overdue",
+      "syncFailed": "Calendar sync failed",
+      "review": "Review",
+      "send": "Send",
+      "collect": "Collect",
+      "fix": "Fix"
+    },
+    "kpi": {
+      "activeJobs": "Active jobs",
+      "activeJobsSub": "{count} move(s) today",
+      "openProposals": "Open proposals",
+      "openProposalsSub": "Awaiting approval",
+      "unpaid": "Unpaid invoices",
+      "overdueSub": "{amount} overdue",
+      "outstandingSub": "{amount} outstanding",
+      "movesToday": "Moves today",
+      "movesTodaySub": "Confirmed bookings"
+    }
+  },
   "search": {
     "placeholder": "Search leads, jobs, customers, proposals, invoices…",
     "groups": {
@@ -36,19 +115,21 @@
       "jobs": "Jobs",
       "proposals": "Proposals",
       "customers": "Customers",
-      "vendors": "Vendors",
+      "fleet": "Fleet",
       "crew": "Crew",
       "invoices": "Invoices"
     },
     "emptyHint": "Type to search across the whole system.",
-    "emptyScope": "Leads · Jobs · Proposals · Customers · Invoices · Vendors · Crew",
+    "emptyScope": "Leads · Jobs · Proposals · Customers · Invoices · Fleet · Crew",
     "noResults": "No results for \"{query}\"",
     "hintNavigate": "navigate",
     "hintOpen": "open",
     "hintClose": "close",
-    "hintToggle": "to toggle"
+    "hintToggle": "to toggle",
+    "actionsTitle": "Actions",
+    "create": "Create",
+    "openPage": "Go to page"
   },
-
   "common": {
     "buttons": {
       "save": "Save",
@@ -142,7 +223,6 @@
       "uploadFailed": "Upload failed."
     }
   },
-
   "status": {
     "lead": {
       "new": "New",
@@ -177,7 +257,6 @@
       "cancelled": "Cancelled"
     }
   },
-
   "dashboard": {
     "title": "Operations Dashboard",
     "subtitle": "Real-time status for {date}",
@@ -259,7 +338,7 @@
       "manageInvoices": "Manage Invoices →"
     },
     "dispatch": {
-      "noAssignments": "No crew/vendor assigned yet"
+      "noAssignments": "No crew/fleet assigned yet"
     },
     "progress": {
       "monthlyTargetAria": "Monthly revenue progress: {pct}%",
@@ -273,7 +352,6 @@
       "overdue": "Overdue"
     }
   },
-
   "pages": {
     "leads": {
       "title": "Leads",
@@ -293,7 +371,9 @@
         "revenue": "Revenue",
         "status": "Status"
       },
-      "empty": "No jobs."
+      "empty": "No jobs.",
+      "viewList": "List",
+      "viewBoard": "Board"
     },
     "proposals": {
       "title": "Proposals",
@@ -320,9 +400,9 @@
       "emptyFiltered": "No customers match your search.",
       "new": "New Customer"
     },
-    "vendors": {
-      "title": "Vendors",
-      "searchPlaceholder": "Search vendors…",
+    "fleet": {
+      "title": "Fleet",
+      "searchPlaceholder": "Search fleet…",
       "columns": {
         "name": "Name",
         "contact": "Contact",
@@ -330,8 +410,8 @@
         "vehicles": "Vehicles",
         "status": "Status"
       },
-      "empty": "No vendors found.",
-      "new": "New Vendor"
+      "empty": "No fleet members found.",
+      "new": "New Fleet"
     },
     "crew": {
       "title": "Crew",
@@ -414,7 +494,7 @@
       },
       "descriptions": {
         "companyAndDocs": "Branding, PDF templates, and signature blocks",
-        "operations": "Crew rates, vehicle costs, and packing materials",
+        "operations": "Crew rates and vehicle costs",
         "pricing": "Margins, negotiation buffers, and profit thresholds",
         "billing": "Invoice defaults and financial dashboard targets",
         "integrations": "Google Calendar sync and external service configuration"
@@ -430,6 +510,14 @@
         "invoiceSettings": "Invoice Settings",
         "dashboard": "Dashboard",
         "googleCalendar": "Google Calendar"
+      },
+      "marginTiers": {
+        "upTo": "Up to (IDR)",
+        "ratePct": "Rate %",
+        "minProfit": "Min profit (IDR)",
+        "andAbove": "And above",
+        "addTier": "Add tier",
+        "remove": "Remove tier"
       }
     },
     "leadDetail": {
@@ -439,7 +527,21 @@
       "leadType": "Lead type",
       "channel": "Channel",
       "preferredDate": "Preferred date: {date}",
-      "createdOn": "Created {date}"
+      "createdOn": "Created {date}",
+      "lifecycle": "Deal lifecycle",
+      "stageIntake": "Lead intake",
+      "stageSurvey": "Survey",
+      "stageProposal": "Estimate & proposal",
+      "stageJob": "Job",
+      "surveyScheduledOn": "Scheduled {date}",
+      "surveyCompletedOn": "Completed {date}",
+      "surveySkipped": "Skipped (optional)",
+      "surveyOptional": "Optional — not scheduled",
+      "noProposalYet": "Not started yet",
+      "openProposal": "Open",
+      "viewSurvey": "View survey",
+      "viewJob": "View job",
+      "noJobYet": "Not converted yet"
     },
     "jobDetail": {
       "moveSummary": "Move summary",
@@ -482,6 +584,7 @@
         "crew": "Crew",
         "manpower": "Manpower",
         "food": "Food",
+        "packing": "Packing materials",
         "toll": "Toll",
         "operationalBuffer": "Operational buffer",
         "adjustedCost": "Adjusted cost",
@@ -502,7 +605,7 @@
       "jobs": "Jobs",
       "noJobsYet": "No jobs yet."
     },
-    "vendorDetail": {
+    "fleetDetail": {
       "contact": "Contact",
       "phone": "Phone",
       "vehicles": "Vehicles",
@@ -553,7 +656,6 @@
       "markedAsCompleted": "Survey marked as completed"
     }
   },
-
   "forms": {
     "lead": {
       "customer": "Customer",
@@ -569,7 +671,10 @@
       "notes": "Notes",
       "createLead": "Create lead",
       "editTitle": "Edit Lead",
-      "newTitle": "New Lead"
+      "newTitle": "New Lead",
+      "nameRequired": "Name is required.",
+      "addDetails": "Add details",
+      "linkExisting": "Link to an existing customer"
     },
     "customer": {
       "fullName": "Full name",
@@ -582,7 +687,7 @@
       "newTitle": "New Customer",
       "editTitle": "Edit Customer"
     },
-    "vendor": {
+    "fleet": {
       "name": "Name",
       "contactPerson": "Contact person",
       "phone": "Phone",
@@ -592,8 +697,8 @@
       "bankAccount": "Bank account",
       "notes": "Notes",
       "active": "Active",
-      "newTitle": "New Vendor",
-      "editTitle": "Edit Vendor"
+      "newTitle": "New Fleet",
+      "editTitle": "Edit Fleet"
     },
     "crew": {
       "name": "Name",
@@ -633,7 +738,7 @@
       "crewDayRate": "Crew day rate",
       "foodPerCrew": "Meal per crew",
       "manpowerQty": "Manpower",
-      "packingService": "Packing service",
+      "packingCost": "Packing materials",
       "tollEstimate": "Toll estimate",
       "otherCost": "Other cost",
       "outOfTown": "Out of town",
@@ -699,7 +804,6 @@
       "photoAlt": "Survey photo"
     }
   },
-
   "panels": {
     "leadActions": {
       "title": "Actions",
@@ -745,9 +849,9 @@
       "type": "Type",
       "role": "Role",
       "rolePlaceholder": "Driver, Loader, Supervisor…",
-      "vendor": "Vendor",
+      "fleet": "Fleet",
       "crewMember": "Crew member",
-      "vendorLabel": "Vendor",
+      "fleetLabel": "Fleet",
       "crewLabel": "Crew",
       "overlapWarning": "⚠ This {type} is already assigned on {date}. Add anyway?",
       "remove": "Remove",
@@ -778,7 +882,6 @@
       "logEvent": "Log Event"
     }
   },
-
   "modals": {
     "scheduleSurvey": {
       "title": "Schedule Survey",
@@ -831,17 +934,16 @@
       "syncAll": "Re-push recent + upcoming jobs and surveys to Google Calendar?"
     }
   },
-
   "actions": {
     "newLead": "New Lead",
     "newJob": "New Job",
     "newProposal": "New Proposal",
     "newCustomer": "New Customer",
-    "newVendor": "New Vendor",
+    "newFleet": "New Fleet",
     "newCrew": "New Crew Member",
     "newInvoice": "New Invoice",
     "createCustomer": "Create customer",
-    "addVendor": "Add vendor",
+    "addFleet": "Add fleet",
     "addCrewMember": "Add member",
     "generateInvoice": "Generate Invoice",
     "generating": "Creating…",
@@ -856,7 +958,6 @@
     "removeItem": "Remove item",
     "uploadPhoto": "Upload Photo"
   },
-
   "entity": {
     "leadType": {
       "whatsapp": "WhatsApp",
@@ -939,7 +1040,6 @@
       "note": "Note"
     }
   },
-
   "offline": {
     "savedOffline": "Saved offline — will sync when back online.",
     "removeReceiptToSave": "Offline: remove the receipt photo to save now, or wait for connectivity.",
@@ -947,15 +1047,42 @@
     "pendingSync": "{count} pending sync",
     "pending": "pending sync"
   },
-
   "syncAll": {
     "nothing": "Nothing to sync (window: since {date}).",
     "jobsLabel": "Jobs {ok}/{total}",
     "surveysLabel": "Surveys {ok}/{total}",
     "failedSuffix": "{count} failed"
   },
-
   "photoLightbox": {
     "close": "Close photo viewer"
+  },
+  "money": {
+    "title": "Money",
+    "subtitle": "Where the cash is",
+    "outstanding": "Outstanding",
+    "overdue": "Overdue",
+    "cashIn": "Cash in (month)",
+    "net": "Net (month)",
+    "outstandingSub": "{count} unpaid invoice(s)",
+    "overdueSub": "needs collecting",
+    "cashInSub": "payments received",
+    "netSub": "revenue − expenses",
+    "arAging": "AR aging",
+    "recentPayments": "Recent payments",
+    "invoiceStatus": "Invoices by status",
+    "noOutstanding": "No outstanding invoices.",
+    "noPayments": "No payments yet.",
+    "noInvoices": "No invoices yet.",
+    "agingCurrent": "Not due yet",
+    "aging1": "1–30 days",
+    "aging31": "31–60 days",
+    "aging60": "60+ days",
+    "viewInvoices": "All invoices",
+    "viewReports": "Full report →"
+  },
+  "pagination": {
+    "showing": "{from}–{to} of {total}",
+    "prev": "Previous",
+    "next": "Next"
   }
 }

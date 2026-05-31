@@ -39,7 +39,7 @@ export function ThemeToggle() {
 			onClick={toggle}
 			aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
 			aria-pressed={dark}
-			className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+			className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-faint hover:bg-subtle hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 		>
 			{dark ? (
 				<Sun size={16} aria-hidden="true" />

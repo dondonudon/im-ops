@@ -1,5 +1,9 @@
 # IM Ops — Detailed System Plan
 
+> ⚠️ **Original blueprint.** Data model + workflows remain current (the `vendors`
+> concept is now **`fleet`**); the UI / IA is **superseded by the redesign** —
+> see `imops_redesign_plan_1.md`.
+
 > Internal operational platform for moving/logistics coordination.
 > Last updated: May 2026
 
@@ -127,7 +131,7 @@
 │ id (PK)         │   │ id (PK)      │   │ id (PK)      │
 │ job_id          │   │ job_id       │   │ job_id       │
 │ resource_type   │   │ amount       │   │ amount       │
-│ (vendor/crew)   │   │ category     │   │ type (dp/    │
+│ (fleet/crew)   │   │ category     │   │ type (dp/    │
 │ resource_id     │   │ note         │   │  partial/    │
 │ role            │   │ photo_url    │   │  final)      │
 │ rate            │   │ logged_by    │   │ method       │
@@ -137,7 +141,7 @@
        ├─────────────────┐
        ▼                 ▼
 ┌─────────────┐   ┌─────────────┐
-│   vendors   │   │    crew     │
+│   fleet   │   │    crew     │
 │─────────────│   │─────────────│
 │ id (PK)     │   │ id (PK)     │
 │ name        │   │ name        │
@@ -157,7 +161,7 @@
 - One `proposal` → zero or one `job` (not all proposals convert)
 - One `job` → many `expenses` (progressive logging)
 - One `job` → many `payments` (DP, partial, final)
-- One `job` → many `job_assignments` (crew + vendors)
+- One `job` → many `job_assignments` (crew + fleet)
 - `estimations` stores a full JSON snapshot so historical pricing is always explainable
 
 ---
@@ -235,7 +239,7 @@
 │         ↓                                              │
 │  Create Job Calendar Event (Google Cal)               │
 │         ↓                                              │
-│  Assign Vendor(s) + Crew                              │
+│  Assign Fleet(s) + Crew                              │
 │         ↓                                              │
 │  ──────────── EXECUTION DAY ──────────────            │
 │         ↓                                              │
@@ -627,15 +631,15 @@ Standard message templates:
 
 **Scheduling Overlap Logic:**
 
-- System checks vendor and crew assignments for date conflicts
-- Shows warning badge: "Vendor X already assigned on this date"
+- System checks fleet and crew assignments for date conflicts
+- Shows warning badge: "Fleet X already assigned on this date"
 - Does NOT block saving — operator decides
 
 ---
 
 ### 4.6 Resource Management
 
-**Vendor Record:**
+**Fleet Record:**
 | Field | Notes |
 |---|---|
 | name | Company or individual name |
@@ -662,7 +666,7 @@ Standard message templates:
 **Reliability Scoring (auto-computed):**
 
 ```
-vendor_reliability_score =
+fleet_reliability_score =
   (on_time_jobs / total_jobs) × 3
   + (1 - cancellation_rate) × 2
   → normalized to 1–5
@@ -676,7 +680,7 @@ vendor_reliability_score =
 
 | Category            | Subcategories                              |
 | ------------------- | ------------------------------------------ |
-| `vehicle_rental`    | — (fuel included in vendor rate)           |
+| `vehicle_rental`    | — (fuel included in fleet rate)           |
 | `crew_payment`      | basic, overtime, transport_home            |
 | `packing_materials` | bubble_wrap, stretch_film, cardboard, tape |
 | `food`              | crew meals                                 |
@@ -784,7 +788,7 @@ UNPAID → PARTIALLY_PAID → FULLY_PAID
 |---|---|
 | Estimated vs actual cost | `actual_expenses / estimated_cost × 100` |
 | Over-budget jobs | Jobs where `actual > estimated × 1.1` |
-| Vendor utilization | Jobs per vendor in period |
+| Fleet utilization | Jobs per fleet in period |
 | Crew utilization | Days worked per crew member |
 
 **Financial Reports:**
@@ -824,7 +828,7 @@ UNPAID → PARTIALLY_PAID → FULLY_PAID
   summary: `[JOB] ${customer.name} — ${pickup} → ${destination}`,
   start: { dateTime: job.move_date + "T08:00" },
   end: { dateTime: job.move_date + "T18:00" },
-  description: `Job #${job.id}\nProposal: ${proposal.number}\nCrew: ...\nVendor: ...`,
+  description: `Job #${job.id}\nProposal: ${proposal.number}\nCrew: ...\nFleet: ...`,
   colorId: "2" // Green
 }
 ```
@@ -983,8 +987,8 @@ CREATE TABLE jobs (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- VENDORS
-CREATE TABLE vendors (
+-- FLEET
+CREATE TABLE fleet (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   phone TEXT,
@@ -1013,8 +1017,8 @@ CREATE TABLE crew (
 CREATE TABLE job_assignments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   job_id UUID REFERENCES jobs(id),
-  resource_type TEXT NOT NULL, -- 'vendor' | 'crew'
-  resource_id UUID NOT NULL, -- references vendors.id or crew.id
+  resource_type TEXT NOT NULL, -- 'fleet' | 'crew'
+  resource_id UUID NOT NULL, -- references fleet.id or crew.id
   role TEXT,
   agreed_rate BIGINT,
   created_at TIMESTAMPTZ DEFAULT now()
@@ -1121,7 +1125,7 @@ app/
 │   │       ├── expenses/page.tsx  ← Quick expense entry
 │   │       └── timeline/page.tsx  ← Operational log
 │   ├── calendar/           ← FullCalendar view
-│   ├── vendors/
+│   ├── fleet/
 │   ├── crew/
 │   ├── invoices/
 │   ├── reports/
@@ -1245,19 +1249,19 @@ const resizeImage = async (file: File): Promise<Blob> => {
 
 ### Phase 4 — Scheduling & Resources (Weeks 9–11)
 
-**Goal:** Jobs coordinated, crew and vendors assigned, calendar visible.
+**Goal:** Jobs coordinated, crew and fleet assigned, calendar visible.
 
 | Feature                    | Notes                            |
 | -------------------------- | -------------------------------- |
-| Vendor CRUD                | With vehicle types, areas, rates |
+| Fleet CRUD                | With vehicle types, areas, rates |
 | Crew CRUD                  | With skills, availability        |
 | Job creation from proposal | With calendar event push         |
 | Google Calendar push sync  | One-way, configurable calendar   |
 | FullCalendar UI            | Month/week/day, color-coded      |
-| Crew + vendor assignment   | With overlap warnings            |
+| Crew + fleet assignment   | With overlap warnings            |
 | Operational timeline       | Chronological job log            |
 
-**Milestone:** Job scheduled, crew/vendor assigned, visible on calendar.
+**Milestone:** Job scheduled, crew/fleet assigned, visible on calendar.
 
 ---
 
@@ -1287,8 +1291,8 @@ const resizeImage = async (file: File): Promise<Blob> => {
 | Sales reports                  | Conversion rate, discount avg, lost reasons |
 | Operational reports            | Estimated vs actual, utilization            |
 | Financial reports              | Revenue, profit, AR aging                   |
-| Advanced filtering             | Date range, status, crew, vendor            |
-| Vendor/crew reliability scores | Auto-computed from history                  |
+| Advanced filtering             | Date range, status, crew, fleet            |
+| Fleet/crew reliability scores | Auto-computed from history                  |
 | Survey system (full)           | If not done in Phase 1                      |
 
 ---
@@ -1309,10 +1313,10 @@ const resizeImage = async (file: File): Promise<Blob> => {
 | Negotiation tracking               | 3     |
 | WhatsApp quick actions (deeplinks) | 3     |
 | Proposal → Job conversion          | 3     |
-| Vendor + crew management           | 4     |
+| Fleet + crew management           | 4     |
 | Google Calendar push sync          | 4     |
 | FullCalendar operational view      | 4     |
-| Crew + vendor assignment           | 4     |
+| Crew + fleet assignment           | 4     |
 | Quick expense entry (mobile)       | 5     |
 | Live profit monitoring             | 5     |
 | Customer payment tracking          | 5     |
@@ -1324,7 +1328,7 @@ const resizeImage = async (file: File): Promise<Blob> => {
 
 - Customer portal (read-only: view proposal + invoice)
 - Digital signatures on proposals
-- Vendor performance dashboard
+- Fleet performance dashboard
 - Crew attendance + payroll summary
 - Packing material inventory tracking
 

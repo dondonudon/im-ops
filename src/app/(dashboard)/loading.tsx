@@ -18,7 +18,7 @@ export default function DashboardLoading() {
 				<SkeletonCard />
 				<SkeletonCard />
 			</div>
-			<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+			<div className="rounded-xl border border-line bg-surface shadow-token p-5 space-y-3">
 				{Array.from({ length: 4 }).map((_, i) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
 					<Skeleton key={i} className="h-4 w-full" />

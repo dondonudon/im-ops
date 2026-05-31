@@ -13,6 +13,7 @@ import {
 	queuedCount,
 	subscribe,
 } from "@/lib/offline/expenseQueue";
+import { Button, Badge, Card, CardHeader, Field, Input, FormError } from "@/components/ui";
 
 type Expense = {
 	id: string;
@@ -206,55 +207,38 @@ export function ExpensePanel({
 	return (
 		<div className="space-y-6">
 			{/* Entry form — large touch targets for mobile */}
-			<form
-				onSubmit={handleSubmit}
-				className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-4"
-			>
+			<form onSubmit={handleSubmit}>
+			<Card className="p-5 space-y-4">
 				<div className="flex items-center justify-between gap-3">
-					<h2 className="text-base font-semibold text-gray-900 dark:text-white">
+					<h2 className="text-base font-semibold text-ink">
 						{tExpense("title")}
 					</h2>
 					{pendingCount > 0 && (
-						<span
-							className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800"
-							role="status"
-							aria-live="polite"
-						>
-							<span
-								className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"
-								aria-hidden="true"
-							/>
+						<Badge tone="pending" dot>
 							{tOffline("pendingSync", { count: pendingCount })}
-						</span>
+						</Badge>
 					)}
 				</div>
 
 				{info && (
 					<div
 						role="status"
-						className="rounded bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800"
+						className="rounded bg-warning-bg border border-warning px-3 py-2 text-sm text-warning-text"
 					>
 						{info}
 					</div>
 				)}
 
-				{error && (
-					<div
-						role="alert"
-						className="rounded bg-red-50 dark:bg-red-900/20 border border-red-200 px-3 py-2 text-sm text-red-700 dark:text-red-300"
-					>
-						{error}
-					</div>
-				)}
+				{error && <FormError>{error}</FormError>}
 
 				{/* Amount — large input for thumb-friendly entry */}
 				<div>
 					<label
 						htmlFor="exp-amount"
-						className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+						className="block text-sm font-medium mb-1 text-ink"
 					>
 						{tExpense("amountIdr")}{" "}
-						<span aria-hidden="true" className="text-red-500">
+						<span aria-hidden="true" className="text-danger">
 							*
 						</span>
 					</label>
@@ -264,10 +248,10 @@ export function ExpensePanel({
 						autoFocus
 						value={Number(form.amount) || 0}
 						onChange={(v) => setForm((p) => ({ ...p, amount: v > 0 ? String(v) : "" }))}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4 text-2xl tabular-nums font-bold focus:outline-none focus:ring-2 focus:ring-brand-500 text-right"
+						className="w-full rounded-lg border border-line-strong bg-surface px-4 py-4 text-2xl tabular-nums font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-right text-ink"
 					/>
 					{form.amount && Number(form.amount) > 0 && (
-						<p className="text-xs text-gray-400 mt-1 text-right">
+						<p className="text-xs text-ink-faint mt-1 text-right">
 							{formatRupiah(Number(form.amount))}
 						</p>
 					)}
@@ -275,7 +259,7 @@ export function ExpensePanel({
 
 				{/* Category chips */}
 				<div>
-					<span className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+					<span className="block text-sm font-medium mb-2 text-ink">
 						{tExpense("category")}
 					</span>
 					<div
@@ -289,10 +273,10 @@ export function ExpensePanel({
 								type="button"
 								onClick={() => setForm((p) => ({ ...p, category: c.value }))}
 								aria-pressed={form.category === c.value}
-								className={`rounded-full min-h-[44px] px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+								className={`rounded-full min-h-[44px] px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
 									form.category === c.value
-										? "bg-brand-600 text-white"
-										: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+										? "bg-primary text-primary-fg"
+										: "bg-subtle text-ink-muted hover:bg-subtle hover:text-ink"
 								}`}
 							>
 								{tEntityCategory(c.key)}
@@ -301,13 +285,16 @@ export function ExpensePanel({
 					</div>
 				</div>
 
-				<button
+				<Button
 					type="submit"
 					disabled={saving || isPending}
-					className="w-full rounded-lg bg-brand-600 px-4 py-3 text-base font-semibold text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+					loading={saving}
+					variant="primary"
+					size="lg"
+					className="w-full"
 				>
 					{saving ? tCommonButtons("saving") : tExpense("saveExpense")}
-				</button>
+				</Button>
 
 				{/* Secondary fields — toggle to keep critical path short */}
 				<div>
@@ -315,20 +302,14 @@ export function ExpensePanel({
 						type="button"
 						onClick={() => setShowMore((p) => !p)}
 						aria-expanded={showMore}
-						className="text-sm text-brand-600 dark:text-brand-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
+						className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 					>
 						{showMore ? `▲ ${tExpense("hideOptions")}` : `▼ ${tExpense("moreOptions")}`}
 					</button>
 					{showMore && (
 						<div className="mt-3 space-y-3">
-							<div>
-								<label
-									htmlFor="exp-note"
-									className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-								>
-									{tExpense("note")}
-								</label>
-								<input
+							<Field label={tExpense("note")} htmlFor="exp-note">
+								<Input
 									id="exp-note"
 									type="text"
 									value={form.note}
@@ -336,33 +317,25 @@ export function ExpensePanel({
 										setForm((p) => ({ ...p, note: e.target.value }))
 									}
 									placeholder="e.g. Jakarta–Bandung toll"
-									className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 								/>
-							</div>
-							<div>
-								<label
-									htmlFor="exp-date"
-									className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
-								>
-									{tExpense("date")}
-								</label>
-								<input
+							</Field>
+							<Field label={tExpense("date")} htmlFor="exp-date">
+								<Input
 									id="exp-date"
 									type="date"
 									value={form.date}
 									onChange={(e) =>
 										setForm((p) => ({ ...p, date: e.target.value }))
 									}
-									className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 								/>
-							</div>
+							</Field>
 							<div>
 								<label
 									htmlFor="exp-receipt"
-									className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300"
+									className="block text-sm font-medium mb-1 text-ink"
 								>
 									{tExpense("receipt")}{" "}
-									<span className="text-gray-400 font-normal">{tCommonHints("optionalParen")}</span>
+									<span className="text-ink-faint font-normal">{tCommonHints("optionalParen")}</span>
 								</label>
 								<input
 									id="exp-receipt"
@@ -370,10 +343,10 @@ export function ExpensePanel({
 									accept="image/*"
 									capture="environment"
 									onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
-									className="block text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100"
+									className="block text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary-subtle file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-text hover:file:opacity-80"
 								/>
 								{receiptFile && (
-									<p className="text-xs text-gray-400 mt-1">
+									<p className="text-xs text-ink-faint mt-1">
 										{receiptFile.name}
 									</p>
 								)}
@@ -381,55 +354,56 @@ export function ExpensePanel({
 						</div>
 					)}
 				</div>
+			</Card>
 			</form>
 
 			{/* List */}
-			<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-				<div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-					<h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-						{tJobDetail("expenses")}
-					</h2>
-					<span className="tabular-nums text-sm font-bold">
-						{formatRupiah(total)}
-					</span>
-				</div>
+			<Card>
+				<CardHeader
+					title={tJobDetail("expenses")}
+					action={
+						<span className="tabular-nums text-sm font-bold text-ink">
+							{formatRupiah(total)}
+						</span>
+					}
+				/>
 				{expenses.length === 0 && (
-					<p className="px-4 py-6 text-center text-sm text-gray-400">
+					<p className="px-4 py-6 text-center text-sm text-ink-faint">
 						{tJobDetail("noExpenses")}
 					</p>
 				)}
 				{expenses.map((e) => {
-					const isPending = e.id.startsWith("pending:");
+					const isPendingItem = e.id.startsWith("pending:");
 					return (
 						<div
 							key={e.id}
-							className={`flex items-center justify-between px-4 py-3 border-b border-gray-50 dark:border-gray-800 last:border-0 text-sm ${isPending ? "bg-amber-50/40" : ""}`}
+							className={`flex items-center justify-between px-4 py-3 border-b border-line last:border-0 text-sm ${isPendingItem ? "bg-warning-bg" : ""}`}
 						>
 							<div>
-								<span className="font-medium">
+								<span className="font-medium text-ink">
 									{CATEGORY_KEY_BY_VALUE[e.category]
 										? tEntityCategory(CATEGORY_KEY_BY_VALUE[e.category])
 										: e.category}
 								</span>
 								{e.description && (
-									<span className="text-gray-400 text-xs ml-2">
+									<span className="text-ink-faint text-xs ml-2">
 										{e.description}
 									</span>
 								)}
-								<span className="block text-xs text-gray-400">
+								<span className="block text-xs text-ink-faint">
 									{e.incurred_at}
-									{isPending && (
-										<span className="ml-1 text-amber-600">· {tOffline("pending")}</span>
+									{isPendingItem && (
+										<span className="ml-1 text-warning-text">· {tOffline("pending")}</span>
 									)}
 								</span>
 							</div>
-							<span className="tabular-nums font-medium">
+							<span className="tabular-nums font-medium text-ink">
 								{formatRupiah(e.amount)}
 							</span>
 						</div>
 					);
 				})}
-			</div>
+			</Card>
 		</div>
 	);
 }

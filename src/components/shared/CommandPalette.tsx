@@ -3,17 +3,36 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
 	Briefcase,
+	CalendarDays,
+	FilePlus2,
 	FileText,
+	Kanban,
+	LayoutDashboard,
 	Loader2,
 	Receipt,
 	Search,
+	Settings,
 	Truck,
 	UserCheck,
+	UserPlus,
 	Users,
+	Wallet,
 	X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { sanitizeSearch } from "@/lib/utils";
+
+// ── Actions ────────────────────────────────────────────────────────────────
+
+type Action = {
+	id: string;
+	title: string;
+	subtitle: string;
+	icon: typeof Briefcase;
+	keywords: string;
+	perform: () => void;
+};
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -22,7 +41,7 @@ type Group =
 	| "jobs"
 	| "proposals"
 	| "customers"
-	| "vendors"
+	| "fleet"
 	| "crew"
 	| "invoices";
 
@@ -43,25 +62,11 @@ const GROUP_META: Record<
 	proposals: { icon: FileText, order: 3 },
 	customers: { icon: Users, order: 4 },
 	invoices: { icon: Receipt, order: 5 },
-	vendors: { icon: Truck, order: 6 },
+	fleet: { icon: Truck, order: 6 },
 	crew: { icon: UserCheck, order: 7 },
 };
 
 const PER_GROUP_LIMIT = 5;
-
-// ── Query sanitization ───────────────────────────────────────────────────
-// `%` and `_` are wildcards inside ILIKE — we escape them so a literal
-// underscore in a phone number doesn't match everything. Parens and commas
-// have meaning in PostgREST's .or() syntax, so we drop them.
-
-function escapeLike(input: string): string {
-	return input.replace(/[%_]/g, "\\$&");
-}
-
-function sanitizeForOr(input: string): string {
-	// Replace PostgREST-meaningful chars with spaces.
-	return input.replace(/[(),]/g, " ").trim();
-}
 
 // ── Main component ───────────────────────────────────────────────────────
 
@@ -77,6 +82,8 @@ function sanitizeForOr(input: string): string {
 export function CommandPalette() {
 	const router = useRouter();
 	const t = useTranslations("search");
+	const tField = useTranslations("field");
+	const tNav = useTranslations("nav");
 	const [open, setOpen] = useState(false);
 	const [query, setQuery] = useState("");
 	const [hits, setHits] = useState<Hit[]>([]);
@@ -98,6 +105,109 @@ export function CommandPalette() {
 		setHits([]);
 		setActiveIdx(0);
 	}, []);
+
+	// ── Actions (create / navigate) ─────────────────────────────────────
+	const actions = useMemo<Action[]>(() => {
+		const go = (url: string) => () => {
+			closePalette();
+			router.push(url);
+		};
+		const create = t("create");
+		const openPage = t("openPage");
+		return [
+			{
+				id: "new-lead",
+				title: tField("newLead"),
+				subtitle: create,
+				icon: FilePlus2,
+				keywords: "new lead create prospek baru tambah",
+				perform: () => {
+					closePalette();
+					window.dispatchEvent(new Event("imops:new-lead"));
+				},
+			},
+			{
+				id: "new-customer",
+				title: tField("newCustomer"),
+				subtitle: create,
+				icon: UserPlus,
+				keywords: "new customer create pelanggan baru tambah",
+				perform: go("/customers/new"),
+			},
+			{
+				id: "new-fleet",
+				title: tField("newFleet"),
+				subtitle: create,
+				icon: Truck,
+				keywords: "new fleet create baru tambah",
+				perform: go("/fleet/new"),
+			},
+			{
+				id: "new-crew",
+				title: tField("newCrew"),
+				subtitle: create,
+				icon: UserCheck,
+				keywords: "new crew create kru baru tambah",
+				perform: go("/crew/new"),
+			},
+			{
+				id: "go-today",
+				title: tNav("today"),
+				subtitle: openPage,
+				icon: LayoutDashboard,
+				keywords: "today home hari ini dashboard",
+				perform: go("/today"),
+			},
+			{
+				id: "go-pipeline",
+				title: tNav("pipeline"),
+				subtitle: openPage,
+				icon: Kanban,
+				keywords: "pipeline deals funnel board leads proposals",
+				perform: go("/pipeline"),
+			},
+			{
+				id: "go-jobs",
+				title: tNav("jobs"),
+				subtitle: openPage,
+				icon: Briefcase,
+				keywords: "jobs pekerjaan moves",
+				perform: go("/jobs"),
+			},
+			{
+				id: "go-calendar",
+				title: tNav("calendar"),
+				subtitle: openPage,
+				icon: CalendarDays,
+				keywords: "calendar kalender schedule",
+				perform: go("/calendar"),
+			},
+			{
+				id: "go-money",
+				title: tNav("money"),
+				subtitle: openPage,
+				icon: Wallet,
+				keywords: "money invoices reports keuangan cash ar",
+				perform: go("/money"),
+			},
+			{
+				id: "go-settings",
+				title: tNav("settings"),
+				subtitle: openPage,
+				icon: Settings,
+				keywords: "settings pengaturan config",
+				perform: go("/settings"),
+			},
+		];
+	}, [router, closePalette, t, tField, tNav]);
+
+	const filteredActions = useMemo(() => {
+		const q = query.trim().toLowerCase();
+		if (!q) return actions;
+		return actions.filter(
+			(a) => a.title.toLowerCase().includes(q) || a.keywords.includes(q),
+		);
+	}, [actions, query]);
 
 	// ⌘K / Ctrl+K global shortcut + external trigger event
 	useEffect(() => {
@@ -182,10 +292,14 @@ export function CommandPalette() {
 
 	const flatHits = useMemo(() => grouped.flatMap(([, items]) => items), [grouped]);
 
+	// Combined navigable length: actions first, then search hits.
+	const actionCount = filteredActions.length;
+	const total = actionCount + flatHits.length;
+
 	// Keep activeIdx within bounds
 	useEffect(() => {
-		if (activeIdx >= flatHits.length) setActiveIdx(0);
-	}, [activeIdx, flatHits.length]);
+		if (activeIdx >= total) setActiveIdx(0);
+	}, [activeIdx, total]);
 
 	// Scroll active row into view
 	useEffect(() => {
@@ -206,7 +320,7 @@ export function CommandPalette() {
 		}
 		if (e.key === "ArrowDown") {
 			e.preventDefault();
-			setActiveIdx((i) => Math.min(i + 1, Math.max(0, flatHits.length - 1)));
+			setActiveIdx((i) => Math.min(i + 1, Math.max(0, total - 1)));
 			return;
 		}
 		if (e.key === "ArrowUp") {
@@ -215,12 +329,19 @@ export function CommandPalette() {
 			return;
 		}
 		if (e.key === "Enter") {
-			const hit = flatHits[activeIdx];
-			if (hit) {
-				e.preventDefault();
-				navigateTo(hit);
-			}
+			e.preventDefault();
+			runActive();
 		}
+	}
+
+	/** Run whatever is highlighted — an action, or navigate to a search hit. */
+	function runActive() {
+		if (activeIdx < actionCount) {
+			filteredActions[activeIdx]?.perform();
+			return;
+		}
+		const hit = flatHits[activeIdx - actionCount];
+		if (hit) navigateTo(hit);
 	}
 
 	function navigateTo(hit: Hit) {
@@ -241,12 +362,12 @@ export function CommandPalette() {
 			onClick={closePalette}
 		>
 			<div
-				className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10 overflow-hidden flex flex-col max-h-[70vh]"
+				className="w-full max-w-2xl bg-surface rounded-2xl shadow-token ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[70vh]"
 				onClick={(e) => e.stopPropagation()}
 			>
 				{/* Input row */}
-				<div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-					<Search size={18} className="text-gray-400" aria-hidden="true" />
+				<div className="flex items-center gap-3 px-4 py-3 border-b border-line">
+					<Search size={18} className="text-ink-faint" aria-hidden="true" />
 					<input
 						ref={inputRef}
 						type="search"
@@ -254,7 +375,7 @@ export function CommandPalette() {
 						onChange={(e) => setQuery(e.target.value)}
 						onKeyDown={handleInputKey}
 						placeholder={t("placeholder")}
-						className="flex-1 bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none"
+						className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink-faint focus:outline-none"
 						aria-label={t("placeholder")}
 						autoComplete="off"
 						spellCheck={false}
@@ -262,7 +383,7 @@ export function CommandPalette() {
 					{loading && (
 						<Loader2
 							size={14}
-							className="animate-spin text-gray-400"
+							className="animate-spin text-ink-faint"
 							aria-hidden="true"
 						/>
 					)}
@@ -270,7 +391,7 @@ export function CommandPalette() {
 						type="button"
 						onClick={closePalette}
 						aria-label="Close search"
-						className="w-7 h-7 flex items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 transition-colors"
+						className="w-7 h-7 flex items-center justify-center rounded-md text-ink-faint hover:bg-subtle hover:text-ink transition-colors"
 					>
 						<X size={14} aria-hidden="true" />
 					</button>
@@ -282,10 +403,57 @@ export function CommandPalette() {
 					className="flex-1 overflow-y-auto py-2"
 					role="listbox"
 				>
-					{!query.trim() ? (
-						<EmptyHint />
-					) : grouped.length === 0 && !loading ? (
-						<p className="text-center text-sm text-gray-400 py-8">
+					{/* Actions */}
+					{filteredActions.length > 0 && (
+						<section className="py-1">
+							<header className="px-3 py-1 text-[10px] font-semibold text-ink-faint uppercase tracking-widest">
+								{t("actionsTitle")}
+							</header>
+							<ul>
+								{filteredActions.map((action, i) => {
+									const active = i === activeIdx;
+									const Icon = action.icon;
+									return (
+										<li key={action.id} role="option" aria-selected={active}>
+											<button
+												type="button"
+												data-hit-idx={i}
+												onMouseEnter={() => setActiveIdx(i)}
+												onClick={action.perform}
+												className={`w-full text-left flex items-center gap-3 px-3 py-2 transition-colors ${
+													active ? "bg-primary-subtle" : "hover:bg-subtle"
+												}`}
+											>
+												<Icon
+													size={14}
+													className={
+														active
+															? "text-primary-text shrink-0"
+															: "text-ink-faint shrink-0"
+													}
+													aria-hidden="true"
+												/>
+												<div className="min-w-0 flex-1">
+													<p className="text-sm font-medium text-ink truncate">
+														{action.title}
+													</p>
+													<p className="text-xs text-ink-muted truncate">
+														{action.subtitle}
+													</p>
+												</div>
+											</button>
+										</li>
+									);
+								})}
+							</ul>
+						</section>
+					)}
+
+					{query.trim() &&
+					grouped.length === 0 &&
+					filteredActions.length === 0 &&
+					!loading ? (
+						<p className="text-center text-sm text-ink-faint py-8">
 							{t("noResults", { query })}
 						</p>
 					) : (
@@ -294,12 +462,12 @@ export function CommandPalette() {
 							const Icon = meta.icon;
 							return (
 								<section key={group} className="py-1">
-									<header className="px-3 py-1 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
+									<header className="px-3 py-1 text-[10px] font-semibold text-ink-faint uppercase tracking-widest">
 										{t(`groups.${group}` as never)}
 									</header>
 									<ul>
 										{items.map((hit) => {
-											const idx = flatHits.indexOf(hit);
+											const idx = actionCount + flatHits.indexOf(hit);
 											const active = idx === activeIdx;
 											return (
 												<li key={hit.id} role="option" aria-selected={active}>
@@ -310,25 +478,25 @@ export function CommandPalette() {
 														onClick={() => navigateTo(hit)}
 														className={`w-full text-left flex items-center gap-3 px-3 py-2 transition-colors ${
 															active
-																? "bg-brand-50 dark:bg-brand-900/30"
-																: "hover:bg-gray-50 dark:hover:bg-gray-800"
+																? "bg-primary-subtle"
+																: "hover:bg-subtle"
 														}`}
 													>
 														<Icon
 															size={14}
 															className={
 																active
-																	? "text-brand-600 dark:text-brand-400 shrink-0"
-																	: "text-gray-400 shrink-0"
+																	? "text-primary-text shrink-0"
+																	: "text-ink-faint shrink-0"
 															}
 															aria-hidden="true"
 														/>
 														<div className="min-w-0 flex-1">
-															<p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+															<p className="text-sm font-medium text-ink truncate">
 																{hit.title}
 															</p>
 															{hit.subtitle && (
-																<p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+																<p className="text-xs text-ink-muted truncate">
 																	{hit.subtitle}
 																</p>
 															)}
@@ -345,7 +513,7 @@ export function CommandPalette() {
 				</div>
 
 				{/* Footer hints */}
-				<div className="flex items-center justify-between gap-3 px-4 py-2 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-400">
+				<div className="flex items-center justify-between gap-3 px-4 py-2 border-t border-line text-[10px] text-ink-faint">
 					<div className="flex items-center gap-3">
 						<KeyHint k="↑" /> <KeyHint k="↓" /> <span>{t("hintNavigate")}</span>
 						<KeyHint k="↵" /> <span>{t("hintOpen")}</span>
@@ -362,28 +530,18 @@ export function CommandPalette() {
 
 function KeyHint({ k }: { k: string }) {
 	return (
-		<kbd className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 font-mono">
+		<kbd className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded bg-subtle text-ink-muted font-mono">
 			{k}
 		</kbd>
-	);
-}
-
-function EmptyHint() {
-	const t = useTranslations("search");
-	return (
-		<div className="px-4 py-8 text-center text-sm text-gray-400 space-y-1">
-			<p>{t("emptyHint")}</p>
-			<p className="text-xs">{t("emptyScope")}</p>
-		</div>
 	);
 }
 
 // ── Search executor ──────────────────────────────────────────────────────
 
 async function runSearch(raw: string): Promise<Hit[]> {
-	const clean = sanitizeForOr(raw);
+	const clean = sanitizeSearch(raw);
 	if (!clean) return [];
-	const pattern = `%${escapeLike(clean)}%`;
+	const pattern = `%${clean}%`;
 	const supabase = createClient();
 
 	type LeadRow = {
@@ -412,7 +570,7 @@ async function runSearch(raw: string): Promise<Hit[]> {
 		phone: string | null;
 		company_name: string | null;
 	};
-	type VendorRow = { id: string; name: string; phone: string | null };
+	type FleetRow = { id: string; name: string; phone: string | null };
 	type CrewRow = { id: string; name: string; phone: string | null };
 	type InvoiceRow = {
 		id: string;
@@ -431,7 +589,7 @@ async function runSearch(raw: string): Promise<Hit[]> {
 		jobsByCustomer,
 		proposalsByNumber,
 		proposalsByCustomer,
-		vendorsRes,
+		fleetRes,
 		crewRes,
 		invoicesRes,
 	] = await Promise.all([
@@ -489,7 +647,7 @@ async function runSearch(raw: string): Promise<Hit[]> {
 			.limit(PER_GROUP_LIMIT),
 
 		supabase
-			.from("vendors")
+			.from("fleet")
 			.select("id, name, phone")
 			.or(`name.ilike.${pattern},phone.ilike.${pattern}`)
 			.limit(PER_GROUP_LIMIT),
@@ -561,8 +719,8 @@ async function runSearch(raw: string): Promise<Hit[]> {
 		add("proposals", p.id, p.proposal_number, sub || undefined);
 	}
 
-	for (const v of (vendorsRes.data ?? []) as VendorRow[]) {
-		add("vendors", v.id, v.name, v.phone ?? undefined);
+	for (const v of (fleetRes.data ?? []) as FleetRow[]) {
+		add("fleet", v.id, v.name, v.phone ?? undefined);
 	}
 
 	for (const c of (crewRes.data ?? []) as CrewRow[]) {
@@ -592,8 +750,8 @@ function urlFor(group: Group, id: string): string {
 			return `/customers/${id}`;
 		case "invoices":
 			return `/invoices/${id}`;
-		case "vendors":
-			return `/vendors/${id}`;
+		case "fleet":
+			return `/fleet/${id}`;
 		case "crew":
 			return `/crew/${id}`;
 	}

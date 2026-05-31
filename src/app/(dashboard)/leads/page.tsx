@@ -1,11 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate } from "@/lib/utils";
+import { formatDate, sanitizeSearch } from "@/lib/utils";
 import {
-	StatusChip,
-	leadStatusVariant,
-} from "@/components/shared/StatusChip";
+	PageHeader,
+	Badge,
+	RouteLine,
+	Input,
+	Select,
+	Button,
+	EmptyState,
+	Pagination,
+	toneFor,
+} from "@/components/ui";
 
 const STATUS_VALUES = [
 	"",
@@ -18,12 +25,16 @@ const STATUS_VALUES = [
 	"closed_lost",
 ] as const;
 
+const PAGE_SIZE = 25;
+
 export default async function LeadsPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ q?: string; status?: string }>;
+	searchParams: Promise<{ q?: string; status?: string; page?: string }>;
 }) {
-	const { q, status } = await searchParams;
+	const { q, status, page: rawPage } = await searchParams;
+	const page = Math.max(1, Number(rawPage) || 1);
+	const from = (page - 1) * PAGE_SIZE;
 	const supabase = await createClient();
 	const t = await getTranslations("pages.leads");
 	const tStatus = await getTranslations("status.lead");
@@ -31,55 +42,59 @@ export default async function LeadsPage({
 
 	let query = supabase
 		.from("leads")
-		.select(`
+		.select(
+			`
       id, status, pickup_address, destination_address, preferred_date, created_at,
       customers(id, name, phone)
-    `)
-		.order("created_at", { ascending: false });
+    `,
+			{ count: "exact" },
+		);
 
 	if (status) query = query.filter("status", "eq", status);
 	if (q) {
+		const safe = sanitizeSearch(q);
 		query = query.or(
-			`pickup_address.ilike.%${q}%,destination_address.ilike.%${q}%`,
+			`pickup_address.ilike.%${safe}%,destination_address.ilike.%${safe}%`,
 		);
 	}
 
-	const { data: leads } = await query;
+	const { data: leads, count } = await query
+		.order("created_at", { ascending: false })
+		.range(from, from + PAGE_SIZE - 1);
 
 	return (
-		<div className="space-y-6">
-			<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-				{t("title")}
-			</h1>
+		<div className="space-y-5">
+			<PageHeader title={t("title")} />
 
 			{/* Filters */}
-			<form method="GET" className="flex flex-wrap gap-3" role="search">
-				<input
+			<form
+				method="GET"
+				className="flex flex-wrap gap-2"
+				role="search"
+			>
+				<Input
 					type="search"
 					name="q"
 					defaultValue={q}
 					placeholder={t("searchPlaceholder")}
 					aria-label={t("searchPlaceholder")}
-					className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
+					className="w-auto min-w-[220px] flex-1 max-w-xs"
 				/>
-				<select
+				<Select
 					name="status"
 					defaultValue={status ?? ""}
 					aria-label={t("title")}
-					className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
+					className="w-auto"
 				>
 					{STATUS_VALUES.map((s) => (
 						<option key={s} value={s}>
 							{s === "" ? t("filterAll") : tStatus(s as never)}
 						</option>
 					))}
-				</select>
-				<button
-					type="submit"
-					className="rounded-lg bg-gray-100 dark:bg-gray-800 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
-				>
+				</Select>
+				<Button type="submit" variant="secondary">
 					{tCommon("filter")}
-				</button>
+				</Button>
 			</form>
 
 			{/* List */}
@@ -94,23 +109,23 @@ export default async function LeadsPage({
 						<Link
 							key={lead.id}
 							href={`/leads/${lead.id}`}
-							className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+							className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface shadow-token px-5 py-4 transition-all hover:border-line-strong hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 						>
 							<div className="min-w-0 flex-1">
-								<p className="font-semibold text-gray-900 dark:text-white truncate">
+								<p className="font-semibold text-ink truncate">
 									{customer?.name ?? "—"}
 								</p>
-								<p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
-									{lead.pickup_address ?? "—"} →{" "}
-									{lead.destination_address ?? "—"}
-								</p>
-							</div>
-							<div className="flex items-center gap-4 ml-4 shrink-0">
-								<StatusChip
-									label={tStatus(lead.status as never)}
-									variant={leadStatusVariant(lead.status)}
+								<RouteLine
+									from={lead.pickup_address}
+									to={lead.destination_address}
+									className="mt-1.5"
 								/>
-								<span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+							</div>
+							<div className="flex items-center gap-4 shrink-0">
+								<Badge tone={toneFor("lead", lead.status)} dot>
+									{tStatus(lead.status as never)}
+								</Badge>
+								<span className="hidden sm:block text-sm font-medium text-ink-muted tabular-nums">
 									{lead.preferred_date
 										? formatDate(lead.preferred_date)
 										: formatDate(lead.created_at)}
@@ -120,11 +135,11 @@ export default async function LeadsPage({
 					);
 				})}
 				{(leads ?? []).length === 0 && (
-					<p className="py-10 text-center text-sm text-gray-400">
-						{q || status ? t("emptyFiltered") : t("empty")}
-					</p>
+					<EmptyState title={q || status ? t("emptyFiltered") : t("empty")} />
 				)}
 			</div>
+
+			<Pagination page={page} pageSize={PAGE_SIZE} total={count ?? 0} />
 		</div>
 	);
 }

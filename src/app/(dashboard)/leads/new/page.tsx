@@ -4,6 +4,15 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import {
+	Button,
+	PageHeader,
+	Field,
+	Input,
+	Select,
+	Textarea,
+	FormError,
+} from "@/components/ui";
 
 type Customer = { id: string; name: string; phone: string | null };
 
@@ -117,43 +126,34 @@ export default function NewLeadPage() {
 
 	return (
 		<div className="space-y-6">
-			<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-				{t("newTitle")}
-			</h1>
+			<PageHeader title={t("newTitle")} />
 
 			<form onSubmit={handleSubmit} className="space-y-5 max-w-lg" noValidate>
-				{error && (
-					<div
-						role="alert"
-						className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300"
-					>
-						{error}
-					</div>
-				)}
+				{error && <FormError>{error}</FormError>}
 
 				{/* Customer selection */}
 				<fieldset className="space-y-3">
-					<legend className="text-sm font-medium text-gray-700 dark:text-gray-300">
+					<legend className="text-sm font-medium text-ink">
 						{t("customer")}
 					</legend>
 					<div className="flex gap-4">
-						<label className="flex items-center gap-2 text-sm">
+						<label className="flex items-center gap-2 text-sm text-ink">
 							<input
 								type="radio"
 								name="customer_mode"
 								checked={!createNewCustomer}
 								onChange={() => setCreateNewCustomer(false)}
-								className="text-brand-600"
+								className="text-primary"
 							/>
 							{t("existingCustomer")}
 						</label>
-						<label className="flex items-center gap-2 text-sm">
+						<label className="flex items-center gap-2 text-sm text-ink">
 							<input
 								type="radio"
 								name="customer_mode"
 								checked={createNewCustomer}
 								onChange={() => setCreateNewCustomer(true)}
-								className="text-brand-600"
+								className="text-primary"
 							/>
 							{t("newCustomer")}
 						</label>
@@ -161,49 +161,31 @@ export default function NewLeadPage() {
 
 					{createNewCustomer ? (
 						<div className="space-y-3 pl-1">
-							<div>
-								<label
-									htmlFor="new_customer_name"
-									className="block text-sm text-gray-600 dark:text-gray-400 mb-1"
-								>
-									{t("name")}{" "}
-									<span aria-hidden="true" className="text-red-500">
-										*
-									</span>
-								</label>
-								<input
+							<Field label={t("name")} htmlFor="new_customer_name" required>
+								<Input
 									id="new_customer_name"
 									name="new_customer_name"
 									type="text"
 									value={form.new_customer_name}
 									onChange={handleChange}
-									className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 								/>
-							</div>
-							<div>
-								<label
-									htmlFor="new_customer_phone"
-									className="block text-sm text-gray-600 dark:text-gray-400 mb-1"
-								>
-									{t("phone")}
-								</label>
-								<input
+							</Field>
+							<Field label={t("phone")} htmlFor="new_customer_phone">
+								<Input
 									id="new_customer_phone"
 									name="new_customer_phone"
 									type="tel"
 									value={form.new_customer_phone}
 									onChange={handleChange}
-									className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 								/>
-							</div>
+							</Field>
 						</div>
 					) : (
-						<select
+						<Select
 							name="customer_id"
 							value={form.customer_id}
 							onChange={handleChange}
 							aria-label="Select existing customer"
-							className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 						>
 							<option value="">— Select customer —</option>
 							{customers.map((c) => (
@@ -212,77 +194,50 @@ export default function NewLeadPage() {
 									{c.phone ? ` (${c.phone})` : ""}
 								</option>
 							))}
-						</select>
+						</Select>
 					)}
 				</fieldset>
 
 				{/* Addresses */}
-				<div>
-					<label
-						htmlFor="pickup_address"
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-					>
-						{t("pickup")}
-					</label>
-					<input
+				<Field label={t("pickup")} htmlFor="pickup_address">
+					<Input
 						id="pickup_address"
 						name="pickup_address"
 						type="text"
 						value={form.pickup_address}
 						onChange={handleChange}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 					/>
-				</div>
+				</Field>
 
-				<div>
-					<label
-						htmlFor="destination_address"
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-					>
-						{t("destination")}
-					</label>
-					<input
+				<Field label={t("destination")} htmlFor="destination_address">
+					<Input
 						id="destination_address"
 						name="destination_address"
 						type="text"
 						value={form.destination_address}
 						onChange={handleChange}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 					/>
-				</div>
+				</Field>
 
-				<div>
-					<label
-						htmlFor="preferred_date"
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-					>
-						{t("preferredDate")}
-					</label>
-					<input
+				<Field label={t("preferredDate")} htmlFor="preferred_date">
+					<Input
 						id="preferred_date"
 						name="preferred_date"
 						type="date"
 						value={form.preferred_date}
 						onChange={handleChange}
-						className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+						className="w-auto"
 					/>
-				</div>
+				</Field>
 
 				{/* Lead metadata */}
 				<div className="grid grid-cols-2 gap-4">
-					<div>
-						<label
-							htmlFor="lead_type"
-							className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-						>
-							{t("leadType")}
-						</label>
-						<select
+					<Field label={t("leadType")} htmlFor="lead_type">
+						<Select
 							id="lead_type"
 							name="lead_type"
 							value={form.lead_type}
 							onChange={handleChange}
-							className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 						>
 							{(["whatsapp", "onsite", "returning", "corporate"] as const).map(
 								(v) => (
@@ -291,21 +246,14 @@ export default function NewLeadPage() {
 									</option>
 								),
 							)}
-						</select>
-					</div>
-					<div>
-						<label
-							htmlFor="origin_channel"
-							className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-						>
-							{t("originChannel")}
-						</label>
-						<select
+						</Select>
+					</Field>
+					<Field label={t("originChannel")} htmlFor="origin_channel">
+						<Select
 							id="origin_channel"
 							name="origin_channel"
 							value={form.origin_channel}
 							onChange={handleChange}
-							className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
 						>
 							{(["whatsapp", "call", "referral", "walkin"] as const).map(
 								(v) => (
@@ -314,42 +262,38 @@ export default function NewLeadPage() {
 									</option>
 								),
 							)}
-						</select>
-					</div>
+						</Select>
+					</Field>
 				</div>
 
-				<div>
-					<label
-						htmlFor="notes"
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-					>
-						{t("notes")}
-					</label>
-					<textarea
+				<Field label={t("notes")} htmlFor="notes">
+					<Textarea
 						id="notes"
 						name="notes"
 						rows={3}
 						value={form.notes}
 						onChange={handleChange}
-						className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+						className="resize-none"
 					/>
-				</div>
+				</Field>
 
 				<div className="flex gap-3">
-					<button
+					<Button
 						type="submit"
-						disabled={saving}
-						className="rounded-lg bg-brand-600 px-5 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						loading={saving}
+						variant="primary"
+						size="md"
 					>
 						{saving ? tButtons("saving") : t("createLead")}
-					</button>
-					<button
+					</Button>
+					<Button
 						type="button"
 						onClick={() => router.back()}
-						className="rounded-lg border border-gray-300 dark:border-gray-700 px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+						variant="secondary"
+						size="md"
 					>
 						{tButtons("cancel")}
-					</button>
+					</Button>
 				</div>
 			</form>
 		</div>

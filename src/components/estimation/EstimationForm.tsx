@@ -13,6 +13,7 @@ import {
 } from "@/lib/estimation/engine";
 import { formatRupiah } from "@/lib/utils";
 import { NumericInput } from "@/components/shared/NumericInput";
+import { Button, FormError, Input, Field } from "@/components/ui";
 
 type SettingRow = { key: string; value: string };
 
@@ -51,7 +52,7 @@ export function EstimationForm({
 		crew_count: 3,
 		crew_day_rate: settings.crew_day_rate,
 		food_per_crew: settings.food_per_crew,
-		packing_service: false,
+		packing_cost: 0,
 		toll_estimate: 0,
 		other_cost: 0,
 		is_out_of_town: false,
@@ -67,6 +68,7 @@ export function EstimationForm({
 			vehicle_cost:  saved.vehicle_cost  ?? (settings[`vehicle_rate_${saved.vehicle_type}` as keyof EstimationSettings] as number),
 			crew_day_rate: saved.crew_day_rate  ?? settings.crew_day_rate,
 			food_per_crew: saved.food_per_crew  ?? settings.food_per_crew,
+			packing_cost:  saved.packing_cost  ?? 0,
 		};
 	});
 
@@ -162,23 +164,16 @@ export function EstimationForm({
 		<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 			{/* ── INPUTS ── */}
 			<div className="space-y-5">
-				<h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+				<h2 className="text-lg font-semibold text-ink">
 					{t("inputs")}
 				</h2>
 
-				{error && (
-					<div
-						role="alert"
-						className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 px-4 py-3 text-sm text-red-700 dark:text-red-300"
-					>
-						{error}
-					</div>
-				)}
+				{error && <FormError>{error}</FormError>}
 
 				{/* Vehicle type */}
 				<div>
 					<fieldset>
-						<legend className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+						<legend className="block text-sm font-medium text-ink mb-2">
 							{t("vehicleType")}
 						</legend>
 						<div className="flex flex-wrap gap-2">
@@ -195,8 +190,8 @@ export function EstimationForm({
 									<span
 										className={`inline-block rounded-lg border px-4 py-2 text-sm font-medium transition-colors select-none ${
 											inputs.vehicle_type === v
-												? "border-brand-600 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300"
-												: "border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+												? "border-primary bg-primary-subtle text-primary-text"
+												: "border-line text-ink-muted hover:bg-subtle"
 										}`}
 									>
 										{tVehicle(v)}
@@ -208,68 +203,44 @@ export function EstimationForm({
 				</div>
 
 				{/* Vehicle cost */}
-				<div>
-					<label
-						htmlFor="vehicle_cost"
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-					>
-						{t("vehicleCost")} (IDR)
-					</label>
+				<Field label={`${t("vehicleCost")} (IDR)`} htmlFor="vehicle_cost">
 					<NumericInput
 						id="vehicle_cost"
 						value={inputs.vehicle_cost}
 						onChange={(v) => setInput("vehicle_cost", v)}
-						className="w-full max-w-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+						className="w-full max-w-xs rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
 					/>
-				</div>
+				</Field>
 
 				{/* Crew */}
-				<div>
-					<label
-						htmlFor="crew_count"
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-					>
-						{t("crewCount")}
-					</label>
+				<Field label={t("crewCount")} htmlFor="crew_count">
 					<NumericInput
 						id="crew_count"
 						value={inputs.crew_count}
 						onChange={(v) => setInput("crew_count", Math.max(1, v || 1))}
-						className="w-32 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+						className="w-32 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
 					/>
-				</div>
+				</Field>
 
 				{/* Crew day rate */}
-				<div>
-					<label
-						htmlFor="crew_day_rate"
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-					>
-						{t("crewDayRate")} (IDR)
-					</label>
+				<Field label={`${t("crewDayRate")} (IDR)`} htmlFor="crew_day_rate">
 					<NumericInput
 						id="crew_day_rate"
 						value={inputs.crew_day_rate}
 						onChange={(v) => setInput("crew_day_rate", v)}
-						className="w-full max-w-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+						className="w-full max-w-xs rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
 					/>
-				</div>
+				</Field>
 
 				{/* Food per crew */}
-				<div>
-					<label
-						htmlFor="food_per_crew"
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-					>
-						{t("foodPerCrew")} (IDR)
-					</label>
+				<Field label={`${t("foodPerCrew")} (IDR)`} htmlFor="food_per_crew">
 					<NumericInput
 						id="food_per_crew"
 						value={inputs.food_per_crew}
 						onChange={(v) => setInput("food_per_crew", v)}
-						className="w-full max-w-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+						className="w-full max-w-xs rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
 					/>
-				</div>
+				</Field>
 
 				{/* Out of town */}
 				<div className="flex items-center gap-3">
@@ -278,11 +249,11 @@ export function EstimationForm({
 						type="checkbox"
 						checked={inputs.is_out_of_town}
 						onChange={(e) => setInput("is_out_of_town", e.target.checked)}
-						className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+						className="h-4 w-4 rounded border-line-strong text-primary focus:ring-[var(--ring)]"
 					/>
 					<label
 						htmlFor="is_out_of_town"
-						className="text-sm text-gray-700 dark:text-gray-300"
+						className="text-sm text-ink-muted"
 					>
 						{t("outOfTown")}{" "}
 						{t("outOfTownHint", { meals: inputs.meals_count })}
@@ -290,114 +261,100 @@ export function EstimationForm({
 				</div>
 
 				{inputs.is_out_of_town && (
-					<div>
-						<label
-							htmlFor="meals_count"
-							className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-						>
-							{t("mealsCount")}
-						</label>
+					<Field label={t("mealsCount")} htmlFor="meals_count">
 						<NumericInput
 							id="meals_count"
 							value={inputs.meals_count}
 							onChange={(v) => setInput("meals_count", Math.max(1, v || 1))}
-							className="w-32 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+							className="w-32 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
 						/>
-					</div>
+					</Field>
 				)}
 
+				{/* Packing materials */}
+				<Field label={`${t("packingCost")} (IDR)`} htmlFor="packing_cost">
+					<NumericInput
+						id="packing_cost"
+						value={inputs.packing_cost}
+						onChange={(v) => setInput("packing_cost", v)}
+						className="w-full max-w-xs rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+					/>
+				</Field>
+
 				{/* Toll */}
-				<div>
-					<label
-						htmlFor="toll_estimate"
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-					>
-						{t("tollEstimate")} (IDR)
-					</label>
+				<Field label={`${t("tollEstimate")} (IDR)`} htmlFor="toll_estimate">
 					<NumericInput
 						id="toll_estimate"
 						value={inputs.toll_estimate}
 						onChange={(v) => setInput("toll_estimate", v)}
-						className="w-full max-w-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+						className="w-full max-w-xs rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
 					/>
-				</div>
+				</Field>
 
 				{/* Other */}
-				<div>
-					<label
-						htmlFor="other_cost"
-						className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-					>
-						{t("otherCost")} (IDR)
-					</label>
+				<Field label={`${t("otherCost")} (IDR)`} htmlFor="other_cost">
 					<NumericInput
 						id="other_cost"
 						value={inputs.other_cost}
 						onChange={(v) => setInput("other_cost", v)}
-						className="w-full max-w-xs rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+						className="w-full max-w-xs rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
 					/>
-				</div>
+				</Field>
 
 				{/* Override */}
-				<div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/10 p-4 space-y-3">
-					<p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+				<div className="rounded-xl border border-warning bg-warning-bg p-4 space-y-3">
+					<p className="text-sm font-medium text-warning-text">
 						{t("manualOverride")}
 					</p>
-					<div>
-						<label
-							htmlFor="override_price"
-							className="block text-xs text-amber-700 dark:text-amber-400 mb-1"
-						>
-							{t("overridePrice")} (IDR)
-						</label>
+					<Field label={`${t("overridePrice")} (IDR)`} htmlFor="override_price">
 						<NumericInput
 							id="override_price"
 							value={overridePrice}
 							onChange={(v) => setOverridePrice(v)}
 							placeholder={new Intl.NumberFormat("id-ID").format(outputs.initial_offer_price)}
-							className="w-full rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+							className="w-full rounded-lg border border-warning bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
 						/>
-					</div>
+					</Field>
 					{overridePrice > 0 && (
-						<div>
-							<label
-								htmlFor="override_reason"
-								className="block text-xs text-amber-700 dark:text-amber-400 mb-1"
-							>
-								{t("overrideReason")}{" "}
-								<span aria-hidden="true" className="text-red-500">
-									*
-								</span>
-							</label>
-							<input
+						<Field
+							label={
+								<>
+									{t("overrideReason")}{" "}
+									<span aria-hidden="true" className="text-danger">*</span>
+								</>
+							}
+							htmlFor="override_reason"
+						>
+							<Input
 								id="override_reason"
 								type="text"
 								value={overrideReason}
 								onChange={(e) => setOverrideReason(e.target.value)}
-								className="w-full rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+								className="border-warning"
 							/>
-						</div>
+						</Field>
 					)}
 				</div>
 
-				<button
+				<Button
 					type="button"
 					onClick={handleSave}
 					disabled={saving || (overridePrice > 0 && !overrideReason.trim())}
-					className="rounded-lg bg-brand-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-colors"
+					loading={saving}
+					size="md"
 				>
 					{saving ? tButtons("saving") : t("saveEstimation")}
-				</button>
+				</Button>
 			</div>
 
 			{/* ── LIVE BREAKDOWN ── */}
 			<div className="space-y-4">
-				<h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+				<h2 className="text-lg font-semibold text-ink">
 					{t("breakdownTitle")}
 				</h2>
-				<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+				<div className="rounded-xl border border-line bg-surface overflow-hidden">
 					<table className="w-full text-sm">
-						<tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+						<tbody className="divide-y divide-line">
 							<BreakdownRow
 								label={tBreakdown("vehicle")}
 								value={outputs.vehicle_cost}
@@ -410,6 +367,12 @@ export function EstimationForm({
 								label={tBreakdown("food")}
 								value={outputs.food_cost}
 							/>
+							{inputs.packing_cost > 0 && (
+								<BreakdownRow
+									label={tBreakdown("packing")}
+									value={outputs.packing_cost}
+								/>
+							)}
 							{inputs.toll_estimate > 0 && (
 								<BreakdownRow
 									label={tBreakdown("toll")}
@@ -469,20 +432,20 @@ export function EstimationForm({
 							/>
 						</tbody>
 						<tfoot>
-							<tr className="bg-brand-600">
-								<td className="px-4 py-3 text-sm font-bold text-white">
+							<tr className="bg-primary">
+								<td className="px-4 py-3 text-sm font-bold text-primary-fg">
 									{overridePrice
 										? t("overridePriceLabel")
 										: tBreakdown("offerPrice")}
 								</td>
-								<td className="px-4 py-3 text-sm font-bold text-white text-right">
+								<td className="px-4 py-3 text-sm font-bold text-primary-fg text-right">
 									{formatRupiah(finalPrice)}
 								</td>
 							</tr>
 						</tfoot>
 					</table>
 				</div>
-				<p className="text-xs text-gray-400">
+				<p className="text-xs text-ink-faint">
 					{t("engineFooter", { version: ENGINE_VERSION })}
 				</p>
 			</div>
@@ -504,12 +467,12 @@ function BreakdownRow({
 	return (
 		<tr>
 			<td
-				className={`px-4 py-2 ${muted ? "text-gray-400" : ""} ${bold ? "font-semibold text-gray-900 dark:text-white" : ""}`}
+				className={`px-4 py-2 ${muted ? "text-ink-faint" : ""} ${bold ? "font-semibold text-ink" : "text-ink-muted"}`}
 			>
 				{label}
 			</td>
 			<td
-				className={`px-4 py-2 text-right tabular-nums ${muted ? "text-gray-400" : ""} ${bold ? "font-semibold text-gray-900 dark:text-white" : ""}`}
+				className={`px-4 py-2 text-right tabular-nums ${muted ? "text-ink-faint" : ""} ${bold ? "font-semibold text-ink" : "text-ink-muted"}`}
 			>
 				{formatRupiah(value)}
 			</td>

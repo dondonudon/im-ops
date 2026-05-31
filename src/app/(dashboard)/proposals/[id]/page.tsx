@@ -9,9 +9,13 @@ import {
 	buildProposalTemplateSettings,
 } from "@/lib/pdfSettings";
 import {
-	StatusChip,
-	proposalStatusVariant,
-} from "@/components/shared/StatusChip";
+	Badge,
+	toneFor,
+	Card,
+	CardHeader,
+	PageHeader,
+	buttonStyles,
+} from "@/components/ui";
 import { ProposalActionPanel } from "@/components/proposals/ProposalActionPanel";
 import { ProposalDuplicateButton } from "@/components/proposals/ProposalDuplicateButton";
 import { NegotiationHistory } from "@/components/proposals/NegotiationHistory";
@@ -109,133 +113,132 @@ export default async function ProposalDetailPage({
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<div className="flex items-start justify-between flex-wrap gap-4">
-				<div>
-					<div className="flex items-center gap-3 mb-1">
-						<h1 className="text-2xl font-bold font-mono text-gray-900 dark:text-white">
-							{proposal.proposal_number}
-						</h1>
-						<StatusChip
-							label={tStatus(proposal.status as never)}
-							variant={proposalStatusVariant(proposal.status)}
-						/>
-					</div>
-					<p className="text-sm text-gray-500 dark:text-gray-400">
+			<PageHeader
+				title={
+					<span className="flex items-center gap-3">
+						<span className="font-mono">{proposal.proposal_number}</span>
+						<Badge tone={toneFor("proposal", proposal.status)} dot>
+							{tStatus(proposal.status as never)}
+						</Badge>
+					</span>
+				}
+				subtitle={
+					<>
 						{customer?.name ?? "—"} ·{" "}
 						{t("created", { date: formatDate(proposal.created_at) })}
 						{proposal.approved_at &&
 							` · ${t("approved", { date: formatDate(proposal.approved_at) })}`}
-					</p>
-				</div>
-				<div className="flex items-center gap-3 flex-wrap">
-					{lead && (
-						<Link
-							href={`/leads/${lead.id}`}
-							className="text-sm text-brand-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
-						>
-							{t("viewLead")}
-						</Link>
-					)}
-					{lead && (proposal.status === "lost" || proposal.status === "expired") && (
-						<ProposalDuplicateButton
-							proposalId={proposal.id}
-							leadId={lead.id}
-							serviceType={proposal.service_type ?? "DOM"}
-						/>
-					)}
-					{customer && lead && (
-						<ProposalPDFDownloadButton
-							pdfProps={{
-								proposal: {
-									proposal_number: proposal.proposal_number,
-									final_price: proposal.final_price,
-									created_at: proposal.created_at,
-									approved_at: proposal.approved_at,
-								},
-								customer: {
-									name: customer.name,
-									phone: customer.phone,
-									email: customer.email,
-								},
-								lead: {
-									pickup_address: lead.pickup_address,
-									destination_address: lead.destination_address,
-									preferred_date: lead.preferred_date,
-								},
-								outputs: estimationOutputs,
-								company: pdfCompany,
-								template: pdfTemplate,
-							}}
-						/>
-					)}
-				</div>
-			</div>
+					</>
+				}
+				actions={
+					<>
+						{lead && (
+							<Link
+								href={`/leads/${lead.id}`}
+								className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+							>
+								{t("viewLead")}
+							</Link>
+						)}
+						{lead && (proposal.status === "lost" || proposal.status === "expired") && (
+							<ProposalDuplicateButton
+								proposalId={proposal.id}
+								leadId={lead.id}
+								serviceType={proposal.service_type ?? "DOM"}
+							/>
+						)}
+						{customer && lead && (
+							<ProposalPDFDownloadButton
+								pdfProps={{
+									proposal: {
+										proposal_number: proposal.proposal_number,
+										final_price: proposal.final_price,
+										created_at: proposal.created_at,
+										approved_at: proposal.approved_at,
+									},
+									customer: {
+										name: customer.name,
+										phone: customer.phone,
+										email: customer.email,
+									},
+									lead: {
+										pickup_address: lead.pickup_address,
+										destination_address: lead.destination_address,
+										preferred_date: lead.preferred_date,
+									},
+									outputs: estimationOutputs,
+									company: pdfCompany,
+									template: pdfTemplate,
+								}}
+							/>
+						)}
+					</>
+				}
+			/>
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 				{/* Left: estimation + negotiation */}
 				<div className="lg:col-span-2 space-y-6">
 					{/* Move summary */}
 					{lead && (
-						<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 grid grid-cols-2 gap-4 text-sm">
+						<Card className="p-5 grid grid-cols-2 gap-4 text-sm">
 							<div>
-								<p className="text-gray-500 dark:text-gray-400">
-									{tJob("pickup")}
-								</p>
-								<p className="font-medium mt-0.5">
+								<p className="text-ink-muted">{tJob("pickup")}</p>
+								<p className="font-medium mt-0.5 text-ink">
 									{lead.pickup_address ?? "—"}
 								</p>
 							</div>
 							<div>
-								<p className="text-gray-500 dark:text-gray-400">
-									{tJob("destination")}
-								</p>
-								<p className="font-medium mt-0.5">
+								<p className="text-ink-muted">{tJob("destination")}</p>
+								<p className="font-medium mt-0.5 text-ink">
 									{lead.destination_address ?? "—"}
 								</p>
 							</div>
 							{lead.preferred_date && (
 								<div>
-									<p className="text-gray-500 dark:text-gray-400">
-										{t("preferredDate")}
-									</p>
-									<p className="font-medium mt-0.5">
+									<p className="text-ink-muted">{t("preferredDate")}</p>
+									<p className="font-medium mt-0.5 text-ink">
 										{formatDate(lead.preferred_date)}
 									</p>
 								</div>
 							)}
 							{proposal.final_price && (
 								<div>
-									<p className="text-gray-500 dark:text-gray-400">
-										{t("finalPrice")}
-									</p>
-									<p className="text-lg font-bold mt-0.5 text-brand-600">
+									<p className="text-ink-muted">{t("finalPrice")}</p>
+									<p className="text-lg font-bold mt-0.5 text-primary-text">
 										{formatRupiah(proposal.final_price)}
 									</p>
 								</div>
 							)}
-						</section>
+						</Card>
 					)}
 
 					{/* Estimation snapshot */}
 					{estimation && (
-						<section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-							<div className="flex items-center justify-between mb-3">
-								<h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-									{t("estimationBreakdown")}
-								</h2>
-								{proposal.status === "draft" && (
-									<Link
-										href={`/estimations/new?proposal_id=${id}`}
-										className="text-xs text-brand-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
-									>
-										{t("editEstimation")}
-									</Link>
-								)}
-							</div>
-							<EstimationSnapshot
-								outputs={estimation.outputs as Record<string, number>}
+						<Card>
+							<CardHeader
+								title={
+									<span className="uppercase tracking-wide text-xs">
+										{t("estimationBreakdown")}
+									</span>
+								}
+								action={
+									proposal.status === "draft" ? (
+										<Link
+											href={`/estimations/new?proposal_id=${id}`}
+											className={buttonStyles({ variant: "ghost", size: "sm" })}
+										>
+											{t("editEstimation")}
+										</Link>
+									) : undefined
+								}
 							/>
-						</section>
+							<div className="p-5">
+								<EstimationSnapshot
+									outputs={estimation.outputs as Record<string, number>}
+								/>
+							</div>
+						</Card>
 					)}
 
 					{/* Negotiation history */}
@@ -277,6 +280,7 @@ async function EstimationSnapshot({
 		["vehicle", "vehicle_cost"],
 		["manpower", "manpower_cost"],
 		["food", "food_cost"],
+		["packing", "packing_cost"],
 		["toll", "toll_cost"],
 		["operationalBuffer", "operational_buffer"],
 		["adjustedCost", "adjusted_cost"],
@@ -287,15 +291,15 @@ async function EstimationSnapshot({
 
 	return (
 		<table className="w-full text-sm">
-			<tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+			<tbody className="divide-y divide-line">
 				{rows
 					.filter(([, key]) => outputs[key] > 0)
 					.map(([labelKey, key]) => (
 						<tr key={key}>
-							<td className="py-1.5 text-gray-600 dark:text-gray-400">
+							<td className="py-1.5 text-ink-muted">
 								{t(labelKey as never)}
 							</td>
-							<td className="py-1.5 text-right tabular-nums font-medium">
+							<td className="py-1.5 text-right tabular-nums font-medium text-ink">
 								{formatRupiah(outputs[key])}
 							</td>
 						</tr>
