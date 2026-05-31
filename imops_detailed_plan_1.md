@@ -454,7 +454,7 @@ NEW → PHOTO_RECEIVED → SURVEY_SCHEDULED → SURVEY_DONE → ESTIMATING → P
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│               Estimation Engine v2                    │
+│               Estimation Engine v2                   │
 │                                                      │
 │  Inputs (UI Form)                                    │
 │  ┌──────────────────────────────────────────────┐    │
@@ -465,21 +465,19 @@ NEW → PHOTO_RECEIVED → SURVEY_SCHEDULED → SURVEY_DONE → ESTIMATING → P
 │  System Settings (DB)     │                          │
 │  ┌──────────────────┐     │                          │
 │  │ crew_day_rate    │─────►  Calculator Core         │
-│  │ overtime_rate    │         (ported from           │
-│  │ overnight_fee    │          MarginCalc)            │
-│  │ vehicle_rates{} │              │                  │
-│  │ packing_rates{} │              ▼                  │
-│  │ default_margin  │     Estimated Cost              │
+│  │ vehicle_rates{}  │    (ported from MarginCalc)    │
+│  │ packing_rates{}  │              ▼                 │
+│  │ default_margin   │     Estimated Cost             │
 │  └──────────────────┘     Suggested Price            │
 │                           Margin Breakdown           │
 │                           Explainability Table       │
 │                                │                     │
-│  Manual Override              │                     │
-│  ┌──────────────────┐         ▼                     │
-│  │ override_cost    │   Save Snapshot               │
-│  │ override_price   │   (inputs + outputs + ver)    │
-│  │ override_margin  │                               │
-│  └──────────────────┘                               │
+│  Manual Override               │                     │
+│  ┌──────────────────┐          ▼                     │
+│  │ override_cost    │   Save Snapshot                │
+│  │ override_price   │   (inputs + outputs + ver)     │
+│  │ override_margin  │                                │
+│  └──────────────────┘                                │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -488,8 +486,6 @@ NEW → PHOTO_RECEIVED → SURVEY_SCHEDULED → SURVEY_DONE → ESTIMATING → P
 | key                            | category | description                          | example |
 | ------------------------------ | -------- | ------------------------------------ | ------- |
 | `crew_day_rate`                | crew     | Default crew cost per person per day | 175000  |
-| `crew_overtime_rate`           | crew     | Additional per hour overtime         | 25000   |
-| `overnight_fee`                | crew     | Fee if job runs overnight            | 100000  |
 | `default_margin_pct`           | pricing  | Default margin percentage            | 30      |
 | `vehicle_rate_pickup`          | vehicle  | Pickup truck daily rate              | 500000  |
 | `vehicle_rate_box_truck`       | vehicle  | Box truck daily rate                 | 800000  |

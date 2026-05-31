@@ -289,8 +289,6 @@ CREATE TABLE IF NOT EXISTS system_settings (
 -- Seed default system settings
 INSERT INTO system_settings (key, value, category, description) VALUES
   ('crew_day_rate',                '175000',  'crew',    'Default crew cost per person per day (IDR)'),
-  ('crew_overtime_rate',           '25000',   'crew',    'Additional per hour overtime (IDR)'),
-  ('overnight_fee',                '100000',  'crew',    'Fee if job runs overnight (IDR)'),
   ('food_per_crew',                '35000',   'crew',    'Default food allowance per crew member (IDR)'),
   ('default_margin_pct',           '30',      'pricing', 'Default margin percentage (used as fallback; tiered margin auto-applies)'),
   ('negotiation_buffer_pct',       '3',       'pricing', 'Fixed negotiation buffer added to internal target price'),
