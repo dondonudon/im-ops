@@ -140,7 +140,13 @@ export function QuickLeadModal() {
 			setOpen(false);
 			router.push(`/leads/${lead.id}`);
 		} catch (err: unknown) {
-			setError(err instanceof Error ? err.message : t("nameRequired"));
+			if (err instanceof Error) {
+				setError(err.message);
+			} else if (err && typeof err === "object" && "message" in err) {
+				setError(String((err as { message: unknown }).message));
+			} else {
+				setError(t("nameRequired"));
+			}
 		} finally {
 			setSaving(false);
 		}

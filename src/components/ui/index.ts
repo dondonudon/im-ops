@@ -10,3 +10,4 @@ export { Field, Input, Textarea, Select, FormError } from "./Form";
 export { Table, THead, TH, TBody, TR, TD } from "./Table";
 export { Pagination } from "./Pagination";
 export { toneFor, type Entity } from "./status";
+export { MonthPicker } from "./MonthPicker";

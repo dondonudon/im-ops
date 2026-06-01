@@ -12,42 +12,86 @@ import {
 	TR,
 	TD,
 	Money,
+	MonthPicker,
 } from "@/components/ui";
 
-export default async function ReportsPage() {
+function parseMonth(raw?: string): string {
+	if (raw && /^\d{4}-\d{2}$/.test(raw)) return raw;
+	const d = new Date();
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthRange(ym: string): { start: string; end: string } {
+	const [year, month] = ym.split("-").map(Number);
+	const start = `${year}-${String(month).padStart(2, "0")}-01`;
+	const next = new Date(year, month, 1);
+	const end = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-01`;
+	return { start, end };
+}
+
+export default async function ReportsPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ month?: string }>;
+}) {
+	const { month: rawMonth } = await searchParams;
+	const selectedMonth = parseMonth(rawMonth);
+	const { start: monthStart, end: monthEnd } = monthRange(selectedMonth);
+
 	const supabase = await createClient();
 	const t = await getTranslations("pages.reports");
 	const tLeadStatus = await getTranslations("status.lead");
 	const tExpenseCat = await getTranslations("entity.expenseCategory");
 
 	const [
-		{ data: profitRows },
+		{ data: monthJobsData },
 		{ data: monthlyExpenses },
 		{ data: leadConversion },
 		{ data: outstandingInvoices },
 		{ data: lostProposals },
 	] = await Promise.all([
+		// Jobs scheduled in this month (move_date) for revenue KPI + profit table
 		supabase
-			.from("job_profit_summary")
-			.select(
-				"job_number, revenue, actual_spend, current_profit, cash_received",
-			)
-			.order("current_profit", { ascending: false })
-			.limit(20),
+			.from("jobs")
+			.select("id, revenue")
+			.gte("move_date", monthStart)
+			.lt("move_date", monthEnd),
 		supabase
 			.from("expenses")
 			.select("category, amount")
-			.gte("incurred_at", firstDayOfMonth()),
-		supabase.from("leads").select("status"),
+			.gte("incurred_at", monthStart)
+			.lt("incurred_at", monthEnd),
+		// Leads created in this month
+		supabase
+			.from("leads")
+			.select("status")
+			.gte("created_at", monthStart)
+			.lt("created_at", monthEnd),
+		// AR aging is always current state, not month-filtered
 		supabase
 			.from("invoices")
 			.select("invoice_number, total_amount, paid_amount, due_date, status")
 			.in("status", ["sent", "partially_paid", "overdue"]),
+		// Proposals lost/expired this month (updated_at proxy for when status changed)
 		supabase
 			.from("proposals")
 			.select("closed_reason")
-			.in("status", ["lost", "expired"]),
+			.in("status", ["lost", "expired"])
+			.gte("updated_at", monthStart)
+			.lt("updated_at", monthEnd),
 	]);
+
+	// job_profit_summary has no date column — filter by the month's job IDs
+	const monthJobIds = (monthJobsData ?? []).map((j) => j.id);
+	const { data: profitRows } =
+		monthJobIds.length > 0
+			? await supabase
+					.from("job_profit_summary")
+					.select("job_number, revenue, actual_spend, current_profit")
+					.in("job_id", monthJobIds)
+					.order("current_profit", { ascending: false })
+					.limit(20)
+			: { data: [] };
 
 	const expenseByCategory: Record<string, number> = {};
 	for (const e of monthlyExpenses ?? []) {
@@ -64,14 +108,15 @@ export default async function ReportsPage() {
 	const conversionRate =
 		totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
 
-	const totalRevenue = (profitRows ?? []).reduce(
-		(s, r) => s + (r.revenue ?? 0),
+	const totalRevenue = (monthJobsData ?? []).reduce(
+		(s, j) => s + (j.revenue ?? 0),
 		0,
 	);
-	const totalProfit = (profitRows ?? []).reduce(
-		(s, r) => s + (r.current_profit ?? 0),
+	const totalExpenses = (monthlyExpenses ?? []).reduce(
+		(s, e) => s + (e.amount ?? 0),
 		0,
 	);
+	const totalProfit = totalRevenue - totalExpenses;
 
 	const aging = { current: 0, "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
 	const today = new Date();
@@ -102,7 +147,10 @@ export default async function ReportsPage() {
 
 	return (
 		<div className="space-y-8">
-			<PageHeader title={t("title")} />
+			<PageHeader
+				title={t("title")}
+				actions={<MonthPicker value={selectedMonth} />}
+			/>
 
 			{/* KPI summary */}
 			<section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -327,7 +375,3 @@ export default async function ReportsPage() {
 	);
 }
 
-function firstDayOfMonth() {
-	const d = new Date();
-	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
-}

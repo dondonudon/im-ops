@@ -10,11 +10,21 @@ import {
 	Stat,
 	Money,
 	EmptyState,
+	MonthPicker,
 } from "@/components/ui";
 
-function startOfMonth() {
+function parseMonth(raw?: string): string {
+	if (raw && /^\d{4}-\d{2}$/.test(raw)) return raw;
 	const d = new Date();
-	return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthRange(ym: string): { start: string; end: string } {
+	const [year, month] = ym.split("-").map(Number);
+	const start = `${year}-${String(month).padStart(2, "0")}-01`;
+	const next = new Date(year, month, 1);
+	const end = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-01`;
+	return { start, end };
 }
 
 const DAY = 86_400_000;
@@ -38,21 +48,24 @@ type Payment = {
 	} | null;
 };
 
-/**
- * MONEY hub — the unified "where's the cash" overview: AR + overdue, cash in,
- * net, AR aging, recent payments and invoice-status breakdown in one place.
- */
-export default async function MoneyPage() {
+export default async function MoneyPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ month?: string }>;
+}) {
+	const { month: rawMonth } = await searchParams;
+	const selectedMonth = parseMonth(rawMonth);
+	const { start: monthStart, end: monthEnd } = monthRange(selectedMonth);
+
 	const t = await getTranslations("money");
 	const tInv = await getTranslations("status.invoice");
 	const supabase = await createClient();
-	const monthStart = startOfMonth();
 	const today = new Date();
 	today.setHours(0, 0, 0, 0);
 
 	const [
 		{ data: outstandingData },
-		{ data: monthlyPaid },
+		{ data: monthlyPayments },
 		{ data: monthlyExp },
 		{ data: paymentsData },
 		{ data: invForStatus },
@@ -62,17 +75,25 @@ export default async function MoneyPage() {
 			.select("id, invoice_number, total_amount, paid_amount, due_date, status")
 			.neq("status", "paid")
 			.neq("status", "cancelled"),
+		// Actual cash received: payments made in this month
 		supabase
-			.from("invoices")
-			.select("paid_amount")
-			.in("status", ["paid", "partially_paid"])
-			.gte("created_at", monthStart),
-		supabase.from("expenses").select("amount").gte("incurred_at", monthStart),
+			.from("payments")
+			.select("amount")
+			.gte("paid_at", monthStart)
+			.lt("paid_at", monthEnd),
+		supabase
+			.from("expenses")
+			.select("amount")
+			.gte("incurred_at", monthStart)
+			.lt("incurred_at", monthEnd),
+		// Recent payments in the selected month
 		supabase
 			.from("payments")
 			.select(
 				"id, amount, paid_at, method, jobs(job_number, invoices(invoice_number))",
 			)
+			.gte("paid_at", monthStart)
+			.lt("paid_at", monthEnd)
 			.order("paid_at", { ascending: false })
 			.limit(8),
 		supabase.from("invoices").select("status, total_amount").neq("status", "cancelled"),
@@ -93,8 +114,8 @@ export default async function MoneyPage() {
 		(i) => i.due_date && new Date(i.due_date + "T00:00:00") < today,
 	);
 	const overdueAmount = overdue.reduce((s, i) => s + i.outstanding, 0);
-	const monthRevenue = (monthlyPaid ?? []).reduce(
-		(s, i) => s + (i.paid_amount ?? 0),
+	const monthRevenue = (monthlyPayments ?? []).reduce(
+		(s, p) => s + (p.amount ?? 0),
 		0,
 	);
 	const monthExpenses = (monthlyExp ?? []).reduce(
@@ -143,7 +164,11 @@ export default async function MoneyPage() {
 
 	return (
 		<div className="space-y-5">
-			<PageHeader title={t("title")} subtitle={t("subtitle")} />
+			<PageHeader
+				title={t("title")}
+				subtitle={t("subtitle")}
+				actions={<MonthPicker value={selectedMonth} />}
+			/>
 
 			{/* KPI stats */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
