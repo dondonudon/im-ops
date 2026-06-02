@@ -31,21 +31,21 @@ export interface InvoiceTemplateSettings {
 }
 
 const DEFAULTS: Record<string, string> = {
-	company_name: "Indo Mover",
-	company_tagline: "TRUCKING | MOVING | COURIER DOMESTIK & INTERNATIONAL",
-	company_logo_url: "https://indo-mover.com/images/indo-mover-logo-only.png",
-	company_address: "Jl. M.T. Haryono Gg. Utri 64 Semarang",
-	company_phone: "+62 8515 600 9251",
-	company_website: "https://www.indo-mover.com",
-	company_city: "Semarang",
-	proposal_included_services: "Packing\nLoading\nRelokasi",
-	proposal_signature_name: "Prasetyo Eko Alvianto",
-	proposal_signature_role: "Kepala Cabang",
-	invoice_bank_name: "BANK BRI",
-	invoice_bank_account_number: "089801008338503",
-	invoice_bank_account_holder: "Prasetyo Eko Alvianto",
-	invoice_signature_name: "Prasetyo Eko Alvianto",
-	invoice_signature_role: "Kepala Cabang",
+	company_name: "",
+	company_tagline: "",
+	company_logo_url: "",
+	company_address: "",
+	company_phone: "",
+	company_website: "",
+	company_city: "",
+	proposal_included_services: "",
+	proposal_signature_name: "",
+	proposal_signature_role: "",
+	invoice_bank_name: "",
+	invoice_bank_account_number: "",
+	invoice_bank_account_holder: "",
+	invoice_signature_name: "",
+	invoice_signature_role: "",
 };
 
 function get(map: Record<string, string>, key: string): string {
