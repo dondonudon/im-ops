@@ -18,7 +18,9 @@ export async function GET(request: Request) {
   if (next) {
     try {
       const target = new URL(next, origin)
-      if (target.origin === origin) destination = target.toString()
+      const allowed = ['/today', '/pipeline', '/leads', '/jobs', '/invoices', '/proposals', '/fleet', '/crew', '/customers', '/calendar', '/money', '/reports', '/settings', '/surveys']
+      const isAllowed = allowed.some(p => target.pathname === p || target.pathname.startsWith(p + '/'))
+      if (target.origin === origin && isAllowed) destination = target.toString()
     } catch {
       // Malformed `next` — fall back to the default destination.
     }

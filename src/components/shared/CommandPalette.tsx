@@ -265,14 +265,18 @@ export function CommandPalette() {
 			return;
 		}
 		setLoading(true);
+		const ac = new AbortController();
 		const handle = setTimeout(() => {
-			void runSearch(trimmed).then((newHits) => {
+			void runSearch(trimmed, ac.signal).then((newHits) => {
 				setHits(newHits);
 				setActiveIdx(0);
 				setLoading(false);
 			});
 		}, 180);
-		return () => clearTimeout(handle);
+		return () => {
+			clearTimeout(handle);
+			ac.abort();
+		};
 	}, [query]);
 
 	// ── Grouped view ────────────────────────────────────────────────────
@@ -538,7 +542,7 @@ function KeyHint({ k }: { k: string }) {
 
 // ── Search executor ──────────────────────────────────────────────────────
 
-async function runSearch(raw: string): Promise<Hit[]> {
+async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 	const clean = sanitizeSearch(raw);
 	if (!clean) return [];
 	const pattern = `%${clean}%`;
@@ -599,7 +603,8 @@ async function runSearch(raw: string): Promise<Hit[]> {
 			.or(
 				`name.ilike.${pattern},phone.ilike.${pattern},email.ilike.${pattern},company_name.ilike.${pattern}`,
 			)
-			.limit(PER_GROUP_LIMIT),
+			.limit(PER_GROUP_LIMIT)
+			.abortSignal(signal),
 
 		supabase
 			.from("leads")
@@ -609,14 +614,16 @@ async function runSearch(raw: string): Promise<Hit[]> {
 			.or(
 				`pickup_address.ilike.${pattern},destination_address.ilike.${pattern},notes.ilike.${pattern}`,
 			)
-			.limit(PER_GROUP_LIMIT),
+			.limit(PER_GROUP_LIMIT)
+			.abortSignal(signal),
 		supabase
 			.from("leads")
 			.select(
 				"id, pickup_address, destination_address, customers!inner(name)",
 			)
 			.ilike("customers.name", pattern)
-			.limit(PER_GROUP_LIMIT),
+			.limit(PER_GROUP_LIMIT)
+			.abortSignal(signal),
 
 		supabase
 			.from("jobs")
@@ -624,39 +631,45 @@ async function runSearch(raw: string): Promise<Hit[]> {
 				"id, job_number, move_date, proposals(leads(customers(name)))",
 			)
 			.ilike("job_number", pattern)
-			.limit(PER_GROUP_LIMIT),
+			.limit(PER_GROUP_LIMIT)
+			.abortSignal(signal),
 		supabase
 			.from("jobs")
 			.select(
 				"id, job_number, move_date, proposals!inner(leads!inner(customers!inner(name)))",
 			)
 			.ilike("proposals.leads.customers.name", pattern)
-			.limit(PER_GROUP_LIMIT),
+			.limit(PER_GROUP_LIMIT)
+			.abortSignal(signal),
 
 		supabase
 			.from("proposals")
 			.select("id, proposal_number, status, leads(customers(name))")
 			.ilike("proposal_number", pattern)
-			.limit(PER_GROUP_LIMIT),
+			.limit(PER_GROUP_LIMIT)
+			.abortSignal(signal),
 		supabase
 			.from("proposals")
 			.select(
 				"id, proposal_number, status, leads!inner(customers!inner(name))",
 			)
 			.ilike("leads.customers.name", pattern)
-			.limit(PER_GROUP_LIMIT),
+			.limit(PER_GROUP_LIMIT)
+			.abortSignal(signal),
 
 		supabase
 			.from("fleet")
 			.select("id, name, phone")
 			.or(`name.ilike.${pattern},phone.ilike.${pattern}`)
-			.limit(PER_GROUP_LIMIT),
+			.limit(PER_GROUP_LIMIT)
+			.abortSignal(signal),
 
 		supabase
 			.from("crew")
 			.select("id, name, phone")
 			.or(`name.ilike.${pattern},phone.ilike.${pattern}`)
-			.limit(PER_GROUP_LIMIT),
+			.limit(PER_GROUP_LIMIT)
+			.abortSignal(signal),
 
 		supabase
 			.from("invoices")
@@ -664,8 +677,11 @@ async function runSearch(raw: string): Promise<Hit[]> {
 				"id, invoice_number, jobs(job_number, proposals(leads(customers(name))))",
 			)
 			.ilike("invoice_number", pattern)
-			.limit(PER_GROUP_LIMIT),
+			.limit(PER_GROUP_LIMIT)
+			.abortSignal(signal),
 	]);
+
+	if (signal.aborted) return [];
 
 	const hits: Hit[] = [];
 	const seen = new Set<string>();

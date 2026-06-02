@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -31,12 +31,18 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 	const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
 		"idle",
 	);
+	const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	/** Force the last tier to be the open-ended catch-all. */
 	function normalize(next: MarginTier[]): MarginTier[] {
 		return next.map((tier, i) =>
 			i === next.length - 1 ? { ...tier, max: null } : tier,
 		);
+	}
+
+	function schedulePersist(next: MarginTier[]) {
+		if (persistTimer.current) clearTimeout(persistTimer.current);
+		persistTimer.current = setTimeout(() => void persist(next), 600);
 	}
 
 	async function persist(next: MarginTier[]) {
@@ -132,7 +138,7 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 											<NumericInput
 												value={tier.max ?? 0}
 												onChange={(v) => patchTier(i, { max: v })}
-												onBlur={() => persist(tiers)}
+												onBlur={() => schedulePersist(tiers)}
 												aria-label={t("upTo")}
 												className={cellInput}
 											/>
@@ -142,7 +148,7 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 										<NumericInput
 											value={tier.rate_pct}
 											onChange={(v) => patchTier(i, { rate_pct: v })}
-											onBlur={() => persist(tiers)}
+											onBlur={() => schedulePersist(tiers)}
 											aria-label={t("ratePct")}
 											className={cellInput}
 										/>
@@ -151,7 +157,7 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 										<NumericInput
 											value={tier.min_profit}
 											onChange={(v) => patchTier(i, { min_profit: v })}
-											onBlur={() => persist(tiers)}
+											onBlur={() => schedulePersist(tiers)}
 											aria-label={t("minProfit")}
 											className={cellInput}
 										/>

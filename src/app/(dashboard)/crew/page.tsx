@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatRupiah } from "@/lib/utils";
+import { formatRupiah, sanitizeSearch } from "@/lib/utils";
 import {
 	PageHeader,
 	Input,
@@ -34,7 +34,7 @@ export default async function CrewPage({
 		.from("crew")
 		.select("id, name, phone, skills, daily_rate, availability_status, is_active", { count: "exact" });
 
-	if (q) query = query.ilike("name", `%${q}%`);
+	if (q) { const safe = sanitizeSearch(q); query = query.ilike("name", `%${safe}%`); }
 
 	const { data: crew, count } = await query
 		.order("name")

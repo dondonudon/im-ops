@@ -78,8 +78,9 @@ export default async function JobsPage({
 
 	// Status filter applies to the list view only; the board shows everything grouped.
 	if (status && view === "list") query = query.filter("status", "eq", status);
-	// Paginate the list view only — the board is a grouped overview.
+	// Paginate the list view; cap the board to avoid unbounded fetches on large datasets.
 	if (view === "list") query = query.range(from, from + PAGE_SIZE - 1);
+	else query = query.limit(300);
 
 	const { data, count } = await query;
 	const jobs = (data ?? []) as JobRow[];

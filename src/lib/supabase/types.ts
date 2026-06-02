@@ -765,6 +765,10 @@ export type Database = {
         Args: { service_type: string }
         Returns: string
       }
+      generate_job_number: {
+        Args: Record<string, never>
+        Returns: string
+      }
       check_resource_overlap: {
         Args: { p_type: string; p_id: string; p_date: string }
         Returns: Array<{ job_id: string; job_number: string; move_date: string }>

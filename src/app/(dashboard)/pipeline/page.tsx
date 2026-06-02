@@ -67,7 +67,8 @@ export default async function PipelinePage() {
 				"id, status, pickup_address, destination_address, preferred_date, created_at, customers(name, type), proposals(final_price, status)",
 			)
 			.neq("status", "closed_lost")
-			.order("created_at", { ascending: false }),
+			.order("created_at", { ascending: false })
+			.limit(500),
 		supabase
 			.from("leads")
 			.select("*", { count: "exact", head: true })

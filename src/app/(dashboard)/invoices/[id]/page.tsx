@@ -35,7 +35,8 @@ export default async function InvoiceDetailPage({
         *,
         jobs(
           id, job_number, move_date,
-          proposals(leads(customers(id, name, phone, email)))
+          proposals(leads(customers(id, name, phone, email))),
+          payments(id, payment_type, method, amount, paid_at, notes)
         )
       `)
 			.eq("id", id)
@@ -48,23 +49,26 @@ export default async function InvoiceDetailPage({
 
 	if (!invoice) notFound();
 
-	// Payments now live on the job, not the invoice — fetch via job_id.
-	const { data: payments } = await supabase
-		.from("payments")
-		.select("id, payment_type, method, amount, paid_at, notes")
-		.eq("job_id", invoice.job_id)
-		.order("paid_at");
-
 	const settingsMap = Object.fromEntries(
 		(settingsRows ?? []).map((s) => [s.key, s.value]),
 	);
 	const pdfCompany = buildCompanySettings(settingsMap);
 	const pdfTemplate = buildInvoiceTemplateSettings(settingsMap);
 
+	type PaymentRow = {
+		id: string;
+		payment_type: string;
+		method: string;
+		amount: number;
+		paid_at: string;
+		notes: string | null;
+	};
+
 	const job = invoice.jobs as {
 		id: string;
 		job_number: string;
 		move_date: string | null;
+		payments: PaymentRow[];
 		proposals: {
 			leads: {
 				customers: {
@@ -76,6 +80,10 @@ export default async function InvoiceDetailPage({
 			} | null;
 		} | null;
 	} | null;
+
+	const payments: PaymentRow[] = (job?.payments ?? [])
+		.filter((p): p is PaymentRow => p.paid_at != null)
+		.sort((a, b) => a.paid_at.localeCompare(b.paid_at));
 
 	const customer = job?.proposals?.leads?.customers ?? null;
 

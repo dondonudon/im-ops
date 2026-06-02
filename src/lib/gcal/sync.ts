@@ -129,7 +129,8 @@ export async function pushCalendarEvent(
 
 		if (!res.ok) {
 			const text = await res.text();
-			return { ok: false, error: `GCal API error ${res.status}: ${text}` };
+			console.error(`[gcal] pushCalendarEvent error ${res.status}:`, text);
+			return { ok: false, error: `GCal API error (${res.status})` };
 		}
 
 		const event = (await res.json()) as { id: string };
@@ -185,7 +186,8 @@ export async function patchCalendarEvent(
 
 		if (!res.ok) {
 			const text = await res.text();
-			return { ok: false, error: `GCal PATCH error ${res.status}: ${text}` };
+			console.error(`[gcal] patchCalendarEvent error ${res.status}:`, text);
+			return { ok: false, error: `GCal API error (${res.status})` };
 		}
 
 		const event = (await res.json()) as { id: string };

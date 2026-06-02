@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { sanitizeSearch } from "@/lib/utils";
 import {
 	PageHeader,
 	Input,
@@ -33,7 +34,7 @@ export default async function FleetPage({
 		.from("fleet")
 		.select("id, name, contact_person, phone, vehicle_types, is_active", { count: "exact" });
 
-	if (q) query = query.ilike("name", `%${q}%`);
+	if (q) { const safe = sanitizeSearch(q); query = query.ilike("name", `%${safe}%`); }
 
 	const { data: fleet, count } = await query
 		.order("name")

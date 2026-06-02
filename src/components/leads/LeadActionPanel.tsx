@@ -57,99 +57,85 @@ export function LeadActionPanel({
 	const t = useTranslations("panels.leadActions");
 	const tButtons = useTranslations("common.buttons");
 	const [isPending, startTransition] = useTransition();
+	const [loading, setLoading] = useState(false);
 	const [showSurveyModal, setShowSurveyModal] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	// ── Skip → Estimate ───────────────────────────────────────────────
 	async function handleSkipToEstimate() {
 		setError(null);
-		const supabase = createClient();
-
-		// Generate proposal number via RPC
-		const { data: proposalNumber } = await supabase.rpc(
-			"generate_proposal_number",
-			{
-				service_type: "DOM",
-			},
-		);
-
-		const { data: proposal, error: err } = await supabase
-			.from("proposals")
-			.insert({
-				lead_id: lead.id,
-				proposal_number: proposalNumber!,
-				service_type: "DOM",
-				status: "draft",
-			})
-			.select("id")
-			.single();
-
-		if (err) {
-			setError(err.message);
-			return;
+		setLoading(true);
+		try {
+			const supabase = createClient();
+			const { data: proposalNumber } = await supabase.rpc(
+				"generate_proposal_number",
+				{ service_type: "DOM" },
+			);
+			const { data: proposal, error: err } = await supabase
+				.from("proposals")
+				.insert({
+					lead_id: lead.id,
+					proposal_number: proposalNumber!,
+					service_type: "DOM",
+					status: "draft",
+				})
+				.select("id")
+				.single();
+			if (err) { setError(err.message); return; }
+			await supabase.from("leads").update({ status: "estimating" }).eq("id", lead.id);
+			router.push(`/estimations/new?proposal_id=${proposal.id}`);
+		} finally {
+			setLoading(false);
 		}
-
-		await supabase
-			.from("leads")
-			.update({ status: "estimating" })
-			.eq("id", lead.id);
-
-		router.push(`/estimations/new?proposal_id=${proposal.id}`);
 	}
 
 	// ── Mark Survey Done ──────────────────────────────────────────────
 	async function handleMarkSurveyDone() {
 		setError(null);
 		if (!survey) return;
-		const supabase = createClient();
-		const [surveyRes, leadRes] = await Promise.all([
-			supabase
-				.from("surveys")
-				.update({ conducted_at: new Date().toISOString() })
-				.eq("id", survey.id),
-			supabase
-				.from("leads")
-				.update({ status: "survey_done" })
-				.eq("id", lead.id),
-		]);
-		if (surveyRes.error || leadRes.error) {
-			setError(surveyRes.error?.message ?? leadRes.error?.message ?? "Error");
-			return;
+		setLoading(true);
+		try {
+			const supabase = createClient();
+			const [surveyRes, leadRes] = await Promise.all([
+				supabase.from("surveys").update({ conducted_at: new Date().toISOString() }).eq("id", survey.id),
+				supabase.from("leads").update({ status: "survey_done" }).eq("id", lead.id),
+			]);
+			if (surveyRes.error || leadRes.error) {
+				setError(surveyRes.error?.message ?? leadRes.error?.message ?? "Error");
+				return;
+			}
+			startTransition(() => router.refresh());
+		} finally {
+			setLoading(false);
 		}
-		startTransition(() => router.refresh());
 	}
 
 	// ── Create Estimation (after survey) ─────────────────────────────
 	async function handleCreateEstimation() {
 		setError(null);
-		const supabase = createClient();
-		const { data: proposalNumber } = await supabase.rpc(
-			"generate_proposal_number",
-			{
-				service_type: "DOM",
-			},
-		);
-		const { data: proposal, error: err } = await supabase
-			.from("proposals")
-			.insert({
-				lead_id: lead.id,
-				proposal_number: proposalNumber!,
-				service_type: "DOM",
-				status: "draft",
-			})
-			.select("id")
-			.single();
-
-		if (err) {
-			setError(err.message);
-			return;
+		setLoading(true);
+		try {
+			const supabase = createClient();
+			const { data: proposalNumber } = await supabase.rpc(
+				"generate_proposal_number",
+				{ service_type: "DOM" },
+			);
+			const { data: proposal, error: err } = await supabase
+				.from("proposals")
+				.insert({
+					lead_id: lead.id,
+					proposal_number: proposalNumber!,
+					service_type: "DOM",
+					status: "draft",
+				})
+				.select("id")
+				.single();
+			if (err) { setError(err.message); return; }
+			await supabase.from("leads").update({ status: "estimating" }).eq("id", lead.id);
+			router.push(`/estimations/new?proposal_id=${proposal.id}`);
+		} finally {
+			setLoading(false);
 		}
-
-		await supabase
-			.from("leads")
-			.update({ status: "estimating" })
-			.eq("id", lead.id);
-		router.push(`/estimations/new?proposal_id=${proposal.id}`);
 	}
 
 	return (
@@ -175,7 +161,7 @@ export function LeadActionPanel({
 					<Button
 						type="button"
 						onClick={handleSkipToEstimate}
-						loading={isPending}
+						loading={loading || isPending}
 						variant="primary"
 						size="md"
 						className="w-full"
@@ -204,7 +190,7 @@ export function LeadActionPanel({
 						<Button
 							type="button"
 							onClick={handleMarkSurveyDone}
-							loading={isPending}
+							loading={loading || isPending}
 							variant="primary"
 							size="md"
 							className="flex-1"
@@ -225,7 +211,7 @@ export function LeadActionPanel({
 					<Button
 						type="button"
 						onClick={handleCreateEstimation}
-						loading={isPending}
+						loading={loading || isPending}
 						variant="primary"
 						size="md"
 						className="w-full"

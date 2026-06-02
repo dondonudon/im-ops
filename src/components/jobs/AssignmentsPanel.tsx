@@ -164,8 +164,9 @@ export function AssignmentsPanel({
 							<button
 								type="button"
 								onClick={() => handleRemove(a.id)}
+								disabled={isPending}
 								aria-label={t("removeAria", { name: name ?? "" })}
-								className="text-danger hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded text-xs"
+								className="text-danger hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded text-xs disabled:opacity-40 disabled:pointer-events-none"
 							>
 								{t("remove")}
 							</button>

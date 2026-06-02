@@ -61,6 +61,7 @@ export function ProposalActionPanel({
 	const router = useRouter();
 	const t = useTranslations("panels.proposalActions");
 	const [isPending, startTransition] = useTransition();
+	const [loading, setLoading] = useState(false);
 	const [showCounterModal, setShowCounterModal] = useState(false);
 	const [showLostModal, setShowLostModal] = useState(false);
 	const [showJobModal, setShowJobModal] = useState(false);
@@ -69,75 +70,67 @@ export function ProposalActionPanel({
 	// ── Mark as Sent ────────────────────────────────────────────────
 	async function handleMarkSent() {
 		setError(null);
-		const supabase = createClient();
-		// Get current max version
-		const { data: revs } = await supabase
-			.from("proposal_revisions")
-			.select("version_number")
-			.eq("proposal_id", proposal.id)
-			.order("version_number", { ascending: false })
-			.limit(1);
-
-		const nextVersion = (revs?.[0]?.version_number ?? 0) + 1;
-
-		const [updateRes, revRes] = await Promise.all([
-			supabase
-				.from("proposals")
-				.update({ status: "sent" })
-				.eq("id", proposal.id),
-			supabase.from("proposal_revisions").insert({
-				proposal_id: proposal.id,
-				version_number: nextVersion,
-				price: proposal.final_price ?? 0,
-				changed_by: "operator",
-				note: "Initial proposal sent",
-			}),
-		]);
-
-		if (updateRes.error || revRes.error) {
-			setError(updateRes.error?.message ?? revRes.error?.message ?? "Error");
-			return;
+		setLoading(true);
+		try {
+			const supabase = createClient();
+			const { data: revs } = await supabase
+				.from("proposal_revisions")
+				.select("version_number")
+				.eq("proposal_id", proposal.id)
+				.order("version_number", { ascending: false })
+				.limit(1);
+			const nextVersion = (revs?.[0]?.version_number ?? 0) + 1;
+			const [updateRes, revRes] = await Promise.all([
+				supabase.from("proposals").update({ status: "sent" }).eq("id", proposal.id),
+				supabase.from("proposal_revisions").insert({
+					proposal_id: proposal.id,
+					version_number: nextVersion,
+					price: proposal.final_price ?? 0,
+					changed_by: "operator",
+					note: "Initial proposal sent",
+				}),
+			]);
+			if (updateRes.error || revRes.error) {
+				setError(updateRes.error?.message ?? revRes.error?.message ?? "Error");
+				return;
+			}
+			await supabase.from("leads").update({ status: "proposal_sent" }).eq("id", proposal.lead_id);
+			startTransition(() => router.refresh());
+		} finally {
+			setLoading(false);
 		}
-
-		// Update lead status
-		await supabase
-			.from("leads")
-			.update({ status: "proposal_sent" })
-			.eq("id", proposal.lead_id);
-		startTransition(() => router.refresh());
 	}
 
 	// ── Mark Approved ───────────────────────────────────────────────
 	async function handleMarkApproved() {
 		setError(null);
-		const supabase = createClient();
-		const { data: revs } = await supabase
-			.from("proposal_revisions")
-			.select("version_number")
-			.eq("proposal_id", proposal.id)
-			.order("version_number", { ascending: false })
-			.limit(1);
-
-		const nextVersion = (revs?.[0]?.version_number ?? 0) + 1;
-
-		await Promise.all([
-			supabase
-				.from("proposals")
-				.update({
+		setLoading(true);
+		try {
+			const supabase = createClient();
+			const { data: revs } = await supabase
+				.from("proposal_revisions")
+				.select("version_number")
+				.eq("proposal_id", proposal.id)
+				.order("version_number", { ascending: false })
+				.limit(1);
+			const nextVersion = (revs?.[0]?.version_number ?? 0) + 1;
+			await Promise.all([
+				supabase.from("proposals").update({
 					status: "approved",
 					approved_at: new Date().toISOString(),
-				})
-				.eq("id", proposal.id),
-			supabase.from("proposal_revisions").insert({
-				proposal_id: proposal.id,
-				version_number: nextVersion,
-				price: proposal.final_price ?? 0,
-				changed_by: "operator",
-				note: "Approved by customer",
-			}),
-		]);
-
-		startTransition(() => router.refresh());
+				}).eq("id", proposal.id),
+				supabase.from("proposal_revisions").insert({
+					proposal_id: proposal.id,
+					version_number: nextVersion,
+					price: proposal.final_price ?? 0,
+					changed_by: "operator",
+					note: "Approved by customer",
+				}),
+			]);
+			startTransition(() => router.refresh());
+		} finally {
+			setLoading(false);
+		}
 	}
 
 	// ── WhatsApp message templates ──────────────────────────────────
@@ -166,8 +159,8 @@ export function ProposalActionPanel({
 						<Button
 							type="button"
 							onClick={handleMarkSent}
-							disabled={isPending || !proposal.final_price}
-							loading={isPending}
+							disabled={loading || isPending || !proposal.final_price}
+							loading={loading || isPending}
 							variant="primary"
 							size="md"
 							className="w-full"
@@ -201,7 +194,8 @@ export function ProposalActionPanel({
 					<Button
 						type="button"
 						onClick={handleMarkApproved}
-						loading={isPending}
+						disabled={loading || isPending}
+						loading={loading || isPending}
 						variant="primary"
 						size="md"
 						className="w-full bg-success hover:opacity-90 text-white"
@@ -569,13 +563,9 @@ function ConvertToJobModal({
 		try {
 			const supabase = createClient();
 
-			// Generate job number
-			const year = new Date().getFullYear();
-			const { count } = await supabase
-				.from("jobs")
-				.select("*", { count: "exact", head: true });
-			const seq = String((count ?? 0) + 1).padStart(4, "0");
-			const jobNumber = `JOB-${year}-${seq}`;
+			// Generate job number atomically via DB function to avoid race conditions.
+			const { data: jobNumber, error: numErr } = await supabase.rpc("generate_job_number");
+			if (numErr || !jobNumber) throw numErr ?? new Error("Failed to generate job number");
 
 			const { data: newJob, error: jobErr } = await supabase
 				.from("jobs")

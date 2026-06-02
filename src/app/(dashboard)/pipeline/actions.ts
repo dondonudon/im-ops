@@ -27,6 +27,9 @@ export async function advanceLead(
 ): Promise<AdvanceResult> {
 	const supabase = await createClient();
 
+	const { data: { user } } = await supabase.auth.getUser();
+	if (!user) return { ok: false, reason: "error" };
+
 	const { data: lead, error: leadErr } = await supabase
 		.from("leads")
 		.select("id, status")

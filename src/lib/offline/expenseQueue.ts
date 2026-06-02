@@ -90,9 +90,25 @@ export async function flushQueue(
 	const items = read();
 	if (items.length === 0) return { succeeded: 0, failed: 0, remaining: 0 };
 
+	const payload = items.map((item) => ({
+		job_id: item.job_id,
+		amount: item.amount,
+		category: item.category,
+		description: item.description,
+		incurred_at: item.incurred_at,
+	}));
+
+	// Try batch insert first — one round-trip for the common case.
+	const { error: batchError } = await supabase.from("expenses").insert(payload);
+	if (!batchError) {
+		write([]);
+		notify();
+		return { succeeded: items.length, failed: 0, remaining: 0 };
+	}
+
+	// Batch failed — fall back to individual inserts to isolate which items succeed.
 	let succeeded = 0;
 	const stillPending: QueuedExpense[] = [];
-
 	for (const item of items) {
 		const { error } = await supabase.from("expenses").insert({
 			job_id: item.job_id,
@@ -101,11 +117,8 @@ export async function flushQueue(
 			description: item.description,
 			incurred_at: item.incurred_at,
 		});
-		if (error) {
-			stillPending.push(item);
-		} else {
-			succeeded += 1;
-		}
+		if (error) stillPending.push(item);
+		else succeeded += 1;
 	}
 
 	write(stillPending);
