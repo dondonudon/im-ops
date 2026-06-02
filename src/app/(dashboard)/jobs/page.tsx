@@ -51,6 +51,8 @@ function customerOf(job: JobRow) {
 }
 
 const PAGE_SIZE = 25;
+const BOARD_COLS_SELECT = `id, job_number, status, move_date, move_time, move_end_date, revenue, proposals(leads(customers(name)))`;
+const BOARD_PER_COL = 50;
 
 export default async function JobsPage({
 	searchParams,
@@ -59,31 +61,40 @@ export default async function JobsPage({
 }) {
 	const { status, view: rawView, page: rawPage } = await searchParams;
 	const view = rawView === "board" ? "board" : "list";
-	const page = Math.max(1, Number(rawPage) || 1);
-	const from = (page - 1) * PAGE_SIZE;
 	const supabase = await createClient();
 	const t = await getTranslations("pages.jobs");
 	const tStatus = await getTranslations("status.job");
 
-	let query = supabase
-		.from("jobs")
-		.select(
-			`
-      id, job_number, status, move_date, move_time, move_end_date, revenue,
-      proposals(leads(customers(name)))
-    `,
-			{ count: "exact" },
-		)
-		.order("move_date", { ascending: false });
+	const page = Math.max(1, Number(rawPage) || 1);
+	let jobs: JobRow[] = [];
+	let count: number | null = null;
 
-	// Status filter applies to the list view only; the board shows everything grouped.
-	if (status && view === "list") query = query.filter("status", "eq", status);
-	// Paginate the list view; cap the board to avoid unbounded fetches on large datasets.
-	if (view === "list") query = query.range(from, from + PAGE_SIZE - 1);
-	else query = query.limit(300);
-
-	const { data, count } = await query;
-	const jobs = (data ?? []) as JobRow[];
+	if (view === "board") {
+		// One indexed query per status column — avoids a 300-row full scan and
+		// the COUNT(*) overhead that the list view needs for pagination.
+		const cols = await Promise.all(
+			BOARD_STATUSES.map((s) =>
+				supabase
+					.from("jobs")
+					.select(BOARD_COLS_SELECT)
+					.eq("status", s)
+					.order("move_date", { ascending: false })
+					.limit(BOARD_PER_COL),
+			),
+		);
+		jobs = cols.flatMap((r) => (r.data ?? []) as JobRow[]);
+	} else {
+		const from = (page - 1) * PAGE_SIZE;
+		let query = supabase
+			.from("jobs")
+			.select(BOARD_COLS_SELECT, { count: "exact" })
+			.order("move_date", { ascending: false });
+		if (status) query = query.filter("status", "eq", status);
+		query = query.range(from, from + PAGE_SIZE - 1);
+		const result = await query;
+		jobs = (result.data ?? []) as JobRow[];
+		count = result.count;
+	}
 
 	return (
 		<div className="space-y-5">

@@ -41,6 +41,7 @@ Built around workflows, not modules. **Current UI/UX + design system: `imops_red
    ```
    supabase/migrations/001_initial_schema.sql        ← all 17 tables, RLS, views, functions, seed settings
    supabase/migrations/002_generate_job_number.sql   ← atomic job number generation (generate_job_number RPC)
+   supabase/migrations/003_performance_indexes.sql   ← performance indexes for all high-frequency query paths
    ```
 
 4. In Supabase Auth, enable the **Google** provider and add `http://localhost:3000/auth/callback` (and your prod URL) as redirect URLs.

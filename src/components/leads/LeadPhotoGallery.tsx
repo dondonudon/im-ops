@@ -160,6 +160,7 @@ export function LeadPhotoGallery({
 								src={photoUrls.get(photo.storage_path) ?? ""}
 								alt={photo.caption ?? t("fallbackAlt")}
 								fill
+								priority={i === 0}
 								className="object-cover transition-transform duration-200 group-hover:scale-105"
 								sizes="(max-width: 640px) 50vw, 200px"
 							/>

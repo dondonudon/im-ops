@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations, getLocale } from "next-intl/server";
@@ -58,35 +59,26 @@ type TodayJob = {
  * TODAY — the redesigned operator home (replaces the old KPI dashboard).
  * A triage surface: what needs you → today's moves → at a glance → money.
  * Fully token-driven (no dark: variants), responsive desktop + field.
+ *
+ * Streaming strategy: above-the-fold content (moves + needs-you queue) is
+ * fetched eagerly (5 parallel queries). Secondary sections (money card, KPI
+ * stats, upcoming jobs) are deferred behind Suspense so they stream in without
+ * blocking the page shell.
  */
 export default async function TodayPage() {
 	const t = await getTranslations("today");
 	const locale = await getLocale();
 	const supabase = await createClient();
 	const today = todayISO();
-	const monthStart = startOfMonth();
 
+	// ── Eager fetch: above-the-fold data only ───────────────────────────────
 	const [
-		{ count: activeJobsCount },
-		{ count: openProposalsCount },
 		{ data: outstanding },
 		{ data: todaysMoves },
-		{ data: upcomingJobs },
-		{ data: monthlyPaid },
-		{ data: monthlyExp },
 		{ data: pendingSurveys },
 		{ data: draftProposals },
 		{ data: syncFailures },
-		{ data: revenueTargetSetting },
 	] = await Promise.all([
-		supabase
-			.from("jobs")
-			.select("*", { count: "exact", head: true })
-			.in("status", ["scheduled", "in_progress"]),
-		supabase
-			.from("proposals")
-			.select("*", { count: "exact", head: true })
-			.in("status", ["draft", "sent", "negotiating"]),
 		supabase
 			.from("invoice_outstanding")
 			.select("id, outstanding, effective_status")
@@ -98,19 +90,6 @@ export default async function TodayPage() {
 			)
 			.eq("move_date", today)
 			.order("status"),
-		supabase
-			.from("jobs")
-			.select("id, job_number, move_date, status")
-			.gt("move_date", today)
-			.in("status", ["scheduled", "in_progress"])
-			.order("move_date")
-			.limit(5),
-		supabase
-			.from("invoices")
-			.select("paid_amount")
-			.in("status", ["paid", "partially_paid"])
-			.gte("created_at", monthStart),
-		supabase.from("expenses").select("amount").gte("incurred_at", monthStart),
 		supabase
 			.from("leads")
 			.select("id, pickup_address, customers(name)")
@@ -130,11 +109,6 @@ export default async function TodayPage() {
 			.in("status", ["scheduled", "in_progress"])
 			.gte("move_date", today)
 			.limit(5),
-		supabase
-			.from("system_settings")
-			.select("value")
-			.eq("key", "revenue_target_monthly")
-			.maybeSingle(),
 	]);
 
 	const overdue = (outstanding ?? []).filter(
@@ -145,23 +119,6 @@ export default async function TodayPage() {
 		0,
 	);
 	const overdueAmount = overdue.reduce((s, i) => s + (i.outstanding ?? 0), 0);
-	const monthRevenue = (monthlyPaid ?? []).reduce(
-		(s, i) => s + (i.paid_amount ?? 0),
-		0,
-	);
-	const monthExpenses = (monthlyExp ?? []).reduce(
-		(s, i) => s + (i.amount ?? 0),
-		0,
-	);
-	const net = monthRevenue - monthExpenses;
-	const revenueTarget = revenueTargetSetting?.value
-		? Number(revenueTargetSetting.value)
-		: 50_000_000;
-	const revenueProgress = Math.min(
-		100,
-		Math.round((monthRevenue / revenueTarget) * 100),
-	);
-
 	const moves = (todaysMoves ?? []) as TodayJob[];
 
 	// ── Build the "Needs you" action queue ──────────────────────────────────
@@ -293,7 +250,7 @@ export default async function TodayPage() {
 
 			{/* ── Main grid: Needs you (lead) + Money (rail) ──────────────────── */}
 			<div className="grid gap-5 lg:grid-cols-3">
-				{/* Needs you */}
+				{/* Needs you — eagerly rendered */}
 				<Card className="lg:col-span-2 overflow-hidden">
 					<CardHeader
 						title={
@@ -356,171 +313,323 @@ export default async function TodayPage() {
 					)}
 				</Card>
 
-				{/* Money this month */}
-				<Card className="p-5 flex flex-col gap-4">
-					<h2 className="text-sm font-semibold text-ink">{t("money")}</h2>
-
-					<div>
-						<div className="flex justify-between text-xs text-ink-muted mb-1.5">
-							<span>{t("revenueTarget")}</span>
-							<span className="font-semibold text-ink tabular-nums">
-								{formatRupiah(monthRevenue)} / {formatRupiah(revenueTarget)}
-							</span>
-						</div>
-						<div
-							className="h-2 rounded-full bg-subtle overflow-hidden"
-							role="progressbar"
-							aria-valuenow={revenueProgress}
-							aria-valuemin={0}
-							aria-valuemax={100}
-						>
-							<div
-								className="h-full rounded-full bg-primary transition-all duration-700"
-								style={{ width: `${revenueProgress}%` }}
-							/>
-						</div>
-						<p className="text-[11px] text-ink-faint mt-1">
-							{t("ofTarget", { pct: revenueProgress })}
-						</p>
-					</div>
-
-					<div className="grid grid-cols-2 gap-3">
-						<div className="bg-subtle rounded-lg p-3">
-							<p className="text-xs text-ink-muted mb-1">{t("revenue")}</p>
-							<Money
-								value={monthRevenue}
-								tone="positive"
-								className="text-base font-bold"
-							/>
-						</div>
-						<div className="bg-subtle rounded-lg p-3">
-							<p className="text-xs text-ink-muted mb-1">{t("expenses")}</p>
-							<Money
-								value={monthExpenses}
-								tone="danger"
-								className="text-base font-bold"
-							/>
-						</div>
-					</div>
-
-					<div className="flex items-center justify-between border-t border-line pt-3">
-						<span className="text-xs text-ink-muted">{t("net")}</span>
-						<Money
-							value={net}
-							tone={net >= 0 ? "positive" : "danger"}
-							className="text-sm font-bold"
-						/>
-					</div>
-
-					<Link
-						href="/reports"
-						className="mt-auto text-center text-xs font-semibold text-primary-text hover:underline"
-					>
-						{t("viewReport")}
-					</Link>
-				</Card>
+				{/* Money this month — deferred */}
+				<Suspense fallback={<MoneyCardSkeleton />}>
+					<MoneyCardSection />
+				</Suspense>
 			</div>
 
-			{/* ── At a glance ─────────────────────────────────────────────────── */}
+			{/* ── At a glance — deferred ──────────────────────────────────────── */}
 			<section>
 				<h2 className="text-sm font-semibold text-ink mb-3">
 					{t("atAGlance")}
 				</h2>
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-					<Stat
-						icon={<Truck size={16} />}
-						tone="info"
-						label={t("kpi.activeJobs")}
-						value={String(activeJobsCount ?? 0)}
-						sub={t("kpi.activeJobsSub", { count: moves.length })}
-						href="/jobs"
+				<Suspense fallback={<AtAGlanceSkeleton />}>
+					<AtAGlanceSection
+						movesCount={moves.length}
+						outstandingCount={(outstanding ?? []).length}
+						totalOutstanding={totalOutstanding}
+						overdueCount={overdue.length}
+						overdueAmount={overdueAmount}
 					/>
-					<Stat
-						icon={<FileText size={16} />}
-						tone="pending"
-						label={t("kpi.openProposals")}
-						value={String(openProposalsCount ?? 0)}
-						sub={t("kpi.openProposalsSub")}
-						href="/proposals"
-					/>
-					<Stat
-						icon={<Receipt size={16} />}
-						tone={overdue.length > 0 ? "danger" : "neutral"}
-						label={t("kpi.unpaid")}
-						value={String((outstanding ?? []).length)}
-						sub={
-							overdue.length > 0
-								? t("kpi.overdueSub", { amount: formatRupiah(overdueAmount) })
-								: t("kpi.outstandingSub", {
-										amount: formatRupiah(totalOutstanding),
-									})
-						}
-						href="/invoices"
-					/>
-					<Stat
-						icon={<CalendarDays size={16} />}
-						tone="info"
-						label={t("kpi.movesToday")}
-						value={String(moves.length)}
-						sub={t("kpi.movesTodaySub")}
-						href="/calendar"
-					/>
-				</div>
+				</Suspense>
 			</section>
 
-			{/* ── Upcoming ────────────────────────────────────────────────────── */}
-			<Card className="overflow-hidden">
-				<CardHeader
-					title={t("upcoming")}
-					action={
-						<Link
-							href="/calendar"
-							className="text-xs font-semibold text-primary-text hover:underline flex items-center gap-1"
-						>
-							{t("viewCalendar")}
-							<CalendarDays size={13} />
-						</Link>
-					}
+			{/* ── Upcoming — deferred ─────────────────────────────────────────── */}
+			<Suspense fallback={<UpcomingSkeleton />}>
+				<UpcomingSection />
+			</Suspense>
+		</div>
+	);
+}
+
+// ── Deferred async sections ─────────────────────────────────────────────────
+
+async function MoneyCardSection() {
+	const t = await getTranslations("today");
+	const supabase = await createClient();
+	const monthStart = startOfMonth();
+
+	const [{ data: monthlyPaid }, { data: monthlyExp }, { data: revenueTargetSetting }] =
+		await Promise.all([
+			supabase
+				.from("invoices")
+				.select("paid_amount")
+				.in("status", ["paid", "partially_paid"])
+				.gte("created_at", monthStart),
+			supabase.from("expenses").select("amount").gte("incurred_at", monthStart),
+			supabase
+				.from("system_settings")
+				.select("value")
+				.eq("key", "revenue_target_monthly")
+				.maybeSingle(),
+		]);
+
+	const monthRevenue = (monthlyPaid ?? []).reduce(
+		(s, i) => s + (i.paid_amount ?? 0),
+		0,
+	);
+	const monthExpenses = (monthlyExp ?? []).reduce(
+		(s, i) => s + (i.amount ?? 0),
+		0,
+	);
+	const net = monthRevenue - monthExpenses;
+	const revenueTarget = revenueTargetSetting?.value
+		? Number(revenueTargetSetting.value)
+		: 50_000_000;
+	const revenueProgress = Math.min(
+		100,
+		Math.round((monthRevenue / revenueTarget) * 100),
+	);
+
+	return (
+		<Card className="p-5 flex flex-col gap-4">
+			<h2 className="text-sm font-semibold text-ink">{t("money")}</h2>
+
+			<div>
+				<div className="flex justify-between text-xs text-ink-muted mb-1.5">
+					<span>{t("revenueTarget")}</span>
+					<span className="font-semibold text-ink tabular-nums">
+						{formatRupiah(monthRevenue)} / {formatRupiah(revenueTarget)}
+					</span>
+				</div>
+				<div
+					className="h-2 rounded-full bg-subtle overflow-hidden"
+					role="progressbar"
+					aria-valuenow={revenueProgress}
+					aria-valuemin={0}
+					aria-valuemax={100}
+				>
+					<div
+						className="h-full rounded-full bg-primary transition-all duration-700"
+						style={{ width: `${revenueProgress}%` }}
+					/>
+				</div>
+				<p className="text-[11px] text-ink-faint mt-1">
+					{t("ofTarget", { pct: revenueProgress })}
+				</p>
+			</div>
+
+			<div className="grid grid-cols-2 gap-3">
+				<div className="bg-subtle rounded-lg p-3">
+					<p className="text-xs text-ink-muted mb-1">{t("revenue")}</p>
+					<Money
+						value={monthRevenue}
+						tone="positive"
+						className="text-base font-bold"
+					/>
+				</div>
+				<div className="bg-subtle rounded-lg p-3">
+					<p className="text-xs text-ink-muted mb-1">{t("expenses")}</p>
+					<Money
+						value={monthExpenses}
+						tone="danger"
+						className="text-base font-bold"
+					/>
+				</div>
+			</div>
+
+			<div className="flex items-center justify-between border-t border-line pt-3">
+				<span className="text-xs text-ink-muted">{t("net")}</span>
+				<Money
+					value={net}
+					tone={net >= 0 ? "positive" : "danger"}
+					className="text-sm font-bold"
 				/>
-				{(upcomingJobs ?? []).length === 0 ? (
-					<EmptyState title={t("noUpcoming")} />
-				) : (
-					<ul className="divide-y divide-line">
-						{(upcomingJobs ?? []).map((job) => {
-							const d = new Date(job.move_date + "T00:00:00");
-							return (
-								<li key={job.id}>
-									<Link
-										href={`/jobs/${job.id}`}
-										className="flex items-center gap-4 px-5 py-3.5 hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]"
-									>
-										<div className="shrink-0 w-11 text-center rounded-lg bg-subtle py-1">
-											<p className="text-[10px] font-bold uppercase text-primary">
-												{MONTH[d.getMonth()]}
-											</p>
-											<p className="text-lg font-bold leading-none text-ink">
-												{d.getDate()}
-											</p>
-										</div>
-										<div className="min-w-0 flex-1">
-											<p className="text-[13px] font-semibold text-ink truncate">
-												#{job.job_number}
-											</p>
-											<p className="text-xs text-ink-faint flex items-center gap-1">
-												<Clock size={10} />
-												{formatDate(job.move_date)}
-											</p>
-										</div>
-										<Badge tone={toneFor("job", job.status)} dot>
-											{job.status.replace("_", " ")}
-										</Badge>
-									</Link>
-								</li>
-							);
-						})}
-					</ul>
-				)}
-			</Card>
+			</div>
+
+			<Link
+				href="/reports"
+				className="mt-auto text-center text-xs font-semibold text-primary-text hover:underline"
+			>
+				{t("viewReport")}
+			</Link>
+		</Card>
+	);
+}
+
+async function AtAGlanceSection({
+	movesCount,
+	outstandingCount,
+	totalOutstanding,
+	overdueCount,
+	overdueAmount,
+}: {
+	movesCount: number;
+	outstandingCount: number;
+	totalOutstanding: number;
+	overdueCount: number;
+	overdueAmount: number;
+}) {
+	const t = await getTranslations("today");
+	const supabase = await createClient();
+
+	const [{ count: activeJobsCount }, { count: openProposalsCount }] =
+		await Promise.all([
+			supabase
+				.from("jobs")
+				.select("*", { count: "exact", head: true })
+				.in("status", ["scheduled", "in_progress"]),
+			supabase
+				.from("proposals")
+				.select("*", { count: "exact", head: true })
+				.in("status", ["draft", "sent", "negotiating"]),
+		]);
+
+	return (
+		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+			<Stat
+				icon={<Truck size={16} />}
+				tone="info"
+				label={t("kpi.activeJobs")}
+				value={String(activeJobsCount ?? 0)}
+				sub={t("kpi.activeJobsSub", { count: movesCount })}
+				href="/jobs"
+			/>
+			<Stat
+				icon={<FileText size={16} />}
+				tone="pending"
+				label={t("kpi.openProposals")}
+				value={String(openProposalsCount ?? 0)}
+				sub={t("kpi.openProposalsSub")}
+				href="/proposals"
+			/>
+			<Stat
+				icon={<Receipt size={16} />}
+				tone={overdueCount > 0 ? "danger" : "neutral"}
+				label={t("kpi.unpaid")}
+				value={String(outstandingCount)}
+				sub={
+					overdueCount > 0
+						? t("kpi.overdueSub", { amount: formatRupiah(overdueAmount) })
+						: t("kpi.outstandingSub", { amount: formatRupiah(totalOutstanding) })
+				}
+				href="/invoices"
+			/>
+			<Stat
+				icon={<CalendarDays size={16} />}
+				tone="info"
+				label={t("kpi.movesToday")}
+				value={String(movesCount)}
+				sub={t("kpi.movesTodaySub")}
+				href="/calendar"
+			/>
+		</div>
+	);
+}
+
+async function UpcomingSection() {
+	const t = await getTranslations("today");
+	const tCommon = await getTranslations("common.buttons");
+	const supabase = await createClient();
+	const today = todayISO();
+
+	const { data: upcomingJobs } = await supabase
+		.from("jobs")
+		.select("id, job_number, move_date, status")
+		.gt("move_date", today)
+		.in("status", ["scheduled", "in_progress"])
+		.order("move_date")
+		.limit(5);
+
+	return (
+		<Card className="overflow-hidden">
+			<CardHeader
+				title={t("upcoming")}
+				action={
+					<Link
+						href="/calendar"
+						className="text-xs font-semibold text-primary-text hover:underline flex items-center gap-1"
+					>
+						{t("viewCalendar")}
+						<CalendarDays size={13} />
+					</Link>
+				}
+			/>
+			{(upcomingJobs ?? []).length === 0 ? (
+				<EmptyState title={t("noUpcoming")} />
+			) : (
+				<ul className="divide-y divide-line">
+					{(upcomingJobs ?? []).map((job) => {
+						const d = new Date(job.move_date + "T00:00:00");
+						return (
+							<li key={job.id}>
+								<Link
+									href={`/jobs/${job.id}`}
+									className="flex items-center gap-4 px-5 py-3.5 hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]"
+								>
+									<div className="shrink-0 w-11 text-center rounded-lg bg-subtle py-1">
+										<p className="text-[10px] font-bold uppercase text-primary">
+											{MONTH[d.getMonth()]}
+										</p>
+										<p className="text-lg font-bold leading-none text-ink">
+											{d.getDate()}
+										</p>
+									</div>
+									<div className="min-w-0 flex-1">
+										<p className="text-[13px] font-semibold text-ink truncate">
+											#{job.job_number}
+										</p>
+										<p className="text-xs text-ink-faint flex items-center gap-1">
+											<Clock size={10} />
+											{formatDate(job.move_date)}
+										</p>
+									</div>
+									<Badge tone={toneFor("job", job.status)} dot>
+										{job.status.replace("_", " ")}
+									</Badge>
+								</Link>
+							</li>
+						);
+					})}
+				</ul>
+			)}
+		</Card>
+	);
+}
+
+// ── Skeleton fallbacks ──────────────────────────────────────────────────────
+
+function MoneyCardSkeleton() {
+	return (
+		<div className="rounded-xl border border-line bg-surface p-5 flex flex-col gap-4 animate-pulse">
+			<div className="h-4 w-28 bg-subtle rounded" />
+			<div className="space-y-2">
+				<div className="h-2 bg-subtle rounded-full" />
+				<div className="h-2 w-3/4 bg-subtle rounded-full" />
+			</div>
+			<div className="grid grid-cols-2 gap-3">
+				<div className="h-16 bg-subtle rounded-lg" />
+				<div className="h-16 bg-subtle rounded-lg" />
+			</div>
+			<div className="h-4 w-20 bg-subtle rounded" />
+		</div>
+	);
+}
+
+function AtAGlanceSkeleton() {
+	return (
+		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
+			{[0, 1, 2, 3].map((i) => (
+				<div key={i} className="rounded-xl border border-line bg-surface p-4 h-24" />
+			))}
+		</div>
+	);
+}
+
+function UpcomingSkeleton() {
+	return (
+		<div className="rounded-xl border border-line bg-surface overflow-hidden animate-pulse">
+			<div className="px-5 py-4 border-b border-line h-12 bg-subtle" />
+			{[0, 1, 2].map((i) => (
+				<div key={i} className="flex gap-4 px-5 py-4 border-b border-line last:border-0">
+					<div className="w-11 h-12 bg-subtle rounded-lg shrink-0" />
+					<div className="flex-1 space-y-2 py-1">
+						<div className="h-3 w-24 bg-subtle rounded" />
+						<div className="h-2 w-16 bg-subtle rounded" />
+					</div>
+				</div>
+			))}
 		</div>
 	);
 }
