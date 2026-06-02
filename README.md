@@ -40,11 +40,7 @@ Built around workflows, not modules. **Current UI/UX + design system: `imops_red
 3. Apply the database migrations in order via the Supabase SQL Editor:
    ```
    supabase/migrations/001_initial_schema.sql        ← all 17 tables, RLS, views, functions, seed settings
-   supabase/migrations/002_storage_policies.sql      ← Storage buckets + policies
-   supabase/migrations/003_add_revenue_target_setting.sql
-   supabase/migrations/004_job_datetime.sql          ← move_time, move_end_date
-   supabase/migrations/005_document_settings.sql
-   supabase/migrations/006_assignment_expense_link.sql
+   supabase/migrations/002_generate_job_number.sql   ← atomic job number generation (generate_job_number RPC)
    ```
 
 4. In Supabase Auth, enable the **Google** provider and add `http://localhost:3000/auth/callback` (and your prod URL) as redirect URLs.
