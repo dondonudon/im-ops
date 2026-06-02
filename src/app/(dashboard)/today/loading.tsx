@@ -30,9 +30,9 @@ export default function TodayLoading() {
 			</section>
 
 			{/* Main grid: Needs you (2-col) + Money this month (1-col) */}
-			<div className="grid gap-5 lg:grid-cols-3">
+			<div className="grid gap-5 xl:grid-cols-3">
 				{/* Needs you list card */}
-				<div className="lg:col-span-2 rounded-xl border border-line bg-surface shadow-token overflow-hidden">
+				<div className="xl:col-span-2 rounded-xl border border-line bg-surface shadow-token overflow-hidden">
 					<div className="px-5 py-4 border-b border-line">
 						<Skeleton className="h-4 w-28" />
 					</div>
@@ -82,7 +82,7 @@ export default function TodayLoading() {
 			{/* At a glance — 4-up stat cards */}
 			<section className="space-y-3">
 				<Skeleton className="h-4 w-24" />
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+				<div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
 					<SkeletonCard />
 					<SkeletonCard />
 					<SkeletonCard />

@@ -93,9 +93,9 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 				}
 			/>
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 				{/* Left: deal lifecycle + details + photos */}
-				<div className="lg:col-span-2 space-y-6">
+				<div className="xl:col-span-2 space-y-6">
 					{/* Deal lifecycle — the unified deal hub view */}
 					<DealTimeline
 						status={lead.status}
@@ -156,7 +156,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 				</div>
 
 				{/* Right: action panel */}
-				<div className="lg:col-span-1">
+				<div className="xl:col-span-1">
 					<LeadActionPanel
 						lead={{
 							id: lead.id,

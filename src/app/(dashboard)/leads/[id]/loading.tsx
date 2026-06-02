@@ -17,8 +17,8 @@ export default function LeadDetailLoading() {
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-				<div className="lg:col-span-2 space-y-6">
+			<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+				<div className="xl:col-span-2 space-y-6">
 					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						<Skeleton className="h-3 w-24" />
 						<div className="grid grid-cols-2 gap-4">
@@ -41,7 +41,7 @@ export default function LeadDetailLoading() {
 						</div>
 					</div>
 				</div>
-				<div className="lg:col-span-1">
+				<div className="xl:col-span-1">
 					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						<Skeleton className="h-3 w-16" />
 						<Skeleton className="h-10 w-full" />

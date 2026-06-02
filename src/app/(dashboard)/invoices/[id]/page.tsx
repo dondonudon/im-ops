@@ -148,8 +148,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 				}
 			/>
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-				<div className="lg:col-span-2 space-y-6">
+			<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+				<div className="xl:col-span-2 space-y-6">
 					<Card className="p-5 text-sm space-y-3">
 						{customer && (
 							<>
@@ -201,7 +201,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 				</div>
 
 				{/* Right: payments */}
-				<div className="lg:col-span-1">
+				<div className="xl:col-span-1">
 					<PaymentsPanel
 						jobId={invoice.job_id}
 						totalAmount={invoice.total_amount}

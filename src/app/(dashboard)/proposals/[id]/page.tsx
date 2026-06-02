@@ -163,9 +163,9 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 				}
 			/>
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 				{/* Left: estimation + negotiation */}
-				<div className="lg:col-span-2 space-y-6">
+				<div className="xl:col-span-2 space-y-6">
 					{/* Move summary */}
 					{lead && (
 						<Card className="p-5 grid grid-cols-2 gap-4 text-sm">
@@ -229,7 +229,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 				</div>
 
 				{/* Right: action panel */}
-				<div className="lg:col-span-1">
+				<div className="xl:col-span-1">
 					<ProposalActionPanel
 						proposal={{
 							id: proposal.id,

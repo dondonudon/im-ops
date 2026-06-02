@@ -233,9 +233,9 @@ export default async function TodayPage() {
 			</section>
 
 			{/* ── Main grid: Needs you (lead) + Money (rail) ──────────────────── */}
-			<div className="grid gap-5 lg:grid-cols-3">
+			<div className="grid gap-5 xl:grid-cols-3">
 				{/* Needs you — eagerly rendered */}
-				<Card className="lg:col-span-2 overflow-hidden">
+				<Card className="xl:col-span-2 overflow-hidden">
 					<CardHeader
 						title={
 							<span className="flex items-center gap-2">
@@ -427,7 +427,7 @@ async function AtAGlanceSection({
 	]);
 
 	return (
-		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+		<div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
 			<Stat
 				icon={<Truck size={16} />}
 				tone="info"
@@ -554,7 +554,7 @@ function MoneyCardSkeleton() {
 
 function AtAGlanceSkeleton() {
 	return (
-		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
+		<div className="grid grid-cols-2 xl:grid-cols-4 gap-4 animate-pulse">
 			{[0, 1, 2, 3].map((i) => (
 				<div key={i} className="rounded-xl border border-line bg-surface p-4 h-24" />
 			))}

@@ -13,8 +13,8 @@ export default function InvoiceDetailLoading() {
 					<Skeleton className="h-9 w-28" />
 				</div>
 			</div>
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-				<div className="lg:col-span-2 space-y-3">
+			<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+				<div className="xl:col-span-2 space-y-3">
 					<div className="bg-surface border border-line rounded-xl shadow-token p-5 space-y-3">
 						{Array.from({ length: 5 }).map((_, i) => (
 							// biome-ignore lint/suspicious/noArrayIndexKey: placeholder

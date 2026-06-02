@@ -10,7 +10,7 @@ export default function ReportsLoading() {
 			<SkeletonHeader />
 
 			{/* KPI summary — 4-up grid */}
-			<section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+			<section className="grid grid-cols-2 xl:grid-cols-4 gap-4">
 				{Array.from({ length: 4 }, (_, i) => i).map((i) => (
 					<div
 						key={i}
