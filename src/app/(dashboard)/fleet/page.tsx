@@ -46,16 +46,18 @@ export default async function FleetPage({
 		<div className="space-y-5">
 			<PageHeader title={t("title")} />
 
-			<form method="GET" role="search">
-				<Input
-					type="search"
-					name="q"
-					defaultValue={q}
-					placeholder={t("searchPlaceholder")}
-					aria-label={t("searchPlaceholder")}
-					className="max-w-sm"
-				/>
-			</form>
+			<search>
+				<form method="GET">
+					<Input
+						type="search"
+						name="q"
+						defaultValue={q}
+						placeholder={t("searchPlaceholder")}
+						aria-label={t("searchPlaceholder")}
+						className="max-w-sm"
+					/>
+				</form>
+			</search>
 
 			{/* Desktop table */}
 			<div className="hidden md:block">

@@ -108,10 +108,7 @@ function Chip({ entry, compact = false }: { entry: EventOnDay; compact?: boolean
 					{event.title}
 				</span>
 				{totalDays > 1 && (
-					<span
-						className="shrink-0 text-[9px] font-mono text-ink-faint"
-						aria-label={`day ${dayIndex} of ${totalDays}`}
-					>
+					<span className="shrink-0 text-[9px] font-mono text-ink-faint" aria-hidden="true">
 						{dayIndex}/{totalDays}
 					</span>
 				)}

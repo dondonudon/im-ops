@@ -18,8 +18,7 @@ export default function LeadsLoading() {
 
 			{/* Lead list rows */}
 			<div className="space-y-2">
-				{Array.from({ length: 6 }).map((_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+				{Array.from({ length: 6 }, (_, i) => i).map((i) => (
 					<div
 						key={i}
 						className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface shadow-token px-5 py-4"

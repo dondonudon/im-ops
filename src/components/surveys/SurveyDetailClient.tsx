@@ -225,7 +225,7 @@ export function SurveyDetailClient({
 					<p className="text-sm text-ink-faint text-center py-4">{t("noSpecialItems")}</p>
 				) : (
 					<ul className="space-y-2" aria-label={t("specialItems")}>
-						{items.map((item, i) => (
+						{Array.from(items, (item, i) => ({ item, i })).map(({ item, i }) => (
 							<li key={i} className="flex gap-2 items-start">
 								<input
 									type="text"

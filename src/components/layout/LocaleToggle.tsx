@@ -23,10 +23,9 @@ export function LocaleToggle() {
 	}
 
 	return (
-		<div
-			role="group"
+		<fieldset
 			aria-label={t("language")}
-			className="inline-flex items-center rounded-lg border border-line bg-surface overflow-hidden text-[10px] font-semibold"
+			className="inline-flex items-center rounded-lg border border-solid border-line bg-surface overflow-hidden text-[10px] font-semibold p-0 m-0 min-w-0"
 		>
 			{LOCALES.map((loc) => {
 				const active = loc === current;
@@ -52,6 +51,6 @@ export function LocaleToggle() {
 					</button>
 				);
 			})}
-		</div>
+		</fieldset>
 	);
 }

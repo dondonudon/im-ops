@@ -51,6 +51,7 @@ export function MonthPicker({ value }: { value: string }) {
 	return (
 		<div className="flex items-center gap-1">
 			<button
+				type="button"
 				onClick={prev}
 				className="p-1.5 rounded hover:bg-subtle text-ink-muted hover:text-ink transition-colors"
 				aria-label="Previous month"
@@ -85,6 +86,7 @@ export function MonthPicker({ value }: { value: string }) {
 			</div>
 
 			<button
+				type="button"
 				onClick={next}
 				className="p-1.5 rounded hover:bg-subtle text-ink-muted hover:text-ink transition-colors"
 				aria-label="Next month"

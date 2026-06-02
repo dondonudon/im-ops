@@ -132,7 +132,13 @@ export function PhotoLightbox({
 			)}
 
 			{/* Image */}
-			<div className="relative w-[90vw] h-[80vh] max-w-5xl" onClick={(e) => e.stopPropagation()}>
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: stops click propagation to prevent lightbox close */}
+			<div
+				role="presentation"
+				className="relative w-[90vw] h-[80vh] max-w-5xl"
+				onClick={(e) => e.stopPropagation()}
+				onKeyDown={(e) => e.stopPropagation()}
+			>
 				<Image
 					src={photo.src}
 					alt={photo.alt}
@@ -153,12 +159,14 @@ export function PhotoLightbox({
 
 			{/* Thumbnail strip — only when 3+ photos */}
 			{photos.length >= 3 && (
+				// biome-ignore lint/a11y/noStaticElementInteractions: stops click propagation to prevent lightbox close
 				<div
+					role="presentation"
 					className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 max-w-[80vw] overflow-x-auto pb-1"
 					onClick={(e) => e.stopPropagation()}
+					onKeyDown={(e) => e.stopPropagation()}
 				>
 					{photos.map((p, i) => (
-						// biome-ignore lint/a11y/useButtonType: handled below
 						<button
 							key={p.src}
 							type="button"

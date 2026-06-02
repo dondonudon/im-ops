@@ -153,7 +153,10 @@ export function FleetForm({ fleet }: { fleet?: FleetRow }) {
 
 			<div>
 				<span className="block text-sm font-medium mb-2 text-ink">{t("vehicleTypes")}</span>
-				<div role="group" aria-label={t("vehicleTypes")} className="flex flex-wrap gap-2">
+				<fieldset
+					aria-label={t("vehicleTypes")}
+					className="flex flex-wrap gap-2 border-none p-0 m-0 min-w-0"
+				>
 					{VEHICLE_OPTIONS.map((v) => (
 						<label key={v.value} className="flex items-center gap-1.5 cursor-pointer select-none">
 							<input
@@ -165,7 +168,7 @@ export function FleetForm({ fleet }: { fleet?: FleetRow }) {
 							<span className="text-sm text-ink">{tVehicleType(v.tKey)}</span>
 						</label>
 					))}
-				</div>
+				</fieldset>
 			</div>
 
 			<Field label={t("serviceAreas")} htmlFor="v-areas" hint={tHints("commaSeparated")}>

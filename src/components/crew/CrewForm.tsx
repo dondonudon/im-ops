@@ -147,7 +147,10 @@ export function CrewForm({ member }: { member?: CrewRow }) {
 
 			<div>
 				<span className="block text-sm font-medium mb-2 text-ink">{t("skills")}</span>
-				<div role="group" aria-label={t("skills")} className="flex flex-wrap gap-2">
+				<fieldset
+					aria-label={t("skills")}
+					className="flex flex-wrap gap-2 border-none p-0 m-0 min-w-0"
+				>
 					{SKILL_OPTIONS.map((s) => (
 						<label key={s.value} className="flex items-center gap-1.5 cursor-pointer select-none">
 							<input
@@ -159,7 +162,7 @@ export function CrewForm({ member }: { member?: CrewRow }) {
 							<span className="text-sm text-ink">{tSkill(s.tKey)}</span>
 						</label>
 					))}
-				</div>
+				</fieldset>
 			</div>
 
 			<Field label={t("availability")} htmlFor="c-avail">

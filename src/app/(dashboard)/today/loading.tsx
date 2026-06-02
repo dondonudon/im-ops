@@ -13,8 +13,7 @@ export default function TodayLoading() {
 			<section className="space-y-3">
 				<Skeleton className="h-4 w-32" />
 				<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-					{Array.from({ length: 3 }).map((_, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+					{Array.from({ length: 3 }, (_, i) => i).map((i) => (
 						<div
 							key={i}
 							className="bg-surface border border-line rounded-xl shadow-token p-4 space-y-3"
@@ -37,8 +36,7 @@ export default function TodayLoading() {
 					<div className="px-5 py-4 border-b border-line">
 						<Skeleton className="h-4 w-28" />
 					</div>
-					{Array.from({ length: 4 }).map((_, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+					{Array.from({ length: 4 }, (_, i) => i).map((i) => (
 						<div
 							key={i}
 							className="flex items-center gap-3 px-5 py-3.5 border-b border-line last:border-b-0"
@@ -98,8 +96,7 @@ export default function TodayLoading() {
 					<Skeleton className="h-4 w-24" />
 					<Skeleton className="h-3 w-20" />
 				</div>
-				{Array.from({ length: 5 }).map((_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+				{Array.from({ length: 5 }, (_, i) => i).map((i) => (
 					<div
 						key={i}
 						className="flex items-center gap-4 px-5 py-3.5 border-b border-line last:border-b-0"

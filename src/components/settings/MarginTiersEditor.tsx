@@ -114,7 +114,7 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 						{tiers.map((tier, i) => {
 							const isLast = i === tiers.length - 1;
 							return (
-								<tr key={i}>
+								<tr key={String(tier.max ?? "last")}>
 									<td className="py-1.5 pr-3">
 										{isLast ? (
 											<span className="text-ink-muted italic">{t("andAbove")}</span>

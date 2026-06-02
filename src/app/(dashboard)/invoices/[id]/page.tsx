@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { BackLink } from "@/components/shared/BackLink";
 import { InvoicePDFDownloadButton } from "@/components/invoices/InvoicePDFDownloadButton";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
+import { BackLink } from "@/components/shared/BackLink";
 import { Badge, Card, Money, PageHeader, toneFor } from "@/components/ui";
 import { buildCompanySettings, buildInvoiceTemplateSettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";

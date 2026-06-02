@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { BackLink } from "@/components/shared/BackLink";
 import { NegotiationHistory } from "@/components/proposals/NegotiationHistory";
 import { ProposalActionPanel } from "@/components/proposals/ProposalActionPanel";
 import { ProposalDuplicateButton } from "@/components/proposals/ProposalDuplicateButton";
 import { ProposalPDFDownloadButton } from "@/components/proposals/ProposalPDFDownloadButton";
+import { BackLink } from "@/components/shared/BackLink";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
 import { buildCompanySettings, buildProposalTemplateSettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";

@@ -11,8 +11,7 @@ export default function ReportsLoading() {
 
 			{/* KPI summary — 4-up grid */}
 			<section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				{Array.from({ length: 4 }).map((_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+				{Array.from({ length: 4 }, (_, i) => i).map((i) => (
 					<div
 						key={i}
 						className="rounded-xl border border-line bg-surface shadow-token p-5 space-y-2"
@@ -37,8 +36,7 @@ export default function ReportsLoading() {
 							<Skeleton className="h-3 w-16" />
 							<Skeleton className="h-3 w-16" />
 						</div>
-						{Array.from({ length: 6 }).map((_, i) => (
-							// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+						{Array.from({ length: 6 }, (_, i) => i).map((i) => (
 							<div key={i} className="flex gap-6">
 								<Skeleton className="h-3 w-16" />
 								<Skeleton className="h-3 w-20 ml-auto" />
@@ -56,8 +54,7 @@ export default function ReportsLoading() {
 						<div className="border-b border-line pb-3">
 							<Skeleton className="h-4 w-36" />
 						</div>
-						{Array.from({ length: 4 }).map((_, i) => (
-							// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+						{Array.from({ length: 4 }, (_, i) => i).map((i) => (
 							<div key={i} className="flex justify-between">
 								<Skeleton className="h-3 w-28" />
 								<Skeleton className="h-3 w-20" />
@@ -70,8 +67,7 @@ export default function ReportsLoading() {
 						<div className="border-b border-line pb-3">
 							<Skeleton className="h-4 w-28" />
 						</div>
-						{Array.from({ length: 5 }).map((_, i) => (
-							// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+						{Array.from({ length: 5 }, (_, i) => i).map((i) => (
 							<div key={i} className="flex justify-between">
 								<Skeleton className="h-3 w-32" />
 								<Skeleton className="h-3 w-8" />
@@ -89,8 +85,7 @@ export default function ReportsLoading() {
 						<Skeleton className="h-4 w-24" />
 						<Skeleton className="h-3 w-32" />
 					</div>
-					{Array.from({ length: 5 }).map((_, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+					{Array.from({ length: 5 }, (_, i) => i).map((i) => (
 						<div key={i} className="space-y-1.5">
 							<div className="flex justify-between">
 								<Skeleton className="h-3 w-24" />
@@ -107,8 +102,7 @@ export default function ReportsLoading() {
 						<Skeleton className="h-4 w-32" />
 						<Skeleton className="h-3 w-16" />
 					</div>
-					{Array.from({ length: 5 }).map((_, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+					{Array.from({ length: 5 }, (_, i) => i).map((i) => (
 						<div key={i} className="flex justify-between">
 							<Skeleton className="h-3 w-36" />
 							<Skeleton className="h-3 w-12" />

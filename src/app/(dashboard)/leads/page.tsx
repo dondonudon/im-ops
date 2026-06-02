@@ -63,31 +63,33 @@ export default async function LeadsPage({
 			<PageHeader title={t("title")} />
 
 			{/* Filters */}
-			<form method="GET" className="flex flex-wrap gap-2" role="search">
-				<Input
-					type="search"
-					name="q"
-					defaultValue={q}
-					placeholder={t("searchPlaceholder")}
-					aria-label={t("searchPlaceholder")}
-					className="w-auto min-w-[220px] flex-1 max-w-xs"
-				/>
-				<Select
-					name="status"
-					defaultValue={status ?? ""}
-					aria-label={t("title")}
-					className="w-auto"
-				>
-					{STATUS_VALUES.map((s) => (
-						<option key={s} value={s}>
-							{s === "" ? t("filterAll") : tStatus(s as never)}
-						</option>
-					))}
-				</Select>
-				<Button type="submit" variant="secondary">
-					{tCommon("filter")}
-				</Button>
-			</form>
+			<search>
+				<form method="GET" className="flex flex-wrap gap-2">
+					<Input
+						type="search"
+						name="q"
+						defaultValue={q}
+						placeholder={t("searchPlaceholder")}
+						aria-label={t("searchPlaceholder")}
+						className="w-auto min-w-[220px] flex-1 max-w-xs"
+					/>
+					<Select
+						name="status"
+						defaultValue={status ?? ""}
+						aria-label={t("title")}
+						className="w-auto"
+					>
+						{STATUS_VALUES.map((s) => (
+							<option key={s} value={s}>
+								{s === "" ? t("filterAll") : tStatus(s as never)}
+							</option>
+						))}
+					</Select>
+					<Button type="submit" variant="secondary">
+						{tCommon("filter")}
+					</Button>
+				</form>
+			</search>
 
 			{/* List */}
 			<div className="space-y-2">

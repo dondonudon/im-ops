@@ -196,33 +196,33 @@ export function numberToIndonesianWords(n: number): string {
 		if (x < 100) {
 			const t = Math.floor(x / 10),
 				r = x % 10;
-			return ones[t] + " puluh" + (r ? " " + ones[r] : "");
+			return `${ones[t]} puluh${r ? ` ${ones[r]}` : ""}`;
 		}
 		const h = Math.floor(x / 100),
 			r = x % 100;
-		const prefix = h === 1 ? "seratus" : ones[h] + " ratus";
-		return prefix + (r ? " " + below1000(r) : "");
+		const prefix = h === 1 ? "seratus" : `${ones[h]} ratus`;
+		return `${prefix}${r ? ` ${below1000(r)}` : ""}`;
 	}
 
 	if (n < 1000) return below1000(n);
 	if (n < 1_000_000) {
 		const t = Math.floor(n / 1000),
 			r = n % 1000;
-		const prefix = t === 1 ? "seribu" : below1000(t) + " ribu";
-		return prefix + (r ? " " + below1000(r) : "");
+		const prefix = t === 1 ? "seribu" : `${below1000(t)} ribu`;
+		return `${prefix}${r ? ` ${below1000(r)}` : ""}`;
 	}
 	if (n < 1_000_000_000) {
 		const m = Math.floor(n / 1_000_000),
 			r = n % 1_000_000;
-		const prefix = below1000(m) + " juta";
+		const prefix = `${below1000(m)} juta`;
 		if (r === 0) return prefix;
-		if (r < 1000) return prefix + " " + below1000(r);
+		if (r < 1000) return `${prefix} ${below1000(r)}`;
 		const t = Math.floor(r / 1000),
 			rem = r % 1000;
-		const tPrefix = t === 1 ? "seribu" : below1000(t) + " ribu";
-		return prefix + " " + tPrefix + (rem ? " " + below1000(rem) : "");
+		const tPrefix = t === 1 ? "seribu" : `${below1000(t)} ribu`;
+		return `${prefix} ${tPrefix}${rem ? ` ${below1000(rem)}` : ""}`;
 	}
 	const b = Math.floor(n / 1_000_000_000),
 		r = n % 1_000_000_000;
-	return below1000(b) + " miliar" + (r ? " " + numberToIndonesianWords(r) : "");
+	return `${below1000(b)} miliar${r ? ` ${numberToIndonesianWords(r)}` : ""}`;
 }

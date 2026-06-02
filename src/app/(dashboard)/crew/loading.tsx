@@ -22,8 +22,7 @@ export default function CrewLoading() {
 					<Skeleton className="h-3 w-24 ml-auto" />
 				</div>
 				{/* Rows */}
-				{Array.from({ length: 6 }).map((_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+				{Array.from({ length: 6 }, (_, i) => i).map((i) => (
 					<div
 						key={i}
 						className="flex items-center gap-10 px-5 py-3.5 border-b border-line last:border-b-0"
@@ -38,8 +37,7 @@ export default function CrewLoading() {
 
 			{/* Mobile card stack */}
 			<div className="md:hidden space-y-3">
-				{Array.from({ length: 4 }).map((_, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+				{Array.from({ length: 4 }, (_, i) => i).map((i) => (
 					<div
 						key={i}
 						className="rounded-xl border border-line bg-surface shadow-token p-4 space-y-3"

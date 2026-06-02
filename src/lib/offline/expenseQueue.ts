@@ -138,7 +138,7 @@ export function subscribe(listener: Listener): () => void {
 }
 
 function notify() {
-	listeners.forEach((l) => l());
+	for (const l of listeners) l();
 }
 
 /**

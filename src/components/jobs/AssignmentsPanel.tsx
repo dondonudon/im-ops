@@ -189,7 +189,7 @@ export function AssignmentsPanel({
 							<form onSubmit={handleAdd} className="space-y-4">
 								{/* Fleet / Crew toggle */}
 								<div>
-									<label className="block text-sm font-medium mb-1 text-ink">{t("type")}</label>
+									<span className="block text-sm font-medium mb-1 text-ink">{t("type")}</span>
 									<div className="flex gap-4">
 										{(["fleet", "crew"] as const).map((opt) => (
 											<label key={opt} className="flex items-center gap-1.5 cursor-pointer">

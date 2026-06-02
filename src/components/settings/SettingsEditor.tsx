@@ -145,6 +145,7 @@ export function SettingsEditor({ settings }: { settings: Setting[] }) {
 					return (
 						<button
 							key={tab.id}
+							type="button"
 							role="tab"
 							aria-selected={isActive}
 							aria-controls={`tabpanel-${tab.id}`}
