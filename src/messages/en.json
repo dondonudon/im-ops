@@ -249,7 +249,6 @@
 			"expired": "Expired"
 		},
 		"invoice": {
-			"draft": "Draft",
 			"sent": "Sent",
 			"partially_paid": "Partially paid",
 			"paid": "Paid",
@@ -345,7 +344,6 @@
 			"ofTargetAria": "{pct}% of monthly target"
 		},
 		"invoiceLegend": {
-			"draft": "Draft",
 			"sent": "Sent",
 			"partiallyPaid": "Partially Paid",
 			"paid": "Paid",
@@ -772,6 +770,11 @@
 			"date": "Date",
 			"receipt": "Receipt photo",
 			"saveExpense": "Save Expense",
+			"editTitle": "Edit Expense",
+			"deleteConfirm": "Delete this expense?",
+			"lockedJobClosed": "Expenses are locked — this job is closed.",
+			"lockedJobCancelled": "Expenses are locked — this job is cancelled.",
+			"lockedInvoicePaid": "Expenses are locked — invoice is fully paid.",
 			"moreOptions": "Note / date / receipt",
 			"hideOptions": "Hide options"
 		},

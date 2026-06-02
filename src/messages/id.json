@@ -249,7 +249,6 @@
 			"expired": "Kedaluwarsa"
 		},
 		"invoice": {
-			"draft": "Draf",
 			"sent": "Terkirim",
 			"partially_paid": "Sebagian dibayar",
 			"paid": "Lunas",
@@ -345,7 +344,6 @@
 			"ofTargetAria": "{pct}% dari target bulanan"
 		},
 		"invoiceLegend": {
-			"draft": "Draf",
 			"sent": "Terkirim",
 			"partiallyPaid": "Sebagian Dibayar",
 			"paid": "Lunas",
@@ -772,6 +770,11 @@
 			"date": "Tanggal",
 			"receipt": "Foto resi",
 			"saveExpense": "Simpan Pengeluaran",
+			"editTitle": "Edit Pengeluaran",
+			"deleteConfirm": "Hapus pengeluaran ini?",
+			"lockedJobClosed": "Pengeluaran dikunci — pekerjaan ini sudah ditutup.",
+			"lockedJobCancelled": "Pengeluaran dikunci — pekerjaan ini dibatalkan.",
+			"lockedInvoicePaid": "Pengeluaran dikunci — faktur sudah lunas.",
 			"moreOptions": "Catatan / tanggal / resi",
 			"hideOptions": "Sembunyikan opsi"
 		},

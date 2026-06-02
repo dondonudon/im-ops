@@ -22,7 +22,6 @@ const PAGE_SIZE = 25;
 
 const STATUS_OPTS = [
 	"",
-	"draft",
 	"sent",
 	"partially_paid",
 	"paid",

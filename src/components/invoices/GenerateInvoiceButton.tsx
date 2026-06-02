@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toRomanMonth } from "@/lib/utils";
 
 /**
- * Generates a draft invoice for a given job and redirects to its detail page.
+ * Generates an invoice for a given job and redirects to its detail page.
  * Invoice number format: INV/{YEAR}/{ROMAN_MONTH}/{SEQ}
  * Total amount is pre-filled with the job revenue.
  */
@@ -57,7 +57,7 @@ export function GenerateInvoiceButton({
 					invoice_number: invoiceNumber,
 					total_amount: jobRevenue,
 					paid_amount: 0,
-					status: "draft",
+					status: "sent",
 				})
 				.select("id")
 				.single();
@@ -79,7 +79,7 @@ export function GenerateInvoiceButton({
 				onClick={handleClick}
 				loading={loading}
 				className="w-full"
-				aria-label="Generate draft invoice for this job"
+				aria-label="Generate invoice for this job"
 			>
 				{loading ? (
 					<>

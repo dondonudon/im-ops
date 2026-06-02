@@ -652,7 +652,7 @@ export type Database = {
 					invoice_number: string;
 					total_amount: number;
 					paid_amount: number;
-					status: "draft" | "sent" | "partially_paid" | "paid" | "overdue" | "cancelled";
+					status: "sent" | "partially_paid" | "paid" | "overdue" | "cancelled";
 					due_date: string | null;
 					notes: string | null;
 					pdf_url: string | null;
@@ -664,7 +664,7 @@ export type Database = {
 					invoice_number: string;
 					total_amount: number;
 					paid_amount?: number;
-					status?: "draft" | "sent" | "partially_paid" | "paid" | "overdue" | "cancelled";
+					status?: "sent" | "partially_paid" | "paid" | "overdue" | "cancelled";
 					due_date?: string | null;
 					notes?: string | null;
 					pdf_url?: string | null;
@@ -676,7 +676,7 @@ export type Database = {
 					invoice_number?: string;
 					total_amount?: number;
 					paid_amount?: number;
-					status?: "draft" | "sent" | "partially_paid" | "paid" | "overdue" | "cancelled";
+					status?: "sent" | "partially_paid" | "paid" | "overdue" | "cancelled";
 					due_date?: string | null;
 					notes?: string | null;
 					pdf_url?: string | null;
