@@ -125,6 +125,7 @@ export function ProposalPDF({ proposal, customer, lead, company, template }: Pro
 			<Page size="A4" style={styles.page}>
 				{/* Header */}
 				<View style={styles.header}>
+					{/* eslint-disable-next-line jsx-a11y/alt-text */}
 					{company.logo ? <Image src={company.logo} style={styles.logo} /> : null}
 					<Text style={styles.tagline}>{company.tagline}</Text>
 					<Text style={styles.headerAddress}>

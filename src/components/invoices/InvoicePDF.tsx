@@ -157,6 +157,7 @@ export function InvoicePDF({ invoice, customer, lead, company, template }: Invoi
 			<Page size="A4" style={styles.page}>
 				{/* Header */}
 				<View style={styles.header}>
+					{/* eslint-disable-next-line jsx-a11y/alt-text */}
 					{company.logo ? <Image src={company.logo} style={styles.logo} /> : null}
 					<Text style={styles.tagline}>{company.tagline}</Text>
 					<Text style={styles.headerAddress}>
