@@ -742,7 +742,7 @@ UNPAID → PARTIALLY_PAID → FULLY_PAID
 | job_id | FK |
 | amount | Amount received |
 | payment_type | enum above |
-| method | cash / transfer / qris |
+| method | cash / transfer |
 | reference_no | Bank transfer ref (optional) |
 | received_at | Timestamp |
 | proof_url | Screenshot / receipt photo |
@@ -880,7 +880,7 @@ Operator taps button in IM Ops → phone opens WhatsApp with pre-filled message 
 4. Line items: service description + amount
 5. Payment history table
 6. Outstanding balance
-7. Bank transfer details / QRIS
+7. Bank transfer details
 
 ---
 
@@ -1040,7 +1040,7 @@ CREATE TABLE payments (
   job_id UUID REFERENCES jobs(id),
   amount BIGINT NOT NULL,
   payment_type TEXT NOT NULL, -- down_payment|partial|final|refund
-  method TEXT, -- cash|transfer|qris
+  method TEXT, -- cash|transfer
   reference_no TEXT,
   proof_url TEXT,
   received_at TIMESTAMPTZ DEFAULT now(),

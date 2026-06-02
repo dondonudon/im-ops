@@ -1008,8 +1008,7 @@
     },
     "paymentMethod": {
       "cash": "Cash",
-      "transfer": "Transfer",
-      "qris": "QRIS"
+      "transfer": "Transfer"
     },
     "expenseCategory": {
       "fuel": "Fuel",

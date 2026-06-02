@@ -313,7 +313,7 @@ CREATE TABLE payments (
   payment_type TEXT NOT NULL CHECK (payment_type IN (
                  'down_payment','partial','final','refund'
                )),
-  method       TEXT CHECK (method IN ('cash','transfer','qris')),
+  method       TEXT CHECK (method IN ('cash','transfer')),
   reference_no TEXT,
   proof_url    TEXT,
   received_at  TIMESTAMPTZ DEFAULT now(),
@@ -1111,7 +1111,7 @@ PAGE LAYOUT:
 MODAL opens:
   Payment type:   [Down Payment] [Partial] [Final] [Refund]
   Amount:         number input (pre-filled with outstanding for Final)
-  Method:         [Cash] [Transfer] [QRIS]
+  Method:         [Cash] [Transfer]
   Reference no:   text (optional, for transfer)
   Received at:    datetime (defaults to now)
   Proof photo:    camera/upload (optional)

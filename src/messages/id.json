@@ -1008,8 +1008,7 @@
     },
     "paymentMethod": {
       "cash": "Tunai",
-      "transfer": "Transfer",
-      "qris": "QRIS"
+      "transfer": "Transfer"
     },
     "expenseCategory": {
       "fuel": "BBM",

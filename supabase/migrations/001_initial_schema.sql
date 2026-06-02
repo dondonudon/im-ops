@@ -256,7 +256,7 @@ CREATE TABLE IF NOT EXISTS payments (
   payment_type TEXT NOT NULL CHECK (payment_type IN (
                  'down_payment','partial','final','refund'
                )),
-  method       TEXT CHECK (method IN ('cash','transfer','qris')),
+  method       TEXT CHECK (method IN ('cash','transfer')),
   paid_at      DATE NOT NULL DEFAULT CURRENT_DATE,
   notes        TEXT,
   created_at   TIMESTAMPTZ DEFAULT now()

@@ -26,7 +26,7 @@ type Payment = {
 };
 
 const PAYMENT_TYPES = ["down_payment", "partial", "final", "refund"];
-const PAYMENT_METHODS = ["cash", "transfer", "qris"];
+const PAYMENT_METHODS = ["cash", "transfer"];
 
 /**
  * Displays payment history and a "Record Payment" form.
@@ -59,7 +59,7 @@ export function PaymentsPanel({
 	const [showForm, setShowForm] = useState(false);
 	const [form, setForm] = useState({
 		payment_type: "down_payment",
-		method: "cash",
+		method: "transfer",
 		amount: "",
 		paid_at: todayISO(),
 		notes: "",
@@ -95,7 +95,7 @@ export function PaymentsPanel({
 						| "partial"
 						| "final"
 						| "refund",
-					method: form.method as "cash" | "transfer" | "qris",
+					method: form.method as "cash" | "transfer",
 					amount: amt,
 					paid_at: form.paid_at,
 					notes: form.notes.trim() || null,
@@ -109,7 +109,7 @@ export function PaymentsPanel({
 			setShowForm(false);
 			setForm({
 				payment_type: "down_payment",
-				method: "cash",
+				method: "transfer",
 				amount: "",
 				paid_at: todayISO(),
 				notes: "",

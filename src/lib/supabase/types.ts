@@ -589,7 +589,7 @@ export type Database = {
           job_id: string
           amount: number
           payment_type: 'down_payment' | 'partial' | 'final' | 'refund'
-          method: 'cash' | 'transfer' | 'qris' | null
+          method: 'cash' | 'transfer' | null
           paid_at: string
           notes: string | null
           created_at: string
@@ -599,7 +599,7 @@ export type Database = {
           job_id: string
           amount: number
           payment_type: 'down_payment' | 'partial' | 'final' | 'refund'
-          method?: 'cash' | 'transfer' | 'qris' | null
+          method?: 'cash' | 'transfer' | null
           paid_at: string
           notes?: string | null
           created_at?: string
@@ -609,7 +609,7 @@ export type Database = {
           job_id?: string
           amount?: number
           payment_type?: 'down_payment' | 'partial' | 'final' | 'refund'
-          method?: 'cash' | 'transfer' | 'qris' | null
+          method?: 'cash' | 'transfer' | null
           paid_at?: string
           notes?: string | null
           created_at?: string
