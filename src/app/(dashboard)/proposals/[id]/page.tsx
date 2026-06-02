@@ -32,7 +32,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
         *,
         leads(
           id, pickup_address, destination_address, preferred_date,
-          customers(id, name, phone, email)
+          customers(id, name, phone, email, type, company_name, address)
         )
       `)
 			.eq("id", id)
@@ -50,7 +50,12 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 			.in("key", [
 				"company_name",
 				"company_tagline",
-				"proposal_terms",
+				"company_logo_url",
+				"company_address",
+				"company_phone",
+				"company_website",
+				"company_city",
+				"proposal_included_services",
 				"proposal_signature_name",
 				"proposal_signature_role",
 			]),
@@ -72,6 +77,9 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 			name: string;
 			phone: string | null;
 			email: string | null;
+			type: "individual" | "corporate";
+			company_name: string | null;
+			address: string | null;
 		} | null;
 	} | null;
 
@@ -81,6 +89,9 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 			name: string;
 			phone: string | null;
 			email: string | null;
+			type: "individual" | "corporate";
+			company_name: string | null;
+			address: string | null;
 		} | null) ?? null;
 	const estimationOutputs = (estimation?.outputs ?? {}) as Record<string, number>;
 
@@ -133,6 +144,9 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 										name: customer.name,
 										phone: customer.phone,
 										email: customer.email,
+										type: customer.type,
+										company_name: customer.company_name,
+										address: customer.address,
 									},
 									lead: {
 										pickup_address: lead.pickup_address,

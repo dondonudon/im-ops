@@ -681,6 +681,7 @@
 			"email": "Email",
 			"type": "Tipe",
 			"companyName": "Nama perusahaan",
+			"address": "Alamat",
 			"notes": "Catatan",
 			"newTitle": "Pelanggan Baru",
 			"editTitle": "Edit Pelanggan"

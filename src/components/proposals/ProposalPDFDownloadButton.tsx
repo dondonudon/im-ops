@@ -4,7 +4,10 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { buttonStyles } from "@/components/ui";
 import type { ProposalPDFProps } from "./ProposalPDF";
-import { buildProposalFilename } from "./ProposalPDF";
+
+function buildProposalFilename(proposalNumber: string) {
+	return `Proposal_${proposalNumber.replace(/\//g, "-")}.pdf`;
+}
 
 /**
  * Renders a PDF download link for a proposal.

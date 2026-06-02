@@ -681,6 +681,7 @@
 			"email": "Email",
 			"type": "Type",
 			"companyName": "Company name",
+			"address": "Address",
 			"notes": "Notes",
 			"newTitle": "New Customer",
 			"editTitle": "Edit Customer"

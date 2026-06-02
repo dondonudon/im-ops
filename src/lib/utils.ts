@@ -136,3 +136,94 @@ export function buildWhatsAppLink(phone: string, message: string): string {
 	const encoded = encodeURIComponent(message);
 	return `https://wa.me/${cleaned}?text=${encoded}`;
 }
+
+const INDONESIAN_MONTHS = [
+	"Januari",
+	"Februari",
+	"Maret",
+	"April",
+	"Mei",
+	"Juni",
+	"Juli",
+	"Agustus",
+	"September",
+	"Oktober",
+	"November",
+	"Desember",
+];
+
+/** Format a date string as Indonesian date, e.g. "11 Mei 2026". */
+export function formatIndonesianDate(dateStr: string): string {
+	const d = new Date(dateStr);
+	return `${d.getDate()} ${INDONESIAN_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/** Format a number as "Rp 6.000.000,-" for use in Indonesian formal documents. */
+export function formatRupiahLetter(amount: number): string {
+	const formatted = Math.round(amount)
+		.toString()
+		.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+	return `Rp ${formatted},-`;
+}
+
+/** Convert a non-negative integer to Indonesian words (e.g. 6000000 → "enam juta"). */
+export function numberToIndonesianWords(n: number): string {
+	if (n === 0) return "nol";
+	const ones = [
+		"",
+		"satu",
+		"dua",
+		"tiga",
+		"empat",
+		"lima",
+		"enam",
+		"tujuh",
+		"delapan",
+		"sembilan",
+		"sepuluh",
+		"sebelas",
+		"dua belas",
+		"tiga belas",
+		"empat belas",
+		"lima belas",
+		"enam belas",
+		"tujuh belas",
+		"delapan belas",
+		"sembilan belas",
+	];
+
+	function below1000(x: number): string {
+		if (x < 20) return ones[x];
+		if (x < 100) {
+			const t = Math.floor(x / 10),
+				r = x % 10;
+			return ones[t] + " puluh" + (r ? " " + ones[r] : "");
+		}
+		const h = Math.floor(x / 100),
+			r = x % 100;
+		const prefix = h === 1 ? "seratus" : ones[h] + " ratus";
+		return prefix + (r ? " " + below1000(r) : "");
+	}
+
+	if (n < 1000) return below1000(n);
+	if (n < 1_000_000) {
+		const t = Math.floor(n / 1000),
+			r = n % 1000;
+		const prefix = t === 1 ? "seribu" : below1000(t) + " ribu";
+		return prefix + (r ? " " + below1000(r) : "");
+	}
+	if (n < 1_000_000_000) {
+		const m = Math.floor(n / 1_000_000),
+			r = n % 1_000_000;
+		const prefix = below1000(m) + " juta";
+		if (r === 0) return prefix;
+		if (r < 1000) return prefix + " " + below1000(r);
+		const t = Math.floor(r / 1000),
+			rem = r % 1000;
+		const tPrefix = t === 1 ? "seribu" : below1000(t) + " ribu";
+		return prefix + " " + tPrefix + (rem ? " " + below1000(rem) : "");
+	}
+	const b = Math.floor(n / 1_000_000_000),
+		r = n % 1_000_000_000;
+	return below1000(b) + " miliar" + (r ? " " + numberToIndonesianWords(r) : "");
+}

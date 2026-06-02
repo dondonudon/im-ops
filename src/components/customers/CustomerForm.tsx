@@ -20,6 +20,7 @@ export function CustomerForm({
 		email: string | null;
 		type: "individual" | "corporate";
 		company_name: string | null;
+		address: string | null;
 		notes: string | null;
 	};
 }) {
@@ -36,6 +37,7 @@ export function CustomerForm({
 		email: customer?.email ?? "",
 		type: customer?.type ?? "individual",
 		company_name: customer?.company_name ?? "",
+		address: customer?.address ?? "",
 		notes: customer?.notes ?? "",
 	});
 	const [saving, setSaving] = useState(false);
@@ -60,6 +62,7 @@ export function CustomerForm({
 				email: form.email.trim() || null,
 				type: form.type as "individual" | "corporate",
 				company_name: form.company_name.trim() || null,
+				address: form.address.trim() || null,
 				notes: form.notes.trim() || null,
 			};
 
@@ -141,6 +144,16 @@ export function CustomerForm({
 					value={form.email}
 					onChange={handleChange}
 					autoComplete="email"
+				/>
+			</Field>
+
+			<Field label={t("address")} htmlFor="address">
+				<Textarea
+					id="address"
+					name="address"
+					rows={3}
+					value={form.address}
+					onChange={handleChange}
 				/>
 			</Field>
 

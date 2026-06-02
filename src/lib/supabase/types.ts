@@ -14,6 +14,7 @@ export type Database = {
 					email: string | null;
 					type: "individual" | "corporate";
 					company_name: string | null;
+					address: string | null;
 					notes: string | null;
 					created_at: string;
 				};
@@ -24,6 +25,7 @@ export type Database = {
 					email?: string | null;
 					type?: "individual" | "corporate";
 					company_name?: string | null;
+					address?: string | null;
 					notes?: string | null;
 					created_at?: string;
 				};
@@ -34,6 +36,7 @@ export type Database = {
 					email?: string | null;
 					type?: "individual" | "corporate";
 					company_name?: string | null;
+					address?: string | null;
 					notes?: string | null;
 					created_at?: string;
 				};

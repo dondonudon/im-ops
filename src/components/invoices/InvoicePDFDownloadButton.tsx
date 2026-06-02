@@ -4,7 +4,10 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { buttonStyles } from "@/components/ui";
 import type { InvoicePDFProps } from "./InvoicePDF";
-import { buildInvoiceFilename } from "./InvoicePDF";
+
+function buildInvoiceFilename(invoiceNumber: string) {
+	return `${invoiceNumber.replace(/\//g, "-")}.pdf`;
+}
 
 /**
  * Renders a PDF download link for an invoice.

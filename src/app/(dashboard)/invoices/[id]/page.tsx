@@ -23,7 +23,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         *,
         jobs(
           id, job_number, move_date,
-          proposals(leads(customers(id, name, phone, email))),
+          proposals(leads(id, pickup_address, destination_address, customers(id, name, phone, email, type, company_name, address))),
           payments(id, payment_type, method, amount, paid_at, notes)
         )
       `)
@@ -32,7 +32,20 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 		supabase
 			.from("system_settings")
 			.select("key, value")
-			.in("key", ["company_name", "company_tagline", "invoice_footer_note"]),
+			.in("key", [
+				"company_name",
+				"company_tagline",
+				"company_logo_url",
+				"company_address",
+				"company_phone",
+				"company_website",
+				"company_city",
+				"invoice_bank_name",
+				"invoice_bank_account_number",
+				"invoice_bank_account_holder",
+				"invoice_signature_name",
+				"invoice_signature_role",
+			]),
 	]);
 
 	if (!invoice) notFound();
@@ -57,11 +70,17 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 		payments: PaymentRow[];
 		proposals: {
 			leads: {
+				id: string;
+				pickup_address: string | null;
+				destination_address: string | null;
 				customers: {
 					id: string;
 					name: string;
 					phone: string | null;
 					email: string | null;
+					type: "individual" | "corporate";
+					company_name: string | null;
+					address: string | null;
 				} | null;
 			} | null;
 		} | null;
@@ -71,7 +90,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 		.filter((p): p is PaymentRow => p.paid_at != null)
 		.sort((a, b) => a.paid_at.localeCompare(b.paid_at));
 
-	const customer = job?.proposals?.leads?.customers ?? null;
+	const lead = job?.proposals?.leads ?? null;
+	const customer = lead?.customers ?? null;
 
 	return (
 		<div className="space-y-6">
@@ -107,20 +127,18 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 								invoice: {
 									invoice_number: invoice.invoice_number,
 									total_amount: invoice.total_amount,
-									paid_amount: invoice.paid_amount ?? 0,
-									status: invoice.status,
-									due_date: invoice.due_date ?? null,
 									notes: invoice.notes ?? null,
 									created_at: invoice.created_at,
 								},
-								job: {
-									job_number: job.job_number,
-									move_date: job.move_date ?? null,
-								},
 								customer: {
 									name: customer.name,
-									phone: customer.phone ?? null,
-									email: customer.email ?? null,
+									type: customer.type,
+									company_name: customer.company_name,
+									address: customer.address,
+								},
+								lead: {
+									pickup_address: lead?.pickup_address ?? null,
+									destination_address: lead?.destination_address ?? null,
 								},
 								company: pdfCompany,
 								template: pdfTemplate,
