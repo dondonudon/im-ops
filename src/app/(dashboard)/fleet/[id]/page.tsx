@@ -18,7 +18,7 @@ export default async function FleetDetailPage({
 
 	const { data: fleet } = await supabase
 		.from("fleet")
-		.select("*")
+		.select("id, name, phone, contact_person, vehicle_types, service_areas, bank_name, bank_account, notes, is_active")
 		.eq("id", id)
 		.single();
 

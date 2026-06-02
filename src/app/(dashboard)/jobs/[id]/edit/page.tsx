@@ -110,30 +110,31 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 				throw new Error("Revenue must be a valid positive number.");
 			}
 			const supabase = createClient();
-			const { error: err } = await supabase
-				.from("jobs")
-				.update({
-					status: form.status,
-					move_date: form.move_date || undefined,
-					move_time: form.move_time || null,
-					move_end_date: form.move_end_date || null,
-					move_end_time: form.move_end_time || null,
-					revenue: revenueNum ?? 0,
-					notes: form.notes.trim() || null,
-				})
-				.eq("id", id);
-			if (err) throw err;
-
-			if (leadId) {
-				const { error: leadErr } = await supabase
-					.from("leads")
+			const [{ error: err }, { error: leadErr }] = await Promise.all([
+				supabase
+					.from("jobs")
 					.update({
-						pickup_address: form.pickup_address.trim() || null,
-						destination_address: form.destination_address.trim() || null,
+						status: form.status,
+						move_date: form.move_date || undefined,
+						move_time: form.move_time || null,
+						move_end_date: form.move_end_date || null,
+						move_end_time: form.move_end_time || null,
+						revenue: revenueNum ?? 0,
+						notes: form.notes.trim() || null,
 					})
-					.eq("id", leadId);
-				if (leadErr) throw leadErr;
-			}
+					.eq("id", id),
+				leadId
+					? supabase
+							.from("leads")
+							.update({
+								pickup_address: form.pickup_address.trim() || null,
+								destination_address: form.destination_address.trim() || null,
+							})
+							.eq("id", leadId)
+					: Promise.resolve({ error: null }),
+			]);
+			if (err) throw err;
+			if (leadErr) throw leadErr;
 
 			// Re-sync the Google Calendar event (PATCH if it exists, POST otherwise).
 			// Non-blocking — calendar failures must never block the save flow.

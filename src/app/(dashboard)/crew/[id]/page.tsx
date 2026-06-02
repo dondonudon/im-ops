@@ -19,7 +19,7 @@ export default async function CrewDetailPage({
 
 	const { data: member } = await supabase
 		.from("crew")
-		.select("*")
+		.select("id, name, phone, daily_rate, skills, availability_status, emergency_contact, notes")
 		.eq("id", id)
 		.single();
 	if (!member) notFound();
