@@ -20,14 +20,7 @@ import { formatDate, formatRupiah } from "@/lib/utils";
 
 const PAGE_SIZE = 25;
 
-const STATUS_OPTS = [
-	"",
-	"sent",
-	"partially_paid",
-	"paid",
-	"overdue",
-	"cancelled",
-] as const;
+const STATUS_OPTS = ["", "sent", "partially_paid", "paid", "overdue", "cancelled"] as const;
 
 export default async function InvoicesPage({
 	searchParams,
@@ -63,20 +56,22 @@ export default async function InvoicesPage({
 		<div className="space-y-5">
 			<PageHeader title={t("title")} />
 
-			<form method="GET" role="search">
-				<Select
-					name="status"
-					defaultValue={status ?? ""}
-					aria-label={t("columns.status")}
-					className="w-auto"
-				>
-					{STATUS_OPTS.map((s) => (
-						<option key={s} value={s}>
-							{s === "" ? t("filterAll") : tStatus(s as never)}
-						</option>
-					))}
-				</Select>
-			</form>
+			<search>
+				<form method="GET">
+					<Select
+						name="status"
+						defaultValue={status ?? ""}
+						aria-label={t("columns.status")}
+						className="w-auto"
+					>
+						{STATUS_OPTS.map((s) => (
+							<option key={s} value={s}>
+								{s === "" ? t("filterAll") : tStatus(s as never)}
+							</option>
+						))}
+					</Select>
+				</form>
+			</search>
 
 			{/* Desktop table */}
 			<div className="hidden md:block">

@@ -32,6 +32,7 @@ const STAGE_STATUS: Record<Stage, string> = {
 };
 
 const THRESHOLD = 6; // px before a press becomes a drag
+const HANDLE_STYLE: React.CSSProperties = { touchAction: "none", WebkitTouchCallout: "none" };
 const EDGE = 52; // px from board edge that triggers auto-scroll
 
 type Press = {
@@ -330,10 +331,7 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 													}}
 													onClick={(e) => e.stopPropagation()}
 													onContextMenu={(e) => e.preventDefault()}
-													style={{
-														touchAction: "none",
-														WebkitTouchCallout: "none",
-													}}
+													style={HANDLE_STYLE}
 													className="absolute top-0 right-0 h-full px-2 flex items-center text-ink-faint hover:text-ink cursor-grab active:cursor-grabbing rounded-r-lg hover:bg-subtle"
 												>
 													<GripVertical size={16} aria-hidden="true" />

@@ -36,13 +36,7 @@ function nowLocalISO(): string {
 	return local.toISOString().slice(0, 16);
 }
 
-export function TimelineLogEventButton({
-	jobId,
-	jobStatus,
-}: {
-	jobId: string;
-	jobStatus: string;
-}) {
+export function TimelineLogEventButton({ jobId, jobStatus }: { jobId: string; jobStatus: string }) {
 	const router = useRouter();
 	const tTimeline = useTranslations("panels.timeline");
 	const tModal = useTranslations("modals.logEvent");
@@ -136,7 +130,9 @@ export function TimelineLogEventButton({
 					aria-label="Log timeline event"
 					className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40"
 					onClick={() => !saving && setOpen(false)}
-					onKeyDown={(e) => { if (e.key === "Escape" && !saving) setOpen(false); }}
+					onKeyDown={(e) => {
+						if (e.key === "Escape" && !saving) setOpen(false);
+					}}
 				>
 					{/* biome-ignore lint/a11y/noStaticElementInteractions: modal panel stops backdrop click propagation — not a user-interactive element */}
 					<div

@@ -56,6 +56,7 @@ export default async function JobsPage({
 	const page = Math.max(1, Number(rawPage) || 1);
 	let jobs: JobRow[] = [];
 	let count: number | null = null;
+	let boardColumns: Map<string, JobRow[]> | null = null;
 
 	if (view === "board") {
 		// One indexed query per status column — avoids a 300-row full scan and
@@ -70,7 +71,7 @@ export default async function JobsPage({
 					.limit(BOARD_PER_COL),
 			),
 		);
-		jobs = cols.flatMap((r) => (r.data ?? []) as JobRow[]);
+		boardColumns = new Map(BOARD_STATUSES.map((s, i) => [s, (cols[i].data ?? []) as JobRow[]]));
 	} else {
 		const from = (page - 1) * PAGE_SIZE;
 		let query = supabase
@@ -89,27 +90,29 @@ export default async function JobsPage({
 			<PageHeader title={t("title")} actions={<ViewToggle view={view} status={status} t={t} />} />
 
 			{view === "list" && (
-				<form method="GET" role="search">
-					<input type="hidden" name="view" value="list" />
-					<Select
-						name="status"
-						defaultValue={status ?? ""}
-						aria-label={t("columns.status")}
-						className="w-auto"
-					>
-						{STATUS_OPTS.map((s) => (
-							<option key={s} value={s}>
-								{s === "" ? t("filterAll") : tStatus(s as never)}
-							</option>
-						))}
-					</Select>
-				</form>
+				<search>
+					<form method="GET">
+						<input type="hidden" name="view" value="list" />
+						<Select
+							name="status"
+							defaultValue={status ?? ""}
+							aria-label={t("columns.status")}
+							className="w-auto"
+						>
+							{STATUS_OPTS.map((s) => (
+								<option key={s} value={s}>
+									{s === "" ? t("filterAll") : tStatus(s as never)}
+								</option>
+							))}
+						</Select>
+					</form>
+				</search>
 			)}
 
 			{view === "board" ? (
 				<div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin snap-x">
 					{BOARD_STATUSES.map((s) => {
-						const items = jobs.filter((j) => j.status === s);
+						const items = boardColumns?.get(s) ?? [];
 						const colRevenue = items.reduce((sum, j) => sum + (j.revenue ?? 0), 0);
 						return (
 							<section

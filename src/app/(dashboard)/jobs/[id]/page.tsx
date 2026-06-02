@@ -305,9 +305,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 						<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
 							{t("profit")}
 						</h2>
-						<div
-							className="text-2xl font-bold"
-						>
+						<div className="text-2xl font-bold">
 							<span className={profit >= 0 ? "text-success" : "text-danger"}>
 								{formatRupiah(profit)}
 							</span>

@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { sanitizeSearch } from "@/lib/utils";
 
@@ -57,6 +57,71 @@ const GROUP_META: Record<Group, { icon: typeof Briefcase; order: number }> = {
 };
 
 const PER_GROUP_LIMIT = 5;
+
+// ── Memoised list-item components ───────────────────────────────────────
+
+type ActionButtonProps = { action: Action; active: boolean; idx: number };
+const ActionButton = memo(function ActionButton({ action, active, idx }: ActionButtonProps) {
+	const Icon = action.icon;
+	return (
+		<li role="presentation">
+			<button
+				type="button"
+				role="option"
+				aria-selected={active}
+				data-hit-idx={idx}
+				onClick={action.perform}
+				className={`w-full text-left flex items-center gap-3 px-3 py-2 transition-colors ${
+					active ? "bg-primary-subtle" : "hover:bg-subtle"
+				}`}
+			>
+				<Icon
+					size={14}
+					className={active ? "text-primary-text shrink-0" : "text-ink-faint shrink-0"}
+					aria-hidden="true"
+				/>
+				<div className="min-w-0 flex-1">
+					<p className="text-sm font-medium text-ink truncate">{action.title}</p>
+					<p className="text-xs text-ink-muted truncate">{action.subtitle}</p>
+				</div>
+			</button>
+		</li>
+	);
+});
+
+type HitButtonProps = {
+	hit: Hit;
+	active: boolean;
+	idx: number;
+	Icon: typeof Briefcase;
+	onSelect: (hit: Hit) => void;
+};
+const HitButton = memo(function HitButton({ hit, active, idx, Icon, onSelect }: HitButtonProps) {
+	return (
+		<li role="presentation">
+			<button
+				type="button"
+				role="option"
+				aria-selected={active}
+				data-hit-idx={idx}
+				onClick={() => onSelect(hit)}
+				className={`w-full text-left flex items-center gap-3 px-3 py-2 transition-colors ${
+					active ? "bg-primary-subtle" : "hover:bg-subtle"
+				}`}
+			>
+				<Icon
+					size={14}
+					className={active ? "text-primary-text shrink-0" : "text-ink-faint shrink-0"}
+					aria-hidden="true"
+				/>
+				<div className="min-w-0 flex-1">
+					<p className="text-sm font-medium text-ink truncate">{hit.title}</p>
+					{hit.subtitle && <p className="text-xs text-ink-muted truncate">{hit.subtitle}</p>}
+				</div>
+			</button>
+		</li>
+	);
+});
 
 // ── Main component ───────────────────────────────────────────────────────
 
@@ -282,6 +347,13 @@ export function CommandPalette() {
 
 	const flatHits = useMemo(() => grouped.flatMap(([, items]) => items), [grouped]);
 
+	// O(1) index lookup — avoids O(n²) indexOf inside the render loop.
+	const flatHitsIndexMap = useMemo(() => {
+		const m = new Map<Hit, number>();
+		for (let i = 0; i < flatHits.length; i++) m.set(flatHits[i], i);
+		return m;
+	}, [flatHits]);
+
 	// Combined navigable length: actions first, then search hits.
 	const actionCount = filteredActions.length;
 	const total = actionCount + flatHits.length;
@@ -332,10 +404,13 @@ export function CommandPalette() {
 		if (hit) navigateTo(hit);
 	}
 
-	function navigateTo(hit: Hit) {
-		closePalette();
-		router.push(hit.url);
-	}
+	const navigateTo = useCallback(
+		(hit: Hit) => {
+			closePalette();
+			router.push(hit.url);
+		},
+		[closePalette, router],
+	);
 
 	// ── Render ──────────────────────────────────────────────────────────
 
@@ -385,7 +460,25 @@ export function CommandPalette() {
 				</div>
 
 				{/* Results */}
-				<div ref={listRef} className="flex-1 overflow-y-auto py-2" role="listbox">
+				<div
+					ref={listRef}
+					className="flex-1 overflow-y-auto py-2"
+					role="listbox"
+					onMouseOver={(e) => {
+						const el = (e.target as Element).closest("[data-hit-idx]");
+						if (el) {
+							const idx = Number(el.getAttribute("data-hit-idx"));
+							if (!Number.isNaN(idx)) setActiveIdx(idx);
+						}
+					}}
+					onFocus={(e) => {
+						const el = (e.target as Element).closest("[data-hit-idx]");
+						if (el) {
+							const idx = Number(el.getAttribute("data-hit-idx"));
+							if (!Number.isNaN(idx)) setActiveIdx(idx);
+						}
+					}}
+				>
 					{/* Actions */}
 					{filteredActions.length > 0 && (
 						<section className="py-1">
@@ -393,37 +486,9 @@ export function CommandPalette() {
 								{t("actionsTitle")}
 							</header>
 							<ul>
-								{filteredActions.map((action, i) => {
-									const active = i === activeIdx;
-									const Icon = action.icon;
-									return (
-										<li key={action.id} role="presentation">
-											<button
-												type="button"
-												role="option"
-												aria-selected={active}
-												data-hit-idx={i}
-												onMouseEnter={() => setActiveIdx(i)}
-												onClick={action.perform}
-												className={`w-full text-left flex items-center gap-3 px-3 py-2 transition-colors ${
-													active ? "bg-primary-subtle" : "hover:bg-subtle"
-												}`}
-											>
-												<Icon
-													size={14}
-													className={
-														active ? "text-primary-text shrink-0" : "text-ink-faint shrink-0"
-													}
-													aria-hidden="true"
-												/>
-												<div className="min-w-0 flex-1">
-													<p className="text-sm font-medium text-ink truncate">{action.title}</p>
-													<p className="text-xs text-ink-muted truncate">{action.subtitle}</p>
-												</div>
-											</button>
-										</li>
-									);
-								})}
+								{filteredActions.map((action, i) => (
+									<ActionButton key={action.id} action={action} active={i === activeIdx} idx={i} />
+								))}
 							</ul>
 						</section>
 					)}
@@ -432,8 +497,7 @@ export function CommandPalette() {
 						<p className="text-center text-sm text-ink-faint py-8">{t("noResults", { query })}</p>
 					) : (
 						grouped.map(([group, items]) => {
-							const meta = GROUP_META[group];
-							const Icon = meta.icon;
+							const Icon = GROUP_META[group].icon;
 							return (
 								<section key={group} className="py-1">
 									<header className="px-3 py-1 text-[10px] font-semibold text-ink-faint uppercase tracking-widest">
@@ -441,36 +505,16 @@ export function CommandPalette() {
 									</header>
 									<ul>
 										{items.map((hit) => {
-											const idx = actionCount + flatHits.indexOf(hit);
-											const active = idx === activeIdx;
+											const idx = actionCount + (flatHitsIndexMap.get(hit) ?? 0);
 											return (
-												<li key={hit.id} role="presentation">
-													<button
-														type="button"
-														role="option"
-														aria-selected={active}
-														data-hit-idx={idx}
-														onMouseEnter={() => setActiveIdx(idx)}
-														onClick={() => navigateTo(hit)}
-														className={`w-full text-left flex items-center gap-3 px-3 py-2 transition-colors ${
-															active ? "bg-primary-subtle" : "hover:bg-subtle"
-														}`}
-													>
-														<Icon
-															size={14}
-															className={
-																active ? "text-primary-text shrink-0" : "text-ink-faint shrink-0"
-															}
-															aria-hidden="true"
-														/>
-														<div className="min-w-0 flex-1">
-															<p className="text-sm font-medium text-ink truncate">{hit.title}</p>
-															{hit.subtitle && (
-																<p className="text-xs text-ink-muted truncate">{hit.subtitle}</p>
-															)}
-														</div>
-													</button>
-												</li>
+												<HitButton
+													key={hit.id}
+													hit={hit}
+													active={idx === activeIdx}
+													idx={idx}
+													Icon={Icon}
+													onSelect={navigateTo}
+												/>
 											);
 										})}
 									</ul>

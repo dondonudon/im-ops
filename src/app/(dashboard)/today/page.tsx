@@ -80,7 +80,8 @@ export default async function TodayPage() {
 		supabase
 			.from("invoice_outstanding")
 			.select("id, outstanding, effective_status")
-			.neq("effective_status", "paid"),
+			.neq("effective_status", "paid")
+			.limit(200),
 		supabase
 			.from("jobs")
 			.select(
