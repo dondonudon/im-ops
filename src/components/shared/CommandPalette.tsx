@@ -348,7 +348,10 @@ export function CommandPalette() {
 			aria-label="Search"
 			className="fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] px-4 bg-black/50 backdrop-blur-sm"
 			onClick={closePalette}
+			onKeyDown={(e) => e.key === "Escape" && closePalette()}
 		>
+			{/* biome-ignore lint/a11y/useKeyWithClickEvents: stopPropagation-only handler; no semantic interaction */}
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: stopPropagation-only handler; no semantic interaction */}
 			<div
 				className="w-full max-w-2xl bg-surface rounded-2xl shadow-token ring-1 ring-black/5 overflow-hidden flex flex-col max-h-[70vh]"
 				onClick={(e) => e.stopPropagation()}
@@ -394,9 +397,11 @@ export function CommandPalette() {
 									const active = i === activeIdx;
 									const Icon = action.icon;
 									return (
-										<li key={action.id} aria-selected={active}>
+										<li key={action.id} role="presentation">
 											<button
 												type="button"
+												role="option"
+												aria-selected={active}
 												data-hit-idx={i}
 												onMouseEnter={() => setActiveIdx(i)}
 												onClick={action.perform}
@@ -439,9 +444,11 @@ export function CommandPalette() {
 											const idx = actionCount + flatHits.indexOf(hit);
 											const active = idx === activeIdx;
 											return (
-												<li key={hit.id} aria-selected={active}>
+												<li key={hit.id} role="presentation">
 													<button
 														type="button"
+														role="option"
+														aria-selected={active}
 														data-hit-idx={idx}
 														onMouseEnter={() => setActiveIdx(idx)}
 														onClick={() => navigateTo(hit)}

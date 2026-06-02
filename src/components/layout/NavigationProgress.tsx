@@ -1,5 +1,4 @@
 "use client";
-import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 
 /**
@@ -16,8 +15,6 @@ import { Suspense, useEffect, useRef, useState } from "react";
  * wrapped below.
  */
 function Inner() {
-	const _pathname = usePathname();
-	const _searchParams = useSearchParams();
 	const [active, setActive] = useState(false);
 	const firstRender = useRef(true);
 

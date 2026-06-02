@@ -3,7 +3,7 @@
 import { GripVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { advanceLead, type Stage } from "@/app/(dashboard)/pipeline/actions";
 import { Badge, Money, RouteLine, toneFor } from "@/components/ui";
 import { cn, formatRupiah } from "@/lib/utils";
@@ -73,19 +73,19 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 		routerRef.current = router;
 	});
 
-	function flashNotice(msg: string) {
+	const flashNotice = useCallback((msg: string) => {
 		setNotice(msg);
 		if (noticeTimer.current) clearTimeout(noticeTimer.current);
 		noticeTimer.current = setTimeout(() => setNotice(null), 3500);
-	}
+	}, []); // setNotice is stable; noticeTimer is a ref
 
-	function stageAtPoint(x: number, y: number): Stage | null {
+	const stageAtPoint = useCallback((x: number, y: number): Stage | null => {
 		const el = document.elementFromPoint(x, y);
 		const col = el?.closest("[data-stage]");
 		return (col?.getAttribute("data-stage") as Stage | null) ?? null;
-	}
+	}, []);
 
-	function activateDrag() {
+	const activateDrag = useCallback(() => {
 		const p = pressRef.current;
 		if (!p || p.started) return;
 		p.started = true;
@@ -97,45 +97,48 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 		setDragId(p.id);
 		setGhost({ x: p.x, y: p.y });
 		if (navigator.vibrate) navigator.vibrate(8);
-	}
+	}, []); // setDragId/setGhost are stable; pressRef is a ref
 
-	function performDrop(id: string, toStage: Stage) {
-		const cols = columnsRef.current;
-		let fromStage: Stage | null = null;
-		for (const s of STAGE_ORDER) {
-			if (cols[s].some((c) => c.id === id)) fromStage = s;
-		}
-		if (!fromStage || fromStage === toStage) return;
-		const card = cols[fromStage].find((c) => c.id === id);
-		if (!card) return;
-
-		const prev = cols;
-		const moved: PipelineCard = { ...card, status: STAGE_STATUS[toStage] };
-		setColumns({
-			...cols,
-			[fromStage]: cols[fromStage].filter((c) => c.id !== id),
-			[toStage]: [moved, ...cols[toStage]],
-		});
-		setPending((p) => new Set(p).add(id));
-
-		advanceLead(id, toStage).then((result) => {
-			setPending((p) => {
-				const n = new Set(p);
-				n.delete(id);
-				return n;
-			});
-			if (!result.ok) {
-				setColumns(prev);
-				flashNotice(tRef.current(`notices.${result.reason}` as never));
-				return;
+	const performDrop = useCallback(
+		(id: string, toStage: Stage) => {
+			const cols = columnsRef.current;
+			let fromStage: Stage | null = null;
+			for (const s of STAGE_ORDER) {
+				if (cols[s].some((c) => c.id === id)) fromStage = s;
 			}
-			setColumns((cur) => ({
-				...cur,
-				[toStage]: cur[toStage].map((c) => (c.id === id ? { ...c, status: result.status } : c)),
-			}));
-			startTransition(() => routerRef.current.refresh());
-		});
-	}
+			if (!fromStage || fromStage === toStage) return;
+			const card = cols[fromStage].find((c) => c.id === id);
+			if (!card) return;
+
+			const prev = cols;
+			const moved: PipelineCard = { ...card, status: STAGE_STATUS[toStage] };
+			setColumns({
+				...cols,
+				[fromStage]: cols[fromStage].filter((c) => c.id !== id),
+				[toStage]: [moved, ...cols[toStage]],
+			});
+			setPending((p) => new Set(p).add(id));
+
+			advanceLead(id, toStage).then((result) => {
+				setPending((p) => {
+					const n = new Set(p);
+					n.delete(id);
+					return n;
+				});
+				if (!result.ok) {
+					setColumns(prev);
+					flashNotice(tRef.current(`notices.${result.reason}` as never));
+					return;
+				}
+				setColumns((cur) => ({
+					...cur,
+					[toStage]: cur[toStage].map((c) => (c.id === id ? { ...c, status: result.status } : c)),
+				}));
+				startTransition(() => routerRef.current.refresh());
+			});
+		},
+		[flashNotice],
+	); // columnsRef, tRef, routerRef are refs; setters are stable
 
 	/** Keyboard accessibility: move a focused card to the adjacent stage. */
 	function moveByKeyboard(id: string, dir: 1 | -1) {
@@ -211,7 +214,6 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 			window.removeEventListener("pointerup", onUp);
 			window.removeEventListener("pointercancel", onUp);
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [stageAtPoint, performDrop, activateDrag]);
 
 	// Auto-scroll the board horizontally while dragging near an edge.
@@ -291,6 +293,7 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 										const isPending = pending.has(card.id);
 										const isDragging = dragId === card.id;
 										return (
+											// biome-ignore lint/a11y/useSemanticElements: contains a nested button (drag handle) — HTML forbids interactive content inside button
 											<div
 												key={card.id}
 												onPointerDown={(e) => startPress(e, card, false)}

@@ -33,7 +33,6 @@ const JOB: Record<string, Tone> = {
 };
 
 const INVOICE: Record<string, Tone> = {
-	draft: "neutral",
 	sent: "info",
 	partially_paid: "pending",
 	paid: "positive",
