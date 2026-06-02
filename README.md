@@ -37,12 +37,7 @@ Built around workflows, not modules. **Current UI/UX + design system: `imops_red
    - `GCAL_CLIENT_ID`, `GCAL_CLIENT_SECRET`, `GCAL_REFRESH_TOKEN`
    - Plus `gcal_calendar_id` in the `system_settings` table
 
-3. Apply the database migrations in order via the Supabase SQL Editor:
-   ```
-   supabase/migrations/001_initial_schema.sql        ← all 17 tables, RLS, views, functions, seed settings
-   supabase/migrations/002_generate_job_number.sql   ← atomic job number generation (generate_job_number RPC)
-   supabase/migrations/003_performance_indexes.sql   ← performance indexes for all high-frequency query paths
-   ```
+3. Apply the database migrations in order via the Supabase SQL Editor
 
 4. In Supabase Auth, enable the **Google** provider and add `http://localhost:3000/auth/callback` (and your prod URL) as redirect URLs.
 
@@ -184,6 +179,7 @@ The full action map (every button, what it requires, what it writes) lives in `i
 - **Job revenue is locked at conversion.** Copied from `proposal.final_price` — subsequent proposal edits don't move it.
 - **One job per proposal** (unique constraint on `jobs.proposal_id`).
 - **Estimations store a `settings_snapshot`** so historical pricing stays explainable even after `system_settings` changes.
+- **Invoice status starts at `sent`.** Invoices are generated and sent externally (PDF download → email), so there is no `draft` state. Lifecycle: `sent` → `partially_paid` / `paid` / `overdue` / `cancelled`. Status is auto-updated by the `update_invoice_status` trigger when payments are recorded.
 - **Calendar failures never block core ops.** `lib/gcal/sync.ts` returns `null` on failure; the record is created without a `gcal_event_id`.
 
 ## Integrations
@@ -198,7 +194,7 @@ The full action map (every button, what it requires, what it writes) lives in `i
 - Server Components by default; `"use client"` only where interaction or browser APIs are needed.
 - Currency stored as `BIGINT` (IDR, no decimals). Formatted via `formatRupiah` in `lib/utils.ts`.
 - Photos resized client-side to 1600px WebP before upload (`resizeImage` in `lib/utils.ts`).
-- Status badges go through `StatusChip` + per-domain variant helpers (`leadStatusVariant`, `jobStatusVariant`, …).
+- Status badges go through the `toneFor(entity, status)` helper in `components/ui/status.ts` — single source of truth mapping every domain status to a semantic `Tone`.
 - All tables have RLS enabled; the single-org policy grants full access to any authenticated user.
 
 ## Known gaps vs. spec
