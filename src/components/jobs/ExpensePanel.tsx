@@ -47,7 +47,16 @@ const CATEGORY_KEY_BY_VALUE: Record<string, string> = CATEGORIES.reduce(
  * Mobile-optimized expense entry panel.
  * Design target: < 5 seconds for a standard entry.
  */
-export function ExpensePanel({ jobId, expenses: initial }: { jobId: string; expenses: Expense[] }) {
+export function ExpensePanel({
+	jobId,
+	expenses: initial,
+	lockReason,
+}: {
+	jobId: string;
+	expenses: Expense[];
+	/** When set, edit/delete is disabled and this message is shown in the list. */
+	lockReason: string | null;
+}) {
 	const router = useRouter();
 	const tExpense = useTranslations("forms.expense");
 	const tCommonButtons = useTranslations("common.buttons");
@@ -70,6 +79,16 @@ export function ExpensePanel({ jobId, expenses: initial }: { jobId: string; expe
 	const [showMore, setShowMore] = useState(false);
 	const [pendingCount, setPendingCount] = useState(0);
 	const [info, setInfo] = useState<string | null>(null);
+
+	// Edit state
+	const [editingId, setEditingId] = useState<string | null>(null);
+	const [editForm, setEditForm] = useState({ amount: "", category: "Fuel", note: "", date: "" });
+	const [editSaving, setEditSaving] = useState(false);
+	const [editError, setEditError] = useState<string | null>(null);
+
+	// Delete state
+	const [deletingId, setDeletingId] = useState<string | null>(null);
+	const [deleteInProgress, setDeleteInProgress] = useState(false);
 
 	// Keep the pending badge in sync with the queue + auto-flush when back online.
 	useEffect(() => {
@@ -96,6 +115,74 @@ export function ExpensePanel({ jobId, expenses: initial }: { jobId: string; expe
 	function resetForm() {
 		setForm({ amount: "", category: "Fuel", note: "", date: todayISO() });
 		setReceiptFile(null);
+	}
+
+	function startEdit(expense: Expense) {
+		setEditingId(expense.id);
+		setEditForm({
+			amount: String(expense.amount),
+			category: expense.category,
+			note: expense.description ?? "",
+			date: expense.incurred_at,
+		});
+		setEditError(null);
+		setDeletingId(null);
+	}
+
+	function cancelEdit() {
+		setEditingId(null);
+		setEditError(null);
+	}
+
+	async function handleUpdate(expenseId: string) {
+		const amt = Number(editForm.amount);
+		if (!amt || amt <= 0) {
+			setEditError(tCommonErrors("amountMustBePositive"));
+			return;
+		}
+		setEditSaving(true);
+		setEditError(null);
+		try {
+			const supabase = createClient();
+			const { data, error: updateErr } = await supabase
+				.from("expenses")
+				.update({
+					amount: amt,
+					category: editForm.category,
+					description: editForm.note.trim() || null,
+					incurred_at: editForm.date,
+				})
+				.eq("id", expenseId)
+				.select("id, category, description, amount, incurred_at, receipt_url")
+				.single();
+
+			if (updateErr) throw updateErr;
+
+			setExpenses((prev) => prev.map((e) => (e.id === expenseId ? (data as Expense) : e)));
+			setEditingId(null);
+			startTransition(() => router.refresh());
+		} catch (err: unknown) {
+			setEditError(err instanceof Error ? err.message : "Error");
+		} finally {
+			setEditSaving(false);
+		}
+	}
+
+	async function handleDelete(expenseId: string) {
+		setDeleteInProgress(true);
+		try {
+			const supabase = createClient();
+			const { error: deleteErr } = await supabase.from("expenses").delete().eq("id", expenseId);
+			if (deleteErr) throw deleteErr;
+			setExpenses((prev) => prev.filter((e) => e.id !== expenseId));
+			setDeletingId(null);
+			startTransition(() => router.refresh());
+		} catch (err: unknown) {
+			// Surface delete error inline in the row
+			setEditError(err instanceof Error ? err.message : "Error");
+		} finally {
+			setDeleteInProgress(false);
+		}
 	}
 
 	function queueLocally(amt: number) {
@@ -245,7 +332,7 @@ export function ExpensePanel({ jobId, expenses: initial }: { jobId: string; expe
 					{/* Category chips */}
 					<div>
 						<span className="block text-sm font-medium mb-2 text-ink">{tExpense("category")}</span>
-						<div role="group" aria-label={tExpense("category")} className="flex flex-wrap gap-2">
+						<fieldset aria-label={tExpense("category")} className="flex flex-wrap gap-2">
 							{CATEGORIES.map((c) => (
 								<button
 									key={c.value}
@@ -261,7 +348,7 @@ export function ExpensePanel({ jobId, expenses: initial }: { jobId: string; expe
 									{tEntityCategory(c.key)}
 								</button>
 							))}
-						</div>
+						</fieldset>
 					</div>
 
 					<Button
@@ -335,33 +422,192 @@ export function ExpensePanel({ jobId, expenses: initial }: { jobId: string; expe
 						<span className="tabular-nums text-sm font-bold text-ink">{formatRupiah(total)}</span>
 					}
 				/>
+				{lockReason && (
+					<div className="px-4 py-2.5 border-b border-line bg-subtle">
+						<p className="text-xs text-ink-muted">{lockReason}</p>
+					</div>
+				)}
 				{expenses.length === 0 && (
 					<p className="px-4 py-6 text-center text-sm text-ink-faint">{tJobDetail("noExpenses")}</p>
 				)}
 				{expenses.map((e) => {
 					const isPendingItem = e.id.startsWith("pending:");
+					const isEditing = editingId === e.id;
+					const isDeleting = deletingId === e.id;
+
+					if (isEditing) {
+						return (
+							<div key={e.id} className="px-4 py-3 border-b border-line last:border-0 space-y-3">
+								<p className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
+									{tExpense("editTitle")}
+								</p>
+								{editError && <FormError>{editError}</FormError>}
+
+								{/* Edit amount */}
+								<div>
+									<label
+										htmlFor={`edit-amount-${e.id}`}
+										className="block text-sm font-medium mb-1 text-ink"
+									>
+										{tExpense("amountIdr")}
+									</label>
+									<NumericInput
+										id={`edit-amount-${e.id}`}
+										value={Number(editForm.amount) || 0}
+										onChange={(v) => setEditForm((p) => ({ ...p, amount: v > 0 ? String(v) : "" }))}
+										className="w-full rounded-lg border border-line-strong bg-surface px-4 py-3 text-xl tabular-nums font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-right text-ink"
+									/>
+									{editForm.amount && Number(editForm.amount) > 0 && (
+										<p className="text-xs text-ink-faint mt-1 text-right">
+											{formatRupiah(Number(editForm.amount))}
+										</p>
+									)}
+								</div>
+
+								{/* Edit category chips */}
+								<div>
+									<span className="block text-sm font-medium mb-2 text-ink">
+										{tExpense("category")}
+									</span>
+									<fieldset aria-label={tExpense("category")} className="flex flex-wrap gap-2">
+										{CATEGORIES.map((c) => (
+											<button
+												key={c.value}
+												type="button"
+												onClick={() => setEditForm((p) => ({ ...p, category: c.value }))}
+												aria-pressed={editForm.category === c.value}
+												className={`rounded-full min-h-[44px] px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
+													editForm.category === c.value
+														? "bg-primary text-primary-fg"
+														: "bg-subtle text-ink-muted hover:bg-subtle hover:text-ink"
+												}`}
+											>
+												{tEntityCategory(c.key)}
+											</button>
+										))}
+									</fieldset>
+								</div>
+
+								{/* Edit note and date */}
+								<Field label={tExpense("note")} htmlFor={`edit-note-${e.id}`}>
+									<Input
+										id={`edit-note-${e.id}`}
+										type="text"
+										value={editForm.note}
+										onChange={(ev) => setEditForm((p) => ({ ...p, note: ev.target.value }))}
+									/>
+								</Field>
+								<Field label={tExpense("date")} htmlFor={`edit-date-${e.id}`}>
+									<Input
+										id={`edit-date-${e.id}`}
+										type="date"
+										value={editForm.date}
+										onChange={(ev) => setEditForm((p) => ({ ...p, date: ev.target.value }))}
+									/>
+								</Field>
+
+								<div className="flex gap-2 pt-1">
+									<Button
+										type="button"
+										variant="primary"
+										size="sm"
+										loading={editSaving}
+										disabled={editSaving}
+										onClick={() => handleUpdate(e.id)}
+									>
+										{tCommonButtons("saveChanges")}
+									</Button>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										disabled={editSaving}
+										onClick={cancelEdit}
+									>
+										{tCommonButtons("cancel")}
+									</Button>
+								</div>
+							</div>
+						);
+					}
+
 					return (
 						<div
 							key={e.id}
-							className={`flex items-center justify-between px-4 py-3 border-b border-line last:border-0 text-sm ${isPendingItem ? "bg-warning-bg" : ""}`}
+							className={`border-b border-line last:border-0 text-sm ${isPendingItem ? "bg-warning-bg" : ""}`}
 						>
-							<div>
-								<span className="font-medium text-ink">
-									{CATEGORY_KEY_BY_VALUE[e.category]
-										? tEntityCategory(CATEGORY_KEY_BY_VALUE[e.category])
-										: e.category}
-								</span>
-								{e.description && (
-									<span className="text-ink-faint text-xs ml-2">{e.description}</span>
-								)}
-								<span className="block text-xs text-ink-faint">
-									{e.incurred_at}
-									{isPendingItem && (
-										<span className="ml-1 text-warning-text">· {tOffline("pending")}</span>
+							<div className="flex items-center justify-between px-4 py-3">
+								<div>
+									<span className="font-medium text-ink">
+										{CATEGORY_KEY_BY_VALUE[e.category]
+											? tEntityCategory(CATEGORY_KEY_BY_VALUE[e.category])
+											: e.category}
+									</span>
+									{e.description && (
+										<span className="text-ink-faint text-xs ml-2">{e.description}</span>
 									)}
-								</span>
+									<span className="block text-xs text-ink-faint">
+										{e.incurred_at}
+										{isPendingItem && (
+											<span className="ml-1 text-warning-text">· {tOffline("pending")}</span>
+										)}
+									</span>
+								</div>
+								<div className="flex items-center gap-3">
+									<span className="tabular-nums font-medium text-ink">
+										{formatRupiah(e.amount)}
+									</span>
+									{!isPendingItem && !lockReason && (
+										<div className="flex gap-1">
+											<button
+												type="button"
+												onClick={() => startEdit(e)}
+												aria-label={tCommonButtons("edit")}
+												className="p-1.5 rounded text-ink-faint hover:text-ink hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+											>
+												<PencilIcon />
+											</button>
+											<button
+												type="button"
+												onClick={() => {
+													setDeletingId(e.id);
+													setEditingId(null);
+												}}
+												aria-label={tCommonButtons("delete")}
+												className="p-1.5 rounded text-ink-faint hover:text-danger hover:bg-danger-bg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+											>
+												<TrashIcon />
+											</button>
+										</div>
+									)}
+								</div>
 							</div>
-							<span className="tabular-nums font-medium text-ink">{formatRupiah(e.amount)}</span>
+
+							{/* Inline delete confirmation */}
+							{isDeleting && (
+								<div className="px-4 pb-3 flex items-center gap-3">
+									<span className="text-xs text-ink-muted">{tExpense("deleteConfirm")}</span>
+									<Button
+										type="button"
+										variant="danger"
+										size="sm"
+										loading={deleteInProgress}
+										disabled={deleteInProgress}
+										onClick={() => handleDelete(e.id)}
+									>
+										{tCommonButtons("delete")}
+									</Button>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										disabled={deleteInProgress}
+										onClick={() => setDeletingId(null)}
+									>
+										{tCommonButtons("cancel")}
+									</Button>
+								</div>
+							)}
 						</div>
 					);
 				})}
@@ -372,4 +618,40 @@ export function ExpensePanel({ jobId, expenses: initial }: { jobId: string; expe
 
 function todayISO() {
 	return new Date().toISOString().slice(0, 10);
+}
+
+function PencilIcon() {
+	return (
+		<svg
+			width="15"
+			height="15"
+			viewBox="0 0 15 15"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+			aria-hidden="true"
+		>
+			<path
+				d="M11.854.146a.5.5 0 0 0-.707 0l-10 10a.5.5 0 0 0-.134.26l-.5 2.5a.5.5 0 0 0 .61.61l2.5-.5a.5.5 0 0 0 .26-.134l10-10a.5.5 0 0 0 0-.707l-2-2ZM11.5 1.207 13.793 3.5l-1 1L10.5 2.207l1-1ZM9.793 3 12.086 5.293 4.5 12.879l-2-.667-.667-2L9.793 3Z"
+				fill="currentColor"
+			/>
+		</svg>
+	);
+}
+
+function TrashIcon() {
+	return (
+		<svg
+			width="15"
+			height="15"
+			viewBox="0 0 15 15"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+			aria-hidden="true"
+		>
+			<path
+				d="M5.5 1C5.224 1 5 1.224 5 1.5V2H2.5a.5.5 0 0 0 0 1H3v9.5A1.5 1.5 0 0 0 4.5 14h6a1.5 1.5 0 0 0 1.5-1.5V3h.5a.5.5 0 0 0 0-1H10v-.5C10 1.224 9.776 1 9.5 1h-4ZM6 2h3v-.001L9 2H6Zm-2 1h7v9.5a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5V3Zm2 2a.5.5 0 0 0-.5.5v5a.5.5 0 0 0 1 0v-5A.5.5 0 0 0 6 5Zm3 0a.5.5 0 0 0-.5.5v5a.5.5 0 0 0 1 0v-5A.5.5 0 0 0 9 5Z"
+				fill="currentColor"
+			/>
+		</svg>
+	);
 }
