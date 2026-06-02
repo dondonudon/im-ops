@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { BackLink } from "@/components/shared/BackLink";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { Badge, buttonStyles, PageHeader } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
@@ -22,6 +23,7 @@ export default async function CrewDetailPage({ params }: { params: Promise<{ id:
 
 	return (
 		<div className="space-y-6 max-w-2xl">
+			<BackLink href="/crew" label={t("backToList")} />
 			<PageHeader
 				title={member.name}
 				actions={

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { BackLink } from "@/components/shared/BackLink";
 import { NegotiationHistory } from "@/components/proposals/NegotiationHistory";
 import { ProposalActionPanel } from "@/components/proposals/ProposalActionPanel";
 import { ProposalDuplicateButton } from "@/components/proposals/ProposalDuplicateButton";
@@ -97,6 +98,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 
 	return (
 		<div className="space-y-6">
+			<BackLink href="/proposals" label={t("backToList")} />
 			{/* Header */}
 			<PageHeader
 				title={

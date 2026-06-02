@@ -2,6 +2,7 @@ import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { BackLink } from "@/components/shared/BackLink";
 import { DealTimeline } from "@/components/leads/DealTimeline";
 import { LeadActionPanel } from "@/components/leads/LeadActionPanel";
 import { LeadDuplicateButton } from "@/components/leads/LeadDuplicateButton";
@@ -60,6 +61,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
 	return (
 		<div className="space-y-6">
+			<BackLink href="/leads" label={t("backToList")} />
 			{/* Header */}
 			<PageHeader
 				title={

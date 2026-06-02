@@ -539,7 +539,8 @@
 			"openProposal": "Buka",
 			"viewSurvey": "Lihat survei",
 			"viewJob": "Lihat pekerjaan",
-			"noJobYet": "Belum dikonversi"
+			"noJobYet": "Belum dikonversi",
+			"backToList": "Prospek"
 		},
 		"jobDetail": {
 			"moveSummary": "Ringkasan pindahan",
@@ -559,7 +560,8 @@
 			"payments": "Pembayaran",
 			"manageInvoice": "Kelola Faktur →",
 			"assignResources": "Tugaskan Sumber Daya",
-			"expense": "+ Pengeluaran"
+			"expense": "+ Pengeluaran",
+			"backToList": "Pekerjaan"
 		},
 		"jobsTimeline": {
 			"backToJob": "Kembali ke pekerjaan",
@@ -589,7 +591,8 @@
 				"finalProfit": "Keuntungan final",
 				"internalTarget": "Target internal",
 				"offerPrice": "Harga penawaran"
-			}
+			},
+			"backToList": "Penawaran"
 		},
 		"customerDetail": {
 			"contactInformation": "Informasi kontak",
@@ -601,7 +604,8 @@
 			"newLead": "Prospek Baru",
 			"noLeadsYet": "Belum ada prospek.",
 			"jobs": "Pekerjaan",
-			"noJobsYet": "Belum ada pekerjaan."
+			"noJobsYet": "Belum ada pekerjaan.",
+			"backToList": "Pelanggan"
 		},
 		"fleetDetail": {
 			"contact": "Kontak",
@@ -609,7 +613,8 @@
 			"vehicles": "Kendaraan",
 			"serviceAreas": "Area layanan",
 			"bank": "Bank",
-			"notes": "Catatan"
+			"notes": "Catatan",
+			"backToList": "Armada"
 		},
 		"crewDetail": {
 			"phone": "Telepon",
@@ -617,7 +622,8 @@
 			"skills": "Keahlian",
 			"availability": "Ketersediaan",
 			"emergency": "Kontak darurat",
-			"notes": "Catatan"
+			"notes": "Catatan",
+			"backToList": "Kru"
 		},
 		"invoiceDetail": {
 			"due": "Jatuh tempo {date}",
@@ -629,7 +635,8 @@
 			"dueDate": "Jatuh tempo",
 			"notes": "Catatan",
 			"total": "Total",
-			"downloadInvoicePdf": "Unduh PDF Faktur"
+			"downloadInvoicePdf": "Unduh PDF Faktur",
+			"backToList": "Tagihan"
 		},
 		"estimation": {
 			"newTitle": "Estimasi Baru",

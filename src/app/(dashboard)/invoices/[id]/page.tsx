@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { BackLink } from "@/components/shared/BackLink";
 import { InvoicePDFDownloadButton } from "@/components/invoices/InvoicePDFDownloadButton";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { Badge, Card, Money, PageHeader, toneFor } from "@/components/ui";
@@ -95,6 +96,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
 	return (
 		<div className="space-y-6">
+			<BackLink href="/invoices" label={t("backToList")} />
 			{/* Header */}
 			<PageHeader
 				title={

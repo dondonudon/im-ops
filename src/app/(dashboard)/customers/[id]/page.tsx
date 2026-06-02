@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { BackLink } from "@/components/shared/BackLink";
 import { jobStatusVariant, leadStatusVariant, StatusChip } from "@/components/shared/StatusChip";
 import { buttonStyles, PageHeader } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
@@ -38,6 +39,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
 	return (
 		<div className="space-y-8">
+			<BackLink href="/customers" label={t("backToList")} />
 			<PageHeader
 				title={customer.name}
 				subtitle={tType(customer.type as never)}

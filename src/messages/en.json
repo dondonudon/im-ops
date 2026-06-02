@@ -539,7 +539,8 @@
 			"openProposal": "Open",
 			"viewSurvey": "View survey",
 			"viewJob": "View job",
-			"noJobYet": "Not converted yet"
+			"noJobYet": "Not converted yet",
+			"backToList": "Leads"
 		},
 		"jobDetail": {
 			"moveSummary": "Move summary",
@@ -559,7 +560,8 @@
 			"payments": "Payments",
 			"manageInvoice": "Manage Invoice →",
 			"assignResources": "Assign Resources",
-			"expense": "+ Expense"
+			"expense": "+ Expense",
+			"backToList": "Jobs"
 		},
 		"jobsTimeline": {
 			"backToJob": "Back to job",
@@ -589,7 +591,8 @@
 				"finalProfit": "Final profit",
 				"internalTarget": "Internal target",
 				"offerPrice": "Offer price"
-			}
+			},
+			"backToList": "Proposals"
 		},
 		"customerDetail": {
 			"contactInformation": "Contact information",
@@ -601,7 +604,8 @@
 			"newLead": "New Lead",
 			"noLeadsYet": "No leads yet.",
 			"jobs": "Jobs",
-			"noJobsYet": "No jobs yet."
+			"noJobsYet": "No jobs yet.",
+			"backToList": "Customers"
 		},
 		"fleetDetail": {
 			"contact": "Contact",
@@ -609,7 +613,8 @@
 			"vehicles": "Vehicles",
 			"serviceAreas": "Service areas",
 			"bank": "Bank",
-			"notes": "Notes"
+			"notes": "Notes",
+			"backToList": "Fleet"
 		},
 		"crewDetail": {
 			"phone": "Phone",
@@ -617,7 +622,8 @@
 			"skills": "Skills",
 			"availability": "Availability",
 			"emergency": "Emergency",
-			"notes": "Notes"
+			"notes": "Notes",
+			"backToList": "Crew"
 		},
 		"invoiceDetail": {
 			"due": "Due {date}",
@@ -629,7 +635,8 @@
 			"dueDate": "Due date",
 			"notes": "Notes",
 			"total": "Total",
-			"downloadInvoicePdf": "Download Invoice PDF"
+			"downloadInvoicePdf": "Download Invoice PDF",
+			"backToList": "Invoices"
 		},
 		"estimation": {
 			"newTitle": "New Estimation",

@@ -8,6 +8,7 @@ import { GenerateInvoiceButton } from "@/components/invoices/GenerateInvoiceButt
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { JobMarkDoneButton } from "@/components/jobs/JobMarkDoneButton";
 import { TimelineLogEventButton } from "@/components/jobs/TimelineLogEventButton";
+import { BackLink } from "@/components/shared/BackLink";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
@@ -92,6 +93,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
 	return (
 		<div className="space-y-6">
+			<BackLink href="/jobs" label={t("backToList")} />
 			{/* Header */}
 			<PageHeader
 				title={
