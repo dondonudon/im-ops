@@ -41,9 +41,12 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 		move_end_time: "",
 		revenue: "",
 		notes: "",
+		pickup_address: "",
+		destination_address: "",
 	});
 	const [jobNumber, setJobNumber] = useState("");
 	const [customerName, setCustomerName] = useState("");
+	const [leadId, setLeadId] = useState<string | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -53,7 +56,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 		supabase
 			.from("jobs")
 			.select(
-				"job_number, status, move_date, move_time, move_end_date, move_end_time, revenue, notes, proposals(leads(customers(name)))",
+				"job_number, status, move_date, move_time, move_end_date, move_end_time, revenue, notes, proposals(leads(id, pickup_address, destination_address, customers(name)))",
 			)
 			.eq("id", id)
 			.single()
@@ -63,13 +66,14 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 					setLoading(false);
 					return;
 				}
-				const customer = (
+				const lead = (
 					data.proposals as {
-						leads: { customers: { name: string } | null } | null;
+						leads: { id: string; pickup_address: string | null; destination_address: string | null; customers: { name: string } | null } | null;
 					} | null
-				)?.leads?.customers;
+				)?.leads;
 				setJobNumber(data.job_number ?? "");
-				setCustomerName(customer?.name ?? "");
+				setCustomerName(lead?.customers?.name ?? "");
+				setLeadId(lead?.id ?? null);
 				setForm({
 					status: (data.status ?? "scheduled") as JobStatus,
 					move_date: data.move_date ?? "",
@@ -81,6 +85,8 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 					).slice(0, 5),
 					revenue: data.revenue != null ? String(data.revenue) : "",
 					notes: data.notes ?? "",
+					pickup_address: lead?.pickup_address ?? "",
+					destination_address: lead?.destination_address ?? "",
 				});
 				setLoading(false);
 			});
@@ -117,6 +123,17 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 				})
 				.eq("id", id);
 			if (err) throw err;
+
+			if (leadId) {
+				const { error: leadErr } = await supabase
+					.from("leads")
+					.update({
+						pickup_address: form.pickup_address.trim() || null,
+						destination_address: form.destination_address.trim() || null,
+					})
+					.eq("id", leadId);
+				if (leadErr) throw leadErr;
+			}
 
 			// Re-sync the Google Calendar event (PATCH if it exists, POST otherwise).
 			// Non-blocking — calendar failures must never block the save flow.
@@ -274,6 +291,31 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 								/>
 							</Field>
 						</div>
+					</fieldset>
+
+					{/* Addresses */}
+					<fieldset className="space-y-3">
+						<legend className="block text-sm font-medium text-ink mb-1">
+							{t("addresses")}
+						</legend>
+						<Field label={tCustomer("pickup")} htmlFor="pickup_address">
+							<Input
+								id="pickup_address"
+								name="pickup_address"
+								value={form.pickup_address}
+								onChange={handleChange}
+								placeholder="—"
+							/>
+						</Field>
+						<Field label={tCustomer("destination")} htmlFor="destination_address">
+							<Input
+								id="destination_address"
+								name="destination_address"
+								value={form.destination_address}
+								onChange={handleChange}
+								placeholder="—"
+							/>
+						</Field>
 					</fieldset>
 
 					{/* Revenue */}

@@ -725,7 +725,8 @@
       "notes": "Catatan",
       "editTitle": "Edit Pekerjaan",
       "backToJob": "Kembali ke Pekerjaan",
-      "backToLead": "Kembali ke Prospek"
+      "backToLead": "Kembali ke Prospek",
+      "addresses": "Alamat"
     },
     "estimation": {
       "title": "Estimasi",
