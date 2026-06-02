@@ -1,20 +1,20 @@
-import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatRupiah, sanitizeSearch } from "@/lib/utils";
 import {
-	PageHeader,
-	Input,
 	Badge,
 	EmptyState,
-	Table,
-	THead,
-	TH,
-	TBody,
-	TR,
-	TD,
+	Input,
+	PageHeader,
 	Pagination,
+	Table,
+	TBody,
+	TD,
+	TH,
+	THead,
+	TR,
 } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatRupiah, sanitizeSearch } from "@/lib/utils";
 
 const PAGE_SIZE = 25;
 
@@ -32,13 +32,16 @@ export default async function CrewPage({
 
 	let query = supabase
 		.from("crew")
-		.select("id, name, phone, skills, daily_rate, availability_status, is_active", { count: "exact" });
+		.select("id, name, phone, skills, daily_rate, availability_status, is_active", {
+			count: "exact",
+		});
 
-	if (q) { const safe = sanitizeSearch(q); query = query.ilike("name", `%${safe}%`); }
+	if (q) {
+		const safe = sanitizeSearch(q);
+		query = query.ilike("name", `%${safe}%`);
+	}
 
-	const { data: crew, count } = await query
-		.order("name")
-		.range(from, from + PAGE_SIZE - 1);
+	const { data: crew, count } = await query.order("name").range(from, from + PAGE_SIZE - 1);
 	const rows = crew ?? [];
 
 	return (
@@ -125,9 +128,7 @@ export default async function CrewPage({
 						)}
 					</Link>
 				))}
-				{rows.length === 0 && (
-					<EmptyState title={t("empty")} />
-				)}
+				{rows.length === 0 && <EmptyState title={t("empty")} />}
 			</div>
 
 			<Pagination page={page} pageSize={PAGE_SIZE} total={count ?? 0} />

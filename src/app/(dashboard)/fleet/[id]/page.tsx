@@ -1,15 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
-import { PageHeader, Badge, buttonStyles } from "@/components/ui";
-import Link from "next/link";
+import { Badge, buttonStyles, PageHeader } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
-export default async function FleetDetailPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function FleetDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const supabase = await createClient();
 	const t = await getTranslations("pages.fleetDetail");
@@ -18,7 +14,9 @@ export default async function FleetDetailPage({
 
 	const { data: fleet } = await supabase
 		.from("fleet")
-		.select("id, name, phone, contact_person, vehicle_types, service_areas, bank_name, bank_account, notes, is_active")
+		.select(
+			"id, name, phone, contact_person, vehicle_types, service_areas, bank_name, bank_account, notes, is_active",
+		)
 		.eq("id", id)
 		.single();
 
@@ -34,10 +32,7 @@ export default async function FleetDetailPage({
 					</Badge>
 				}
 				actions={
-					<Link
-						href={`/fleet/${id}/edit`}
-						className={buttonStyles({ variant: "secondary" })}
-					>
+					<Link href={`/fleet/${id}/edit`} className={buttonStyles({ variant: "secondary" })}>
 						{tCommon("edit")}
 					</Link>
 				}

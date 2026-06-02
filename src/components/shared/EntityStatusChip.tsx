@@ -1,10 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import {
-	StatusChip,
-	VARIANT_FOR_ENTITY,
-	type Entity,
-} from "./StatusChip";
+import { type Entity, StatusChip, VARIANT_FOR_ENTITY } from "./StatusChip";
 
 /**
  * Translation-aware status badge. Looks up `status.{entity}.{status}` in the
@@ -29,10 +25,6 @@ export function EntityStatusChip({
 	const translated = t.has(key as never) ? t(key as never) : null;
 	const label = translated ?? status.replace(/_/g, " ");
 	return (
-		<StatusChip
-			label={label}
-			variant={VARIANT_FOR_ENTITY[entity](status)}
-			className={className}
-		/>
+		<StatusChip label={label} variant={VARIANT_FOR_ENTITY[entity](status)} className={className} />
 	);
 }

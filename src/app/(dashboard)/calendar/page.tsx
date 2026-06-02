@@ -1,8 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
 import { getTranslations } from "next-intl/server";
 import { CalendarView } from "@/components/calendar/CalendarView";
 import { SyncAllButton } from "@/components/calendar/SyncAllButton";
 import { PageHeader } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function CalendarPage() {
 	const supabase = await createClient();

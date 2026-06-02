@@ -1,28 +1,20 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { getTranslations } from "next-intl/server";
-import { formatDate } from "@/lib/utils";
 import { TimelineLogEventButton } from "@/components/jobs/TimelineLogEventButton";
-import { PageHeader, Card, EmptyState } from "@/components/ui";
+import { Card, EmptyState, PageHeader } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatDate } from "@/lib/utils";
 
-export default async function JobTimelinePage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function JobTimelinePage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const supabase = await createClient();
 	const t = await getTranslations("pages.jobsTimeline");
 	const tEvent = await getTranslations("entity.eventType");
 
 	const [{ data: job }, { data: timeline }] = await Promise.all([
-		supabase
-			.from("jobs")
-			.select("id, job_number, status")
-			.eq("id", id)
-			.single(),
+		supabase.from("jobs").select("id, job_number, status").eq("id", id).single(),
 		supabase
 			.from("job_timeline")
 			.select("id, event_type, notes, occurred_at")
@@ -45,9 +37,7 @@ export default async function JobTimelinePage({
 							<ArrowLeft size={12} aria-hidden="true" />
 							{t("backToJob")}
 						</Link>
-						<span className="block text-sm text-ink-faint font-mono">
-							{job.job_number}
-						</span>
+						<span className="block text-sm text-ink-faint font-mono">{job.job_number}</span>
 					</>
 				}
 				actions={<TimelineLogEventButton jobId={id} />}
@@ -73,10 +63,7 @@ export default async function JobTimelinePage({
 											aria-hidden="true"
 										/>
 										{idx < (timeline ?? []).length - 1 && (
-											<div
-												className="flex-1 w-px bg-line mt-1"
-												aria-hidden="true"
-											/>
+											<div className="flex-1 w-px bg-line mt-1" aria-hidden="true" />
 										)}
 									</div>
 									<div className="pb-4 flex-1">
@@ -86,9 +73,7 @@ export default async function JobTimelinePage({
 												{row.notes}
 											</p>
 										)}
-										<p className="text-ink-faint text-xs mt-0.5">
-											{formatDate(row.occurred_at)}
-										</p>
+										<p className="text-ink-faint text-xs mt-0.5">{formatDate(row.occurred_at)}</p>
 									</div>
 								</li>
 							);

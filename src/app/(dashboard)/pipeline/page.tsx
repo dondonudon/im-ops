@@ -1,15 +1,15 @@
-import { createClient } from "@/lib/supabase/server";
+import { CircleSlash } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { CircleSlash } from "lucide-react";
-import { formatDate } from "@/lib/utils";
-import { PageHeader, Money, EmptyState } from "@/components/ui";
+import type { Stage } from "@/app/(dashboard)/pipeline/actions";
 import {
-	PipelineBoard,
 	type ColumnsData,
+	PipelineBoard,
 	type PipelineCard,
 } from "@/components/pipeline/PipelineBoard";
-import type { Stage } from "@/app/(dashboard)/pipeline/actions";
+import { EmptyState, Money, PageHeader } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatDate } from "@/lib/utils";
 
 /** Map a lead status to its funnel column. `closed_lost` is excluded. */
 function stageOf(status: string): Stage | null {
@@ -43,9 +43,7 @@ type LeadRow = {
 
 /** Best-known value for a deal: approved proposal price, else any priced proposal. */
 function dealValue(proposals: LeadRow["proposals"]): number {
-	const approved = proposals.find(
-		(p) => p.status === "approved" && p.final_price != null,
-	);
+	const approved = proposals.find((p) => p.status === "approved" && p.final_price != null);
 	if (approved?.final_price != null) return approved.final_price;
 	const priced = proposals.find((p) => p.final_price != null);
 	return priced?.final_price ?? 0;
@@ -69,10 +67,7 @@ export default async function PipelinePage() {
 			.neq("status", "closed_lost")
 			.order("created_at", { ascending: false })
 			.limit(500),
-		supabase
-			.from("leads")
-			.select("*", { count: "exact", head: true })
-			.eq("status", "closed_lost"),
+		supabase.from("leads").select("*", { count: "exact", head: true }).eq("status", "closed_lost"),
 	]);
 
 	const leads = (leadsData ?? []) as LeadRow[];

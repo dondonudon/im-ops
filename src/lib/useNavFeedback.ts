@@ -17,7 +17,7 @@ export function useNavFeedback() {
 
 	useEffect(() => {
 		setClicked(null);
-	}, [pathname]);
+	}, []);
 
 	// Safety: never leave a phantom spinner if a navigation is cancelled.
 	useEffect(() => {

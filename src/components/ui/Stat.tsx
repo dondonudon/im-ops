@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import type { Tone } from "@/components/ui/Badge";
+import { cn } from "@/lib/utils";
 
 const ACCENT: Record<Tone, string> = {
 	neutral: "text-ink-muted bg-subtle",
@@ -37,19 +37,14 @@ export function Stat({
 				>
 					{icon}
 				</span>
-				<p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-					{label}
-				</p>
+				<p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{label}</p>
 			</div>
-			<p className="text-3xl font-bold leading-none text-ink tabular-nums">
-				{value}
-			</p>
+			<p className="text-3xl font-bold leading-none text-ink tabular-nums">{value}</p>
 			{sub && <p className="text-xs text-ink-muted mt-1.5">{sub}</p>}
 		</>
 	);
 
-	const cls =
-		"bg-surface border border-line rounded-xl shadow-token p-4 transition-all";
+	const cls = "bg-surface border border-line rounded-xl shadow-token p-4 transition-all";
 
 	return href ? (
 		<Link

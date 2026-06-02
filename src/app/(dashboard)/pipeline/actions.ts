@@ -1,7 +1,7 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 
 export type Stage = "new" | "survey" | "estimate" | "proposal" | "won";
 
@@ -21,13 +21,12 @@ export type AdvanceResult =
  * The one allowed side effect — dropping into Estimate with no proposal yet —
  * mirrors the existing "skip to estimate" flow (auto-creates a draft proposal).
  */
-export async function advanceLead(
-	leadId: string,
-	toStage: Stage,
-): Promise<AdvanceResult> {
+export async function advanceLead(leadId: string, toStage: Stage): Promise<AdvanceResult> {
 	const supabase = await createClient();
 
-	const { data: { user } } = await supabase.auth.getUser();
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
 	if (!user) return { ok: false, reason: "error" };
 
 	const { data: lead, error: leadErr } = await supabase
@@ -56,12 +55,7 @@ export async function advanceLead(
 		jobCount = count ?? 0;
 	}
 
-	let newStatus:
-		| "new"
-		| "survey_scheduled"
-		| "estimating"
-		| "proposal_sent"
-		| "converted";
+	let newStatus: "new" | "survey_scheduled" | "estimating" | "proposal_sent" | "converted";
 	switch (toStage) {
 		case "new":
 			newStatus = "new";
@@ -83,10 +77,9 @@ export async function advanceLead(
 			// Ensure a draft proposal exists (create one if not) — same as the
 			// lead panel's "skip to estimate".
 			if (proposals.length === 0) {
-				const { data: proposalNumber } = await supabase.rpc(
-					"generate_proposal_number",
-					{ service_type: "DOM" },
-				);
+				const { data: proposalNumber } = await supabase.rpc("generate_proposal_number", {
+					service_type: "DOM",
+				});
 				const { error: insErr } = await supabase.from("proposals").insert({
 					lead_id: leadId,
 					proposal_number: proposalNumber!,
@@ -100,8 +93,7 @@ export async function advanceLead(
 		}
 
 		case "proposal": {
-			if (!hasNonTerminalProposal)
-				return { ok: false, reason: "needs_proposal" };
+			if (!hasNonTerminalProposal) return { ok: false, reason: "needs_proposal" };
 			newStatus = "proposal_sent";
 			break;
 		}

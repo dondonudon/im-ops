@@ -1,20 +1,20 @@
-import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { sanitizeSearch } from "@/lib/utils";
 import {
-	PageHeader,
-	Input,
 	Badge,
 	EmptyState,
-	Table,
-	THead,
-	TH,
-	TBody,
-	TR,
-	TD,
+	Input,
+	PageHeader,
 	Pagination,
+	Table,
+	TBody,
+	TD,
+	TH,
+	THead,
+	TR,
 } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { sanitizeSearch } from "@/lib/utils";
 
 const PAGE_SIZE = 25;
 
@@ -34,11 +34,12 @@ export default async function FleetPage({
 		.from("fleet")
 		.select("id, name, contact_person, phone, vehicle_types, is_active", { count: "exact" });
 
-	if (q) { const safe = sanitizeSearch(q); query = query.ilike("name", `%${safe}%`); }
+	if (q) {
+		const safe = sanitizeSearch(q);
+		query = query.ilike("name", `%${safe}%`);
+	}
 
-	const { data: fleet, count } = await query
-		.order("name")
-		.range(from, from + PAGE_SIZE - 1);
+	const { data: fleet, count } = await query.order("name").range(from, from + PAGE_SIZE - 1);
 	const rows = fleet ?? [];
 
 	return (
@@ -112,9 +113,7 @@ export default async function FleetPage({
 							<div>
 								<p className="font-semibold text-ink">{v.name}</p>
 								{v.contact_person && (
-									<p className="text-sm text-ink-faint mt-0.5">
-										{v.contact_person}
-									</p>
+									<p className="text-sm text-ink-faint mt-0.5">{v.contact_person}</p>
 								)}
 							</div>
 							<Badge tone={v.is_active ? "positive" : "neutral"}>
@@ -129,17 +128,13 @@ export default async function FleetPage({
 							{(v.vehicle_types as string[] | null)?.length ? (
 								<div>
 									<p className="text-xs text-ink-faint">{t("columns.vehicles")}</p>
-									<p className="text-ink-muted">
-										{(v.vehicle_types as string[]).join(", ")}
-									</p>
+									<p className="text-ink-muted">{(v.vehicle_types as string[]).join(", ")}</p>
 								</div>
 							) : null}
 						</div>
 					</Link>
 				))}
-				{rows.length === 0 && (
-					<EmptyState title={t("empty")} />
-				)}
+				{rows.length === 0 && <EmptyState title={t("empty")} />}
 			</div>
 
 			<Pagination page={page} pageSize={PAGE_SIZE} total={count ?? 0} />

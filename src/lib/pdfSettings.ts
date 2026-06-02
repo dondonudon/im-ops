@@ -46,9 +46,7 @@ function get(map: Record<string, string>, key: string): string {
 }
 
 /** Build company identity settings from the raw key→value map. */
-export function buildCompanySettings(
-	map: Record<string, string>,
-): CompanySettings {
+export function buildCompanySettings(map: Record<string, string>): CompanySettings {
 	return {
 		name: get(map, "company_name"),
 		tagline: get(map, "company_tagline"),
@@ -67,9 +65,7 @@ export function buildProposalTemplateSettings(
 }
 
 /** Build invoice template settings from the raw key→value map. */
-export function buildInvoiceTemplateSettings(
-	map: Record<string, string>,
-): InvoiceTemplateSettings {
+export function buildInvoiceTemplateSettings(map: Record<string, string>): InvoiceTemplateSettings {
 	return {
 		footerNote: get(map, "invoice_footer_note"),
 	};

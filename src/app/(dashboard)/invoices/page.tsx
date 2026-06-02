@@ -1,22 +1,22 @@
-import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate, formatRupiah } from "@/lib/utils";
 import {
+	Badge,
+	EmptyState,
+	Money,
 	PageHeader,
+	Pagination,
 	Select,
 	Table,
-	THead,
-	TH,
 	TBody,
-	TR,
 	TD,
-	EmptyState,
-	Badge,
+	TH,
+	THead,
+	TR,
 	toneFor,
-	Money,
-	Pagination,
 } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatDate, formatRupiah } from "@/lib/utils";
 
 const PAGE_SIZE = 25;
 
@@ -43,15 +43,16 @@ export default async function InvoicesPage({
 	const tStatus = await getTranslations("status.invoice");
 	const tDetail = await getTranslations("pages.invoiceDetail");
 
-	let query = supabase
-		.from("invoices")
-		.select(`
+	let query = supabase.from("invoices").select(
+		`
       id, invoice_number, status, total_amount, paid_amount, due_date, created_at,
       jobs(
         job_number,
         proposals(leads(customers(name)))
       )
-    `, { count: "exact" });
+    `,
+		{ count: "exact" },
+	);
 
 	if (status) query = query.filter("status", "eq", status);
 
@@ -158,12 +159,8 @@ export default async function InvoicesPage({
 						>
 							<div className="flex items-start justify-between mb-2">
 								<div>
-									<p className="font-mono text-xs text-ink-faint">
-										{inv.invoice_number}
-									</p>
-									<p className="font-semibold text-ink mt-0.5">
-										{customerName}
-									</p>
+									<p className="font-mono text-xs text-ink-faint">{inv.invoice_number}</p>
+									<p className="font-semibold text-ink mt-0.5">{customerName}</p>
 								</div>
 								<Badge tone={toneFor("invoice", inv.status)} dot>
 									{tStatus(inv.status as never)}

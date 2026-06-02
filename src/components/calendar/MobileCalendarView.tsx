@@ -1,6 +1,6 @@
 "use client";
-import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -104,9 +104,7 @@ function Chip({ entry, compact = false }: { entry: EventOnDay; compact?: boolean
 				<span
 					className={`flex-1 min-w-0 truncate ${compact ? "text-[10px]" : "text-[11px]"} font-medium text-ink`}
 				>
-					{showTime && (
-						<span className="font-mono text-ink-muted mr-1">{time}</span>
-					)}
+					{showTime && <span className="font-mono text-ink-muted mr-1">{time}</span>}
 					{event.title}
 				</span>
 				{totalDays > 1 && (
@@ -129,12 +127,7 @@ type MonthGridProps = {
 	onSelect: (ds: string) => void;
 };
 
-function MonthGrid({
-	viewDate,
-	todayStr,
-	entriesByDate,
-	onSelect,
-}: MonthGridProps) {
+function MonthGrid({ viewDate, todayStr, entriesByDate, onSelect }: MonthGridProps) {
 	const anchor = new Date(`${viewDate}T00:00:00`);
 	const year = anchor.getFullYear();
 	const month = anchor.getMonth();
@@ -207,9 +200,7 @@ function MonthGrid({
 						>
 							<span
 								className={`text-xs md:text-sm font-semibold leading-none px-0.5 ${
-									isToday
-										? "text-primary-text"
-										: "text-ink-muted"
+									isToday ? "text-primary-text" : "text-ink-muted"
 								}`}
 							>
 								{day}
@@ -224,9 +215,7 @@ function MonthGrid({
 											<Chip key={`${entry.event.id}-m`} entry={entry} compact />
 										))}
 										{overflowMobile > 0 && (
-											<span className="text-[9px] text-ink-faint px-1">
-												+{overflowMobile} more
-											</span>
+											<span className="text-[9px] text-ink-faint px-1">+{overflowMobile} more</span>
 										)}
 									</div>
 									{/* Desktop view */}
@@ -259,12 +248,7 @@ type WeekGridProps = {
 	onSelect: (ds: string) => void;
 };
 
-function WeekGrid({
-	viewDate,
-	todayStr,
-	entriesByDate,
-	onSelect,
-}: WeekGridProps) {
+function WeekGrid({ viewDate, todayStr, entriesByDate, onSelect }: WeekGridProps) {
 	const days = getWeekDays(viewDate);
 
 	return (
@@ -299,18 +283,14 @@ function WeekGrid({
 							<div className="flex items-baseline justify-between">
 								<span
 									className={`text-xs font-medium ${
-										isSelected
-											? "text-primary-text"
-											: "text-ink-faint"
+										isSelected ? "text-primary-text" : "text-ink-faint"
 									}`}
 								>
 									{dayName}
 								</span>
 								<span
 									className={`text-base font-semibold ${
-										isToday
-											? "text-primary-text"
-											: "text-ink-muted"
+										isToday ? "text-primary-text" : "text-ink-muted"
 									}`}
 								>
 									{dayNum}
@@ -321,9 +301,7 @@ function WeekGrid({
 									<Chip key={`${entry.event.id}-w`} entry={entry} />
 								))}
 								{overflow > 0 && (
-									<span className="text-[10px] text-ink-faint px-1">
-										+{overflow} more
-									</span>
+									<span className="text-[10px] text-ink-faint px-1">+{overflow} more</span>
 								)}
 							</div>
 						</button>
@@ -350,14 +328,10 @@ function Agenda({ viewDate, entries }: AgendaProps) {
 
 	return (
 		<div className="px-4 py-4 border-t border-line">
-			<p className="text-xs font-semibold text-ink-muted uppercase tracking-widest mb-3">
-				{label}
-			</p>
+			<p className="text-xs font-semibold text-ink-muted uppercase tracking-widest mb-3">{label}</p>
 
 			{entries.length === 0 ? (
-				<p className="text-sm text-ink-faint py-2">
-					No events scheduled.
-				</p>
+				<p className="text-sm text-ink-faint py-2">No events scheduled.</p>
 			) : (
 				<ul className="space-y-1.5">
 					{entries.map(({ event, dayIndex, totalDays }) => {
@@ -393,10 +367,7 @@ function Agenda({ viewDate, entries }: AgendaProps) {
 											)}
 										</p>
 									</div>
-									<span
-										className="text-ink-faint text-sm"
-										aria-hidden="true"
-									>
+									<span className="text-ink-faint text-sm" aria-hidden="true">
 										›
 									</span>
 								</Link>
@@ -491,17 +462,8 @@ export function MobileCalendarView({ events }: { events: CalendarEvent[] }) {
 	}
 
 	const prevLabel =
-		view === "month"
-			? "Previous month"
-			: view === "week"
-				? "Previous week"
-				: "Previous day";
-	const nextLabel =
-		view === "month"
-			? "Next month"
-			: view === "week"
-				? "Next week"
-				: "Next day";
+		view === "month" ? "Previous month" : view === "week" ? "Previous week" : "Previous day";
+	const nextLabel = view === "month" ? "Next month" : view === "week" ? "Next week" : "Next day";
 
 	const selectedEntries = entriesByDate.get(viewDate) ?? [];
 
@@ -550,9 +512,7 @@ export function MobileCalendarView({ events }: { events: CalendarEvent[] }) {
 							aria-pressed={view === v}
 							className={[
 								"px-2.5 py-1.5 capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]",
-								view === v
-									? "bg-primary text-primary-fg"
-									: "text-ink-muted hover:bg-subtle",
+								view === v ? "bg-primary text-primary-fg" : "text-ink-muted hover:bg-subtle",
 							].join(" ")}
 						>
 							{v}

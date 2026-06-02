@@ -1,10 +1,10 @@
 "use client";
-import { useState, useRef } from "react";
-import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useTranslations } from "next-intl";
+import { useRef, useState } from "react";
 import { NumericInput } from "@/components/shared/NumericInput";
-import { parseMarginTiers, type MarginTier } from "@/lib/estimation/engine";
+import { type MarginTier, parseMarginTiers } from "@/lib/estimation/engine";
+import { createClient } from "@/lib/supabase/client";
 
 type Setting = {
 	key: string;
@@ -25,19 +25,13 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 	const router = useRouter();
 	const t = useTranslations("pages.settings.marginTiers");
 	const tButtons = useTranslations("common.buttons");
-	const [tiers, setTiers] = useState<MarginTier[]>(() =>
-		parseMarginTiers(setting.value),
-	);
-	const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
-		"idle",
-	);
+	const [tiers, setTiers] = useState<MarginTier[]>(() => parseMarginTiers(setting.value));
+	const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
 	const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	/** Force the last tier to be the open-ended catch-all. */
 	function normalize(next: MarginTier[]): MarginTier[] {
-		return next.map((tier, i) =>
-			i === next.length - 1 ? { ...tier, max: null } : tier,
-		);
+		return next.map((tier, i) => (i === next.length - 1 ? { ...tier, max: null } : tier));
 	}
 
 	function schedulePersist(next: MarginTier[]) {
@@ -61,9 +55,7 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 	}
 
 	function patchTier(index: number, patch: Partial<MarginTier>) {
-		setTiers((prev) =>
-			prev.map((tier, i) => (i === index ? { ...tier, ...patch } : tier)),
-		);
+		setTiers((prev) => prev.map((tier, i) => (i === index ? { ...tier, ...patch } : tier)));
 	}
 
 	function addTier() {
@@ -96,9 +88,7 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 			<div className="flex items-start justify-between gap-4 mb-3">
 				<div className="min-w-0">
 					<p className="text-sm font-medium text-ink leading-snug">{label}</p>
-					<p className="text-xs font-mono text-ink-faint mt-0.5">
-						{setting.key}
-					</p>
+					<p className="text-xs font-mono text-ink-faint mt-0.5">{setting.key}</p>
 				</div>
 				{saveState !== "idle" && (
 					<span
@@ -115,13 +105,9 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 					<thead>
 						<tr className="text-xs font-semibold text-ink-muted uppercase tracking-widest">
 							<th className="text-left font-semibold pb-2 pr-3">{t("upTo")}</th>
-							<th className="text-right font-semibold pb-2 px-3 w-24">
-								{t("ratePct")}
-							</th>
-							<th className="text-right font-semibold pb-2 px-3">
-								{t("minProfit")}
-							</th>
-							<th className="pb-2 w-10" aria-hidden="true" />
+							<th className="text-right font-semibold pb-2 px-3 w-24">{t("ratePct")}</th>
+							<th className="text-right font-semibold pb-2 px-3">{t("minProfit")}</th>
+							<th className="pb-2 w-10" />
 						</tr>
 					</thead>
 					<tbody>
@@ -131,9 +117,7 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 								<tr key={i}>
 									<td className="py-1.5 pr-3">
 										{isLast ? (
-											<span className="text-ink-muted italic">
-												{t("andAbove")}
-											</span>
+											<span className="text-ink-muted italic">{t("andAbove")}</span>
 										) : (
 											<NumericInput
 												value={tier.max ?? 0}

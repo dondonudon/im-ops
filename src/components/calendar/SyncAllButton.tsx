@@ -1,10 +1,10 @@
 "use client";
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { CalendarSync, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { syncAllToCalendar } from "@/lib/gcal/actions";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui";
+import { syncAllToCalendar } from "@/lib/gcal/actions";
 
 /**
  * Bulk-syncs every future job + scheduled survey to Google Calendar.
@@ -32,10 +32,7 @@ export function SyncAllButton() {
 				setResult(tSyncAll("nothing", { date: r.cutoffISO }));
 			} else {
 				const parts: string[] = [];
-				if (jobTotal > 0)
-					parts.push(
-						tSyncAll("jobsLabel", { ok: r.jobs.ok, total: jobTotal }),
-					);
+				if (jobTotal > 0) parts.push(tSyncAll("jobsLabel", { ok: r.jobs.ok, total: jobTotal }));
 				if (surveyTotal > 0)
 					parts.push(
 						tSyncAll("surveysLabel", {
@@ -58,13 +55,7 @@ export function SyncAllButton() {
 
 	return (
 		<div className="flex items-center gap-3">
-			<Button
-				type="button"
-				onClick={handleClick}
-				loading={loading}
-				variant="secondary"
-				size="sm"
-			>
+			<Button type="button" onClick={handleClick} loading={loading} variant="secondary" size="sm">
 				{loading ? (
 					<Loader2 size={13} className="animate-spin" aria-hidden="true" />
 				) : (

@@ -1,22 +1,14 @@
-import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { CrewForm } from "@/components/crew/CrewForm";
 import { PageHeader } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
-export default async function EditCrewPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function EditCrewPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const supabase = await createClient();
 	const t = await getTranslations("forms.crew");
-	const { data: member } = await supabase
-		.from("crew")
-		.select("*")
-		.eq("id", id)
-		.single();
+	const { data: member } = await supabase.from("crew").select("*").eq("id", id).single();
 	if (!member) notFound();
 
 	return (

@@ -1,45 +1,43 @@
-import { Suspense } from "react";
-import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
-import { getTranslations, getLocale } from "next-intl/server";
 import {
-	Truck,
-	FileText,
-	Receipt,
-	CalendarDays,
-	ArrowRight,
-	ClipboardCheck,
-	Send,
 	AlertTriangle,
+	ArrowRight,
+	CalendarDays,
 	CalendarX,
 	CheckCircle2,
+	ClipboardCheck,
 	Clock,
+	FileText,
+	Receipt,
+	Send,
+	Truck,
 } from "lucide-react";
-import { formatRupiah, formatDate } from "@/lib/utils";
+import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 import {
+	Badge,
+	buttonStyles,
 	Card,
 	CardHeader,
-	Stat,
-	Badge,
+	EmptyState,
 	Money,
 	PageHeader,
-	EmptyState,
 	RouteLine,
-	buttonStyles,
+	Stat,
 	toneFor,
 } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatDate, formatRupiah } from "@/lib/utils";
 
 function startOfMonth() {
 	const d = new Date();
-	return new Date(d.getFullYear(), d.getMonth(), 1)
-		.toISOString()
-		.split("T")[0];
+	return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
 }
 function todayISO() {
 	return new Date().toISOString().split("T")[0];
 }
 
-const MONTH = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 type TodayJob = {
 	id: string;
@@ -111,13 +109,8 @@ export default async function TodayPage() {
 			.limit(5),
 	]);
 
-	const overdue = (outstanding ?? []).filter(
-		(i) => i.effective_status === "overdue",
-	);
-	const totalOutstanding = (outstanding ?? []).reduce(
-		(s, i) => s + (i.outstanding ?? 0),
-		0,
-	);
+	const overdue = (outstanding ?? []).filter((i) => i.effective_status === "overdue");
+	const totalOutstanding = (outstanding ?? []).reduce((s, i) => s + (i.outstanding ?? 0), 0);
 	const overdueAmount = overdue.reduce((s, i) => s + (i.outstanding ?? 0), 0);
 	const moves = (todaysMoves ?? []) as TodayJob[];
 
@@ -137,9 +130,7 @@ export default async function TodayPage() {
 			icon: <ClipboardCheck size={16} />,
 			tone: "pending" as const,
 			title: t("queue.surveyDue"),
-			sub:
-				(l.customers as { name: string } | null)?.name ??
-				(l.pickup_address ?? "—"),
+			sub: (l.customers as { name: string } | null)?.name ?? l.pickup_address ?? "—",
 			action: t("queue.review"),
 			href: `/leads/${l.id}`,
 		})),
@@ -189,10 +180,7 @@ export default async function TodayPage() {
 						: t("subtitleClear", { date: headerDate })
 				}
 				actions={
-					<Link
-						href="/pipeline"
-						className={buttonStyles({ variant: "secondary", size: "md" })}
-					>
+					<Link href="/pipeline" className={buttonStyles({ variant: "secondary", size: "md" })}>
 						{t("openPipeline")}
 						<ArrowRight size={15} />
 					</Link>
@@ -203,9 +191,7 @@ export default async function TodayPage() {
 			<section>
 				<div className="flex items-center gap-2 mb-3">
 					<Truck size={16} className="text-primary" />
-					<h2 className="text-sm font-semibold text-ink">
-						{t("todaysMoves")}
-					</h2>
+					<h2 className="text-sm font-semibold text-ink">{t("todaysMoves")}</h2>
 					<span className="text-xs text-ink-faint">({moves.length})</span>
 				</div>
 				{moves.length === 0 ? (
@@ -237,10 +223,7 @@ export default async function TodayPage() {
 									<p className="text-sm font-semibold text-ink truncate mb-2">
 										{lead?.customers?.name ?? "—"}
 									</p>
-									<RouteLine
-										from={lead?.pickup_address}
-										to={lead?.destination_address}
-									/>
+									<RouteLine from={lead?.pickup_address} to={lead?.destination_address} />
 								</Link>
 							);
 						})}
@@ -273,30 +256,22 @@ export default async function TodayPage() {
 					) : (
 						<ul className="divide-y divide-line">
 							{queue.map((item) => (
-								<li
-									key={item.id}
-									className="flex items-center gap-3 px-5 py-3.5"
-								>
+								<li key={item.id} className="flex items-center gap-3 px-5 py-3.5">
 									<span
-										className={
+										className={`${
 											{
 												info: "text-primary bg-primary-subtle",
 												pending: "text-warning bg-warning-bg",
 												danger: "text-danger bg-danger-bg",
 												positive: "text-success bg-success-bg",
-											}[item.tone] +
-											" flex h-9 w-9 items-center justify-center rounded-lg shrink-0"
-										}
+											}[item.tone]
+										} flex h-9 w-9 items-center justify-center rounded-lg shrink-0`}
 									>
 										{item.icon}
 									</span>
 									<div className="flex-1 min-w-0">
-										<p className="text-[13px] font-semibold text-ink truncate">
-											{item.title}
-										</p>
-										<p className="text-xs text-ink-muted truncate">
-											{item.sub}
-										</p>
+										<p className="text-[13px] font-semibold text-ink truncate">{item.title}</p>
+										<p className="text-xs text-ink-muted truncate">{item.sub}</p>
 									</div>
 									<Link
 										href={item.href}
@@ -321,9 +296,7 @@ export default async function TodayPage() {
 
 			{/* ── At a glance — deferred ──────────────────────────────────────── */}
 			<section>
-				<h2 className="text-sm font-semibold text-ink mb-3">
-					{t("atAGlance")}
-				</h2>
+				<h2 className="text-sm font-semibold text-ink mb-3">{t("atAGlance")}</h2>
 				<Suspense fallback={<AtAGlanceSkeleton />}>
 					<AtAGlanceSection
 						movesCount={moves.length}
@@ -365,22 +338,13 @@ async function MoneyCardSection() {
 				.maybeSingle(),
 		]);
 
-	const monthRevenue = (monthlyPaid ?? []).reduce(
-		(s, i) => s + (i.paid_amount ?? 0),
-		0,
-	);
-	const monthExpenses = (monthlyExp ?? []).reduce(
-		(s, i) => s + (i.amount ?? 0),
-		0,
-	);
+	const monthRevenue = (monthlyPaid ?? []).reduce((s, i) => s + (i.paid_amount ?? 0), 0);
+	const monthExpenses = (monthlyExp ?? []).reduce((s, i) => s + (i.amount ?? 0), 0);
 	const net = monthRevenue - monthExpenses;
 	const revenueTarget = revenueTargetSetting?.value
 		? Number(revenueTargetSetting.value)
 		: 50_000_000;
-	const revenueProgress = Math.min(
-		100,
-		Math.round((monthRevenue / revenueTarget) * 100),
-	);
+	const revenueProgress = Math.min(100, Math.round((monthRevenue / revenueTarget) * 100));
 
 	return (
 		<Card className="p-5 flex flex-col gap-4">
@@ -405,37 +369,23 @@ async function MoneyCardSection() {
 						style={{ width: `${revenueProgress}%` }}
 					/>
 				</div>
-				<p className="text-[11px] text-ink-faint mt-1">
-					{t("ofTarget", { pct: revenueProgress })}
-				</p>
+				<p className="text-[11px] text-ink-faint mt-1">{t("ofTarget", { pct: revenueProgress })}</p>
 			</div>
 
 			<div className="grid grid-cols-2 gap-3">
 				<div className="bg-subtle rounded-lg p-3">
 					<p className="text-xs text-ink-muted mb-1">{t("revenue")}</p>
-					<Money
-						value={monthRevenue}
-						tone="positive"
-						className="text-base font-bold"
-					/>
+					<Money value={monthRevenue} tone="positive" className="text-base font-bold" />
 				</div>
 				<div className="bg-subtle rounded-lg p-3">
 					<p className="text-xs text-ink-muted mb-1">{t("expenses")}</p>
-					<Money
-						value={monthExpenses}
-						tone="danger"
-						className="text-base font-bold"
-					/>
+					<Money value={monthExpenses} tone="danger" className="text-base font-bold" />
 				</div>
 			</div>
 
 			<div className="flex items-center justify-between border-t border-line pt-3">
 				<span className="text-xs text-ink-muted">{t("net")}</span>
-				<Money
-					value={net}
-					tone={net >= 0 ? "positive" : "danger"}
-					className="text-sm font-bold"
-				/>
+				<Money value={net} tone={net >= 0 ? "positive" : "danger"} className="text-sm font-bold" />
 			</div>
 
 			<Link
@@ -464,17 +414,16 @@ async function AtAGlanceSection({
 	const t = await getTranslations("today");
 	const supabase = await createClient();
 
-	const [{ count: activeJobsCount }, { count: openProposalsCount }] =
-		await Promise.all([
-			supabase
-				.from("jobs")
-				.select("*", { count: "exact", head: true })
-				.in("status", ["scheduled", "in_progress"]),
-			supabase
-				.from("proposals")
-				.select("*", { count: "exact", head: true })
-				.in("status", ["draft", "sent", "negotiating"]),
-		]);
+	const [{ count: activeJobsCount }, { count: openProposalsCount }] = await Promise.all([
+		supabase
+			.from("jobs")
+			.select("*", { count: "exact", head: true })
+			.in("status", ["scheduled", "in_progress"]),
+		supabase
+			.from("proposals")
+			.select("*", { count: "exact", head: true })
+			.in("status", ["draft", "sent", "negotiating"]),
+	]);
 
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -550,7 +499,7 @@ async function UpcomingSection() {
 			) : (
 				<ul className="divide-y divide-line">
 					{(upcomingJobs ?? []).map((job) => {
-						const d = new Date(job.move_date + "T00:00:00");
+						const d = new Date(`${job.move_date}T00:00:00`);
 						return (
 							<li key={job.id}>
 								<Link
@@ -561,14 +510,10 @@ async function UpcomingSection() {
 										<p className="text-[10px] font-bold uppercase text-primary">
 											{MONTH[d.getMonth()]}
 										</p>
-										<p className="text-lg font-bold leading-none text-ink">
-											{d.getDate()}
-										</p>
+										<p className="text-lg font-bold leading-none text-ink">{d.getDate()}</p>
 									</div>
 									<div className="min-w-0 flex-1">
-										<p className="text-[13px] font-semibold text-ink truncate">
-											#{job.job_number}
-										</p>
+										<p className="text-[13px] font-semibold text-ink truncate">#{job.job_number}</p>
 										<p className="text-xs text-ink-faint flex items-center gap-1">
 											<Clock size={10} />
 											{formatDate(job.move_date)}

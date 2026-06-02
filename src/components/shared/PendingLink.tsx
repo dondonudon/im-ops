@@ -1,8 +1,8 @@
 "use client";
+import { Loader2 } from "lucide-react";
 import Link, { type LinkProps } from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition, type AnchorHTMLAttributes, type ReactNode } from "react";
-import { Loader2 } from "lucide-react";
+import { type AnchorHTMLAttributes, type ReactNode, useTransition } from "react";
 
 type Props = LinkProps &
 	Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & {
@@ -41,18 +41,14 @@ export function PendingLink({
 			rest.target === "_blank"
 		)
 			return;
-		const url = typeof href === "string" ? href : href.pathname ?? "";
+		const url = typeof href === "string" ? href : (href.pathname ?? "");
 		if (!url || url.startsWith("http") || url.startsWith("//")) return;
 		e.preventDefault();
 		startTransition(() => router.push(url));
 	}
 
 	const spinner = pending ? (
-		<Loader2
-			size={13}
-			className="animate-spin shrink-0 opacity-80"
-			aria-hidden="true"
-		/>
+		<Loader2 size={13} className="animate-spin shrink-0 opacity-80" aria-hidden="true" />
 	) : null;
 
 	return (

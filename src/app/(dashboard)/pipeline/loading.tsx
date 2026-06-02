@@ -24,20 +24,18 @@ export default function PipelineLoading() {
 						</div>
 
 						{/* 2–3 card placeholders per column */}
-						{Array.from({ length: col === 0 ? 3 : col === 4 ? 2 : 3 }).map(
-							(_, card) => (
-								// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
-								<div
-									key={card}
-									className="rounded-xl border border-line bg-surface shadow-token p-4 space-y-2.5"
-								>
-									<Skeleton className="h-3 w-28" />
-									<Skeleton className="h-4 w-3/4" />
-									<Skeleton className="h-3 w-full" />
-									<Skeleton className="h-3 w-2/3" />
-								</div>
-							),
-						)}
+						{Array.from({ length: col === 0 ? 3 : col === 4 ? 2 : 3 }).map((_, card) => (
+							// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
+							<div
+								key={card}
+								className="rounded-xl border border-line bg-surface shadow-token p-4 space-y-2.5"
+							>
+								<Skeleton className="h-3 w-28" />
+								<Skeleton className="h-4 w-3/4" />
+								<Skeleton className="h-3 w-full" />
+								<Skeleton className="h-3 w-2/3" />
+							</div>
+						))}
 					</div>
 				))}
 			</div>

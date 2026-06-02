@@ -1,8 +1,4 @@
-import {
-	Skeleton,
-	SkeletonCard,
-	SkeletonHeader,
-} from "@/components/shared/Skeleton";
+import { Skeleton, SkeletonCard, SkeletonHeader } from "@/components/shared/Skeleton";
 
 /**
  * Default loading skeleton for any dashboard route that doesn't define its own.

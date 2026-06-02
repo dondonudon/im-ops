@@ -1,6 +1,4 @@
 "use client";
-import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
 import {
 	Briefcase,
 	CalendarDays,
@@ -17,16 +15,11 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { createClient } from "@/lib/supabase/client";
 import { useNavFeedback } from "@/lib/useNavFeedback";
+import { cn } from "@/lib/utils";
 
-type NavKey =
-	| "today"
-	| "pipeline"
-	| "jobs"
-	| "calendar"
-	| "money"
-	| "directory"
-	| "settings";
+type NavKey = "today" | "pipeline" | "jobs" | "calendar" | "money" | "directory" | "settings";
 
 type NavItem = {
 	href: string;
@@ -75,19 +68,13 @@ const NAV_ITEMS: NavItem[] = [
 		href: "/money",
 		key: "money",
 		icon: Wallet,
-		match: (p) =>
-			p.startsWith("/money") ||
-			p.startsWith("/invoices") ||
-			p.startsWith("/reports"),
+		match: (p) => p.startsWith("/money") || p.startsWith("/invoices") || p.startsWith("/reports"),
 	},
 	{
 		href: "/customers",
 		key: "directory",
 		icon: Users,
-		match: (p) =>
-			p.startsWith("/customers") ||
-			p.startsWith("/fleet") ||
-			p.startsWith("/crew"),
+		match: (p) => p.startsWith("/customers") || p.startsWith("/fleet") || p.startsWith("/crew"),
 	},
 ];
 
@@ -183,9 +170,7 @@ export function Sidebar({
 					<p className="text-[13px] font-bold text-ink leading-tight whitespace-nowrap">
 						Indo Mover
 					</p>
-					<p className="text-[10px] text-ink-faint whitespace-nowrap">
-						Operations Platform
-					</p>
+					<p className="text-[10px] text-ink-faint whitespace-nowrap">Operations Platform</p>
 				</div>
 				{/* Close button — mobile only */}
 				<button
@@ -200,27 +185,23 @@ export function Sidebar({
 
 			{/* Navigation */}
 			<nav
-				className={cn("flex-1 overflow-y-auto py-3 scrollbar-thin space-y-0.5", collapsed ? "px-2" : "px-3")}
+				className={cn(
+					"flex-1 overflow-y-auto py-3 scrollbar-thin space-y-0.5",
+					collapsed ? "px-2" : "px-3",
+				)}
 				aria-label="Primary"
 			>
 				{NAV_ITEMS.map((item) => (
 					<NavLink key={item.href} item={item} />
 				))}
 
-				<div
-					className={cn("my-3 border-t border-line", collapsed ? "mx-0" : "mx-0")}
-				/>
+				<div className={cn("my-3 border-t border-line", collapsed ? "mx-0" : "mx-0")} />
 
 				<NavLink item={settingsItem} />
 			</nav>
 
 			{/* Bottom: sign out */}
-			<div
-				className={cn(
-					"border-t border-line py-3 space-y-1",
-					collapsed ? "px-2" : "px-3",
-				)}
-			>
+			<div className={cn("border-t border-line py-3 space-y-1", collapsed ? "px-2" : "px-3")}>
 				<button
 					type="button"
 					onClick={handleLogout}

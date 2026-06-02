@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
 import { getTranslations } from "next-intl/server";
 import { SettingsEditor } from "@/components/settings/SettingsEditor";
 import { PageHeader } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function SettingsPage() {
 	const supabase = await createClient();

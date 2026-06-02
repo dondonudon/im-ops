@@ -14,12 +14,7 @@ export function RouteLine({
 	className?: string;
 }) {
 	return (
-		<div
-			className={cn(
-				"flex items-center gap-2 text-xs text-ink-muted min-w-0",
-				className,
-			)}
-		>
+		<div className={cn("flex items-center gap-2 text-xs text-ink-muted min-w-0", className)}>
 			<span className="flex items-center gap-1.5 min-w-0">
 				<span className="h-2 w-2 rounded-full border-2 border-primary shrink-0" />
 				<span className="truncate">{from || "—"}</span>

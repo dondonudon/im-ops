@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
-import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale } from "./config";
+import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE } from "./config";
 
 /**
  * Resolve the active locale on every request from our `imops-locale` cookie.

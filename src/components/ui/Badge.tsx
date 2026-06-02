@@ -38,12 +38,7 @@ export function Badge({
 				className,
 			)}
 		>
-			{dot && (
-				<span
-					className={cn("h-1.5 w-1.5 rounded-full", DOT[tone])}
-					aria-hidden="true"
-				/>
-			)}
+			{dot && <span className={cn("h-1.5 w-1.5 rounded-full", DOT[tone])} aria-hidden="true" />}
 			{children}
 		</span>
 	);

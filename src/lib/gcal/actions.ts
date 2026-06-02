@@ -1,13 +1,13 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import {
 	deleteCalendarEvent,
-	patchCalendarEvent,
-	pushCalendarEvent,
 	type GCalEventInput,
 	type GCalResult,
+	patchCalendarEvent,
+	pushCalendarEvent,
 } from "@/lib/gcal/sync";
+import { createClient } from "@/lib/supabase/server";
 
 type ActionResult =
 	| { ok: true; eventId: string; created?: boolean; updated?: boolean }
@@ -80,9 +80,7 @@ function addHoursToHHMM(time: string, hours: number): string {
  * don't create duplicates on edit. If the PATCH 404s — meaning the event was
  * deleted manually in Google Calendar — we clear the stale id and POST a new one.
  */
-export async function syncSurveyToCalendar(
-	surveyId: string,
-): Promise<ActionResult> {
+export async function syncSurveyToCalendar(surveyId: string): Promise<ActionResult> {
 	const supabase = await createClient();
 
 	const { data: survey } = await supabase
@@ -96,8 +94,7 @@ export async function syncSurveyToCalendar(
 	if (!survey) return { ok: false, error: "Survey not found." };
 
 	const calendarId = await getCalendarId();
-	if (!calendarId)
-		return { ok: false, error: "Google Calendar not configured." };
+	if (!calendarId) return { ok: false, error: "Google Calendar not configured." };
 
 	const lead = survey.leads as {
 		pickup_address: string | null;
@@ -117,12 +114,7 @@ export async function syncSurveyToCalendar(
 		sourceTitle: "Open lead in IM Ops",
 	};
 
-	return upsertEvent(
-		"surveys",
-		surveyId,
-		survey.gcal_event_id ?? null,
-		eventInput,
-	);
+	return upsertEvent("surveys", surveyId, survey.gcal_event_id ?? null, eventInput);
 }
 
 /**
@@ -147,8 +139,7 @@ export async function syncJobToCalendar(jobId: string): Promise<ActionResult> {
 	if (!job) return { ok: false, error: "Job not found." };
 
 	const calendarId = await getCalendarId();
-	if (!calendarId)
-		return { ok: false, error: "Google Calendar not configured." };
+	if (!calendarId) return { ok: false, error: "Google Calendar not configured." };
 
 	const proposal = job.proposals as {
 		proposal_number: string;
@@ -163,9 +154,7 @@ export async function syncJobToCalendar(jobId: string): Promise<ActionResult> {
 
 	const startTime = job.move_time ?? "08:00";
 	const endDate = job.move_end_date ?? job.move_date;
-	const endTime =
-		job.move_end_time ??
-		(job.move_time ? addHoursToHHMM(job.move_time, 8) : "18:00");
+	const endTime = job.move_end_time ?? (job.move_time ? addHoursToHHMM(job.move_time, 8) : "18:00");
 
 	const eventInput: GCalEventInput = {
 		calendarId,
@@ -202,19 +191,13 @@ async function upsertEvent(
 			return patched;
 		}
 		// Stale id — wipe it so the retry below isn't ambiguous, then fall through.
-		await supabase
-			.from(table)
-			.update({ gcal_event_id: null })
-			.eq("id", rowId);
+		await supabase.from(table).update({ gcal_event_id: null }).eq("id", rowId);
 	}
 
 	const created = await pushCalendarEvent(eventInput);
 	if (!created.ok) return created;
 
-	await supabase
-		.from(table)
-		.update({ gcal_event_id: created.eventId })
-		.eq("id", rowId);
+	await supabase.from(table).update({ gcal_event_id: created.eventId }).eq("id", rowId);
 
 	return { ok: true, eventId: created.eventId, created: true };
 }
@@ -222,13 +205,10 @@ async function upsertEvent(
 /**
  * Removes a calendar event (used on cancellation) and clears the stored id.
  */
-export async function removeJobCalendarEvent(
-	jobId: string,
-): Promise<GCalResult> {
+export async function removeJobCalendarEvent(jobId: string): Promise<GCalResult> {
 	const supabase = await createClient();
 	const calendarId = await getCalendarId();
-	if (!calendarId)
-		return { ok: false, error: "Google Calendar not configured." };
+	if (!calendarId) return { ok: false, error: "Google Calendar not configured." };
 
 	const { data: job } = await supabase
 		.from("jobs")
@@ -236,15 +216,11 @@ export async function removeJobCalendarEvent(
 		.eq("id", jobId)
 		.single();
 
-	if (!job?.gcal_event_id)
-		return { ok: false, error: "No calendar event linked." };
+	if (!job?.gcal_event_id) return { ok: false, error: "No calendar event linked." };
 
 	const result = await deleteCalendarEvent(calendarId, job.gcal_event_id);
 	if (result.ok) {
-		await supabase
-			.from("jobs")
-			.update({ gcal_event_id: null })
-			.eq("id", jobId);
+		await supabase.from("jobs").update({ gcal_event_id: null }).eq("id", jobId);
 	}
 	return result;
 }
@@ -271,17 +247,10 @@ export async function syncAllToCalendar(): Promise<{
 	const cutoffISO = cutoff.toISOString().slice(0, 10);
 
 	const [{ data: jobs }, { data: surveys }] = await Promise.all([
-		supabase
-			.from("jobs")
-			.select("id")
-			.gte("move_date", cutoffISO)
-			.neq("status", "cancelled"),
+		supabase.from("jobs").select("id").gte("move_date", cutoffISO).neq("status", "cancelled"),
 		// Surveys: no completion filter — and use a date-only comparison against
 		// scheduled_at so timezone-edge surveys at the boundary aren't dropped.
-		supabase
-			.from("surveys")
-			.select("id")
-			.gte("scheduled_at", `${cutoffISO}T00:00:00+00:00`),
+		supabase.from("surveys").select("id").gte("scheduled_at", `${cutoffISO}T00:00:00+00:00`),
 	]);
 
 	const jobResults = { ok: 0, failed: 0 };

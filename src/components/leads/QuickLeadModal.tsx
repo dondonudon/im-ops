@@ -1,19 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { ChevronDown, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useState } from "react";
+import { Button, Field, FormError, Input, Select, Textarea } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
-import { X, ChevronDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-	Field,
-	Input,
-	Select,
-	Textarea,
-	FormError,
-	Button,
-} from "@/components/ui";
 
 type Customer = { id: string; name: string; phone: string | null };
 
@@ -120,16 +113,8 @@ export function QuickLeadModal() {
 					pickup_address: form.pickup_address.trim() || null,
 					destination_address: form.destination_address.trim() || null,
 					preferred_date: form.preferred_date || null,
-					lead_type: form.lead_type as
-						| "whatsapp"
-						| "onsite"
-						| "returning"
-						| "corporate",
-					origin_channel: form.origin_channel as
-						| "whatsapp"
-						| "call"
-						| "referral"
-						| "walkin",
+					lead_type: form.lead_type as "whatsapp" | "onsite" | "returning" | "corporate",
+					origin_channel: form.origin_channel as "whatsapp" | "call" | "referral" | "walkin",
 					notes: form.notes.trim() || null,
 					status: "new",
 				})
@@ -285,9 +270,7 @@ export function QuickLeadModal() {
 										value={form.lead_type}
 										onChange={(e) => set("lead_type", e.target.value)}
 									>
-										{(
-											["whatsapp", "onsite", "returning", "corporate"] as const
-										).map((v) => (
+										{(["whatsapp", "onsite", "returning", "corporate"] as const).map((v) => (
 											<option key={v} value={v}>
 												{tLeadType(v)}
 											</option>
@@ -300,13 +283,11 @@ export function QuickLeadModal() {
 										value={form.origin_channel}
 										onChange={(e) => set("origin_channel", e.target.value)}
 									>
-										{(["whatsapp", "call", "referral", "walkin"] as const).map(
-											(v) => (
-												<option key={v} value={v}>
-													{tChannel(v)}
-												</option>
-											),
-										)}
+										{(["whatsapp", "call", "referral", "walkin"] as const).map((v) => (
+											<option key={v} value={v}>
+												{tChannel(v)}
+											</option>
+										))}
 									</Select>
 								</Field>
 							</div>

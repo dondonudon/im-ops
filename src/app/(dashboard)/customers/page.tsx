@@ -1,20 +1,20 @@
-import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate, sanitizeSearch } from "@/lib/utils";
 import {
-	PageHeader,
-	Input,
 	Badge,
 	EmptyState,
-	Table,
-	THead,
-	TH,
-	TBody,
-	TR,
-	TD,
+	Input,
+	PageHeader,
 	Pagination,
+	Table,
+	TBody,
+	TD,
+	TH,
+	THead,
+	TR,
 } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatDate, sanitizeSearch } from "@/lib/utils";
 
 const PAGE_SIZE = 25;
 
@@ -39,9 +39,7 @@ export default async function CustomersPage({
 
 	if (q) {
 		const safe = sanitizeSearch(q);
-		query = query.or(
-			`name.ilike.%${safe}%,phone.ilike.%${safe}%,email.ilike.%${safe}%`,
-		);
+		query = query.or(`name.ilike.%${safe}%,phone.ilike.%${safe}%,email.ilike.%${safe}%`);
 	}
 
 	const { data: customers, count } = await query
@@ -85,9 +83,7 @@ export default async function CustomersPage({
 										{c.name}
 									</Link>
 									{c.company_name && (
-										<span className="ml-1 text-xs text-ink-faint">
-											({c.company_name})
-										</span>
+										<span className="ml-1 text-xs text-ink-faint">({c.company_name})</span>
 									)}
 								</TD>
 								<TD className="text-ink-muted">{c.phone ?? "—"}</TD>
@@ -96,9 +92,7 @@ export default async function CustomersPage({
 										{tType(c.type as never)}
 									</Badge>
 								</TD>
-								<TD className="text-ink-faint tabular-nums">
-									{formatDate(c.created_at)}
-								</TD>
+								<TD className="text-ink-faint tabular-nums">{formatDate(c.created_at)}</TD>
 							</TR>
 						))}
 						{rows.length === 0 && (
@@ -124,9 +118,7 @@ export default async function CustomersPage({
 							<div className="min-w-0">
 								<p className="font-semibold text-ink truncate">{c.name}</p>
 								{c.company_name && (
-									<p className="text-xs text-ink-faint mt-0.5 truncate">
-										{c.company_name}
-									</p>
+									<p className="text-xs text-ink-faint mt-0.5 truncate">{c.company_name}</p>
 								)}
 							</div>
 							<Badge tone={c.type === "corporate" ? "info" : "neutral"}>
@@ -140,16 +132,12 @@ export default async function CustomersPage({
 							</div>
 							<div>
 								<p className="text-xs text-ink-faint">{t("columns.since")}</p>
-								<p className="text-ink-muted tabular-nums">
-									{formatDate(c.created_at)}
-								</p>
+								<p className="text-ink-muted tabular-nums">{formatDate(c.created_at)}</p>
 							</div>
 						</div>
 					</Link>
 				))}
-				{rows.length === 0 && (
-					<EmptyState title={q ? t("emptyFiltered") : t("empty")} />
-				)}
+				{rows.length === 0 && <EmptyState title={q ? t("emptyFiltered") : t("empty")} />}
 			</div>
 
 			<Pagination page={page} pageSize={PAGE_SIZE} total={count ?? 0} />

@@ -5,16 +5,11 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "subtle";
 type Size = "sm" | "md" | "lg" | "icon";
 
 const VARIANTS: Record<Variant, string> = {
-	primary:
-		"bg-primary text-primary-fg hover:bg-primary-hover shadow-token-sm",
-	secondary:
-		"bg-surface text-ink border border-line hover:bg-subtle",
-	subtle:
-		"bg-primary-subtle text-primary-text hover:opacity-80",
-	ghost:
-		"text-ink-muted hover:bg-subtle hover:text-ink",
-	danger:
-		"bg-danger text-white hover:opacity-90",
+	primary: "bg-primary text-primary-fg hover:bg-primary-hover shadow-token-sm",
+	secondary: "bg-surface text-ink border border-line hover:bg-subtle",
+	subtle: "bg-primary-subtle text-primary-text hover:opacity-80",
+	ghost: "text-ink-muted hover:bg-subtle hover:text-ink",
+	danger: "bg-danger text-white hover:opacity-90",
 };
 
 const SIZES: Record<Size, string> = {
@@ -29,7 +24,11 @@ export function buttonStyles({
 	variant = "primary",
 	size = "md",
 	className,
-}: { variant?: Variant; size?: Size; className?: string } = {}) {
+}: {
+	variant?: Variant;
+	size?: Size;
+	className?: string;
+} = {}) {
 	return cn(
 		"inline-flex items-center justify-center font-semibold whitespace-nowrap transition-all",
 		"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)]",
@@ -61,9 +60,7 @@ export function Button({
 			aria-busy={loading || undefined}
 			{...props}
 		>
-			{loading && (
-				<Loader2 size={15} className="animate-spin shrink-0" aria-hidden="true" />
-			)}
+			{loading && <Loader2 size={15} className="animate-spin shrink-0" aria-hidden="true" />}
 			{children}
 		</button>
 	);

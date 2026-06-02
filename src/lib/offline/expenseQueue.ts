@@ -62,9 +62,7 @@ export function queuedCount(): number {
 	return read().length;
 }
 
-export function enqueueExpense(
-	expense: Omit<QueuedExpense, "id" | "queued_at">,
-): QueuedExpense {
+export function enqueueExpense(expense: Omit<QueuedExpense, "id" | "queued_at">): QueuedExpense {
 	const entry: QueuedExpense = {
 		...expense,
 		id: crypto.randomUUID(),

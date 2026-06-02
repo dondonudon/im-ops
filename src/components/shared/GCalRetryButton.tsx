@@ -1,12 +1,9 @@
 "use client";
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { CalendarPlus, Loader2 } from "lucide-react";
-import {
-	syncJobToCalendar,
-	syncSurveyToCalendar,
-} from "@/lib/gcal/actions";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui";
+import { syncJobToCalendar, syncSurveyToCalendar } from "@/lib/gcal/actions";
 
 /**
  * Push or re-push this survey/job to Google Calendar.
@@ -38,9 +35,7 @@ export function GCalRetryButton({
 		setError(null);
 		setDone(false);
 		try {
-			const result = await (kind === "survey"
-				? syncSurveyToCalendar(id)
-				: syncJobToCalendar(id));
+			const result = await (kind === "survey" ? syncSurveyToCalendar(id) : syncJobToCalendar(id));
 			if (!result.ok) {
 				setError(result.error);
 				return;

@@ -1,8 +1,4 @@
-import {
-	Skeleton,
-	SkeletonCard,
-	SkeletonHeader,
-} from "@/components/shared/Skeleton";
+import { Skeleton, SkeletonCard, SkeletonHeader } from "@/components/shared/Skeleton";
 
 /**
  * Shape-matched loading skeleton for the Today page.

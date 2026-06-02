@@ -1,5 +1,5 @@
 "use client";
-import { MobileCalendarView, type CalendarEvent } from "./MobileCalendarView";
+import { type CalendarEvent, MobileCalendarView } from "./MobileCalendarView";
 
 /**
  * Calendar view — custom mini-grid + day agenda at all screen sizes.

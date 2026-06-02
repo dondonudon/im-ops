@@ -1,34 +1,26 @@
-import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate } from "@/lib/utils";
 import {
 	Badge,
-	toneFor,
-	Select,
-	Table,
-	THead,
-	TH,
-	TBody,
-	TR,
-	TD,
 	EmptyState,
+	Money,
 	PageHeader,
 	Pagination,
+	Select,
+	Table,
+	TBody,
+	TD,
+	TH,
+	THead,
+	TR,
+	toneFor,
 } from "@/components/ui";
-import { Money } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatDate } from "@/lib/utils";
 
 const PAGE_SIZE = 25;
 
-const STATUS_OPTS = [
-	"",
-	"draft",
-	"sent",
-	"negotiating",
-	"approved",
-	"lost",
-	"expired",
-] as const;
+const STATUS_OPTS = ["", "draft", "sent", "negotiating", "approved", "lost", "expired"] as const;
 
 export default async function ProposalsPage({
 	searchParams,
@@ -42,12 +34,13 @@ export default async function ProposalsPage({
 	const t = await getTranslations("pages.proposals");
 	const tStatus = await getTranslations("status.proposal");
 
-	let query = supabase
-		.from("proposals")
-		.select(`
+	let query = supabase.from("proposals").select(
+		`
       id, proposal_number, status, final_price, created_at,
       leads(customer_id, customers(name))
-    `, { count: "exact" });
+    `,
+		{ count: "exact" },
+	);
 
 	if (status) query = query.filter("status", "eq", status);
 
@@ -86,9 +79,8 @@ export default async function ProposalsPage({
 					</THead>
 					<TBody>
 						{(proposals ?? []).map((p) => {
-							const customer = (
-								p.leads as { customers: { name: string } | null } | null
-							)?.customers;
+							const customer = (p.leads as { customers: { name: string } | null } | null)
+								?.customers;
 							return (
 								<TR key={p.id}>
 									<TD className="font-mono text-xs">
@@ -130,9 +122,7 @@ export default async function ProposalsPage({
 			{/* Mobile cards */}
 			<div className="md:hidden space-y-3">
 				{(proposals ?? []).map((p) => {
-					const customer = (
-						p.leads as { customers: { name: string } | null } | null
-					)?.customers;
+					const customer = (p.leads as { customers: { name: string } | null } | null)?.customers;
 					return (
 						<Link
 							key={p.id}
@@ -141,12 +131,8 @@ export default async function ProposalsPage({
 						>
 							<div className="flex items-start justify-between mb-2">
 								<div>
-									<p className="font-mono text-xs text-ink-faint">
-										{p.proposal_number}
-									</p>
-									<p className="font-semibold text-ink mt-0.5">
-										{customer?.name ?? "—"}
-									</p>
+									<p className="font-mono text-xs text-ink-faint">{p.proposal_number}</p>
+									<p className="font-semibold text-ink mt-0.5">{customer?.name ?? "—"}</p>
 								</div>
 								<Badge tone={toneFor("proposal", p.status)} dot>
 									{tStatus(p.status as never)}
@@ -156,11 +142,7 @@ export default async function ProposalsPage({
 								<div>
 									<p className="text-xs text-ink-faint">{t("columns.price")}</p>
 									<p className="font-semibold text-ink tabular-nums">
-										{p.final_price ? (
-											<Money value={p.final_price} />
-										) : (
-											"—"
-										)}
+										{p.final_price ? <Money value={p.final_price} /> : "—"}
 									</p>
 								</div>
 								<div>
@@ -171,9 +153,7 @@ export default async function ProposalsPage({
 						</Link>
 					);
 				})}
-				{(proposals ?? []).length === 0 && (
-					<EmptyState title={t("empty")} className="py-10" />
-				)}
+				{(proposals ?? []).length === 0 && <EmptyState title={t("empty")} className="py-10" />}
 			</div>
 
 			<Pagination page={page} pageSize={PAGE_SIZE} total={count ?? 0} />

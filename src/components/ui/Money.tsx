@@ -1,5 +1,4 @@
-import { cn } from "@/lib/utils";
-import { formatRupiah } from "@/lib/utils";
+import { cn, formatRupiah } from "@/lib/utils";
 
 type Tone = "default" | "positive" | "danger" | "muted";
 
@@ -21,8 +20,6 @@ export function Money({
 	className?: string;
 }) {
 	return (
-		<span className={cn("tabular-nums", TONE_CLS[tone], className)}>
-			{formatRupiah(value)}
-		</span>
+		<span className={cn("tabular-nums", TONE_CLS[tone], className)}>{formatRupiah(value)}</span>
 	);
 }

@@ -1,23 +1,19 @@
-import { createClient } from "@/lib/supabase/server";
-import { notFound } from "next/navigation";
+import { Pencil } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { Badge, toneFor, Card, PageHeader, buttonStyles } from "@/components/ui";
-import { formatDate } from "@/lib/utils";
+import { DealTimeline } from "@/components/leads/DealTimeline";
 import { LeadActionPanel } from "@/components/leads/LeadActionPanel";
 import { LeadDuplicateButton } from "@/components/leads/LeadDuplicateButton";
 import { LeadPhotoGallery } from "@/components/leads/LeadPhotoGallery";
-import { DealTimeline } from "@/components/leads/DealTimeline";
-import { Pencil } from "lucide-react";
+import { Badge, buttonStyles, Card, PageHeader, toneFor } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatDate } from "@/lib/utils";
 
 /**
  * Lead detail page — shows lead info, photo gallery, and status-driven action panel.
  */
-export default async function LeadDetailPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const supabase = await createClient();
 	const t = await getTranslations("pages.leadDetail");
@@ -27,41 +23,32 @@ export default async function LeadDetailPage({
 	const tLeadType = await getTranslations("entity.leadType");
 	const tChannel = await getTranslations("entity.originChannel");
 
-	const [
-		{ data: lead },
-		{ data: photos },
-		{ data: survey },
-		{ data: proposals },
-		{ data: job },
-	] = await Promise.all([
-		supabase
-			.from("leads")
-			.select("*, customers(id, name, phone)")
-			.eq("id", id)
-			.single(),
-		supabase
-			.from("lead_photos")
-			.select("id, storage_path, caption, uploaded_at")
-			.eq("lead_id", id)
-			.order("uploaded_at", { ascending: true }),
-		supabase
-			.from("surveys")
-			.select("id, scheduled_at, conducted_at, gcal_event_id")
-			.eq("lead_id", id)
-			.maybeSingle(),
-		supabase
-			.from("proposals")
-			.select("id, proposal_number, status, final_price")
-			.eq("lead_id", id)
-			.order("created_at", { ascending: false }),
-		supabase
-			.from("jobs")
-			.select("id, job_number, status, proposals!inner(lead_id)")
-			.eq("proposals.lead_id", id)
-			.order("created_at", { ascending: false })
-			.limit(1)
-			.maybeSingle(),
-	]);
+	const [{ data: lead }, { data: photos }, { data: survey }, { data: proposals }, { data: job }] =
+		await Promise.all([
+			supabase.from("leads").select("*, customers(id, name, phone)").eq("id", id).single(),
+			supabase
+				.from("lead_photos")
+				.select("id, storage_path, caption, uploaded_at")
+				.eq("lead_id", id)
+				.order("uploaded_at", { ascending: true }),
+			supabase
+				.from("surveys")
+				.select("id, scheduled_at, conducted_at, gcal_event_id")
+				.eq("lead_id", id)
+				.maybeSingle(),
+			supabase
+				.from("proposals")
+				.select("id, proposal_number, status, final_price")
+				.eq("lead_id", id)
+				.order("created_at", { ascending: false }),
+			supabase
+				.from("jobs")
+				.select("id, job_number, status, proposals!inner(lead_id)")
+				.eq("proposals.lead_id", id)
+				.order("created_at", { ascending: false })
+				.limit(1)
+				.maybeSingle(),
+		]);
 
 	if (!lead) notFound();
 
@@ -138,9 +125,7 @@ export default async function LeadDetailPage({
 								</div>
 								<div>
 									<p className="text-ink-muted">{t("destination")}</p>
-									<p className="font-medium mt-0.5 text-ink">
-										{lead.destination_address ?? "—"}
-									</p>
+									<p className="font-medium mt-0.5 text-ink">{lead.destination_address ?? "—"}</p>
 								</div>
 								<div>
 									<p className="text-ink-muted">{t("leadType")}</p>
@@ -151,9 +136,7 @@ export default async function LeadDetailPage({
 								<div>
 									<p className="text-ink-muted">{t("channel")}</p>
 									<p className="font-medium mt-0.5 text-ink">
-										{lead.origin_channel
-											? tChannel(lead.origin_channel as never)
-											: "—"}
+										{lead.origin_channel ? tChannel(lead.origin_channel as never) : "—"}
 									</p>
 								</div>
 							</div>

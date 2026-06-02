@@ -35,9 +35,7 @@ export type GCalResult =
 	| { ok: false; error: string; notFound?: boolean };
 
 function isConfigured(): boolean {
-	return Boolean(
-		process.env.GCAL_CLIENT_ID && process.env.GCAL_REFRESH_TOKEN,
-	);
+	return Boolean(process.env.GCAL_CLIENT_ID && process.env.GCAL_REFRESH_TOKEN);
 }
 
 /** Obtain a short-lived access token using the stored refresh token. */
@@ -66,10 +64,7 @@ function buildEventBody(input: GCalEventInput): Record<string, unknown> | string
 		? { dateTime: input.endDateTime, timeZone: tz }
 		: { date: input.endDate ?? input.startDate };
 
-	if (
-		!("dateTime" in start && start.dateTime) &&
-		!("date" in start && start.date)
-	) {
+	if (!("dateTime" in start && start.dateTime) && !("date" in start && start.date)) {
 		return "Event requires startDate or startDateTime.";
 	}
 
@@ -103,9 +98,7 @@ function buildEventBody(input: GCalEventInput): Record<string, unknown> | string
  *
  * @security — tokens are exchanged server-side only; never exposed to the client.
  */
-export async function pushCalendarEvent(
-	input: GCalEventInput,
-): Promise<GCalResult> {
+export async function pushCalendarEvent(input: GCalEventInput): Promise<GCalResult> {
 	if (!isConfigured()) {
 		return { ok: false, error: "Google Calendar not configured." };
 	}
@@ -115,17 +108,14 @@ export async function pushCalendarEvent(
 
 	try {
 		const accessToken = await getAccessToken();
-		const res = await fetch(
-			`${GCAL_EVENTS_BASE}/${encodeURIComponent(input.calendarId)}/events`,
-			{
-				method: "POST",
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(body),
+		const res = await fetch(`${GCAL_EVENTS_BASE}/${encodeURIComponent(input.calendarId)}/events`, {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${accessToken}`,
+				"Content-Type": "application/json",
 			},
-		);
+			body: JSON.stringify(body),
+		});
 
 		if (!res.ok) {
 			const text = await res.text();

@@ -1,8 +1,8 @@
+import { Check } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Check } from "lucide-react";
-import { Card, CardHeader, Badge, toneFor } from "@/components/ui";
-import { formatDate, formatRupiah, cn } from "@/lib/utils";
+import { Badge, Card, CardHeader, toneFor } from "@/components/ui";
+import { cn, formatDate, formatRupiah } from "@/lib/utils";
 
 type Survey = {
 	id: string;
@@ -77,9 +77,7 @@ export async function DealTimeline({
 					current={Boolean(survey && !survey.conducted_at)}
 					title={t("stageSurvey")}
 					sub={surveySub}
-					link={
-						survey ? { href: `/surveys/${survey.id}`, label: t("viewSurvey") } : undefined
-					}
+					link={survey ? { href: `/surveys/${survey.id}`, label: t("viewSurvey") } : undefined}
 				/>
 
 				<Stage
@@ -91,13 +89,8 @@ export async function DealTimeline({
 					{proposals.length > 0 && (
 						<ul className="mt-1.5 space-y-1.5">
 							{proposals.map((p) => (
-								<li
-									key={p.id}
-									className="flex items-center gap-2 flex-wrap text-xs"
-								>
-									<span className="font-mono font-semibold text-ink">
-										{p.proposal_number}
-									</span>
+								<li key={p.id} className="flex items-center gap-2 flex-wrap text-xs">
+									<span className="font-mono font-semibold text-ink">{p.proposal_number}</span>
 									<Badge tone={toneFor("proposal", p.status)} dot>
 										{tPropStatus(p.status as never)}
 									</Badge>
@@ -118,17 +111,10 @@ export async function DealTimeline({
 					)}
 				</Stage>
 
-				<Stage
-					last
-					done={Boolean(job)}
-					title={t("stageJob")}
-					sub={job ? undefined : t("noJobYet")}
-				>
+				<Stage last done={Boolean(job)} title={t("stageJob")} sub={job ? undefined : t("noJobYet")}>
 					{job && (
 						<div className="mt-1.5 flex items-center gap-2 flex-wrap text-xs">
-							<span className="font-mono font-semibold text-ink">
-								#{job.job_number}
-							</span>
+							<span className="font-mono font-semibold text-ink">#{job.job_number}</span>
 							<Badge tone={toneFor("job", job.status)} dot>
 								{tJobStatus(job.status as never)}
 							</Badge>
@@ -166,10 +152,7 @@ function Stage({
 	return (
 		<li className="relative flex gap-3 pb-5 last:pb-0">
 			{!last && (
-				<span
-					className="absolute left-[9px] top-5 bottom-0 w-px bg-line"
-					aria-hidden="true"
-				/>
+				<span className="absolute left-[9px] top-5 bottom-0 w-px bg-line" aria-hidden="true" />
 			)}
 			<span
 				className={cn(

@@ -4,13 +4,7 @@ import type { CSSProperties } from "react";
  * Visual placeholder used by Next 14 loading.tsx boundaries. Pure presentation —
  * no animation library, just Tailwind's animate-pulse.
  */
-export function Skeleton({
-	className = "",
-	style,
-}: {
-	className?: string;
-	style?: CSSProperties;
-}) {
+export function Skeleton({ className = "", style }: { className?: string; style?: CSSProperties }) {
 	return (
 		<div
 			role="presentation"

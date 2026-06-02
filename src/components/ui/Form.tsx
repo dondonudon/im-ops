@@ -24,10 +24,7 @@ export function Field({
 	return (
 		<div className={className}>
 			{label && (
-				<label
-					htmlFor={htmlFor}
-					className="block text-sm font-medium text-ink mb-1.5"
-				>
+				<label htmlFor={htmlFor} className="block text-sm font-medium text-ink mb-1.5">
 					{label}
 					{required && (
 						<span aria-hidden="true" className="text-danger ml-0.5">
@@ -46,10 +43,7 @@ export function Field({
 	);
 }
 
-export function Input({
-	className,
-	...props
-}: React.InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
 	return <input className={cn(controlBase, className)} {...props} />;
 }
 
@@ -57,9 +51,7 @@ export function Textarea({
 	className,
 	...props
 }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-	return (
-		<textarea className={cn(controlBase, "resize-y", className)} {...props} />
-	);
+	return <textarea className={cn(controlBase, "resize-y", className)} {...props} />;
 }
 
 export function Select({

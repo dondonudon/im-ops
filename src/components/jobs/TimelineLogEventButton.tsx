@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { Button, Field, FormError, Input, Select } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
-import { Button, Field, Input, Select, FormError } from "@/components/ui";
 
 const EVENT_TYPE_VALUES = [
 	"loading_start",
@@ -64,15 +64,13 @@ export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 			const {
 				data: { user },
 			} = await supabase.auth.getUser();
-			const { error: insertErr } = await supabase
-				.from("job_timeline")
-				.insert({
-					job_id: jobId,
-					event_type: form.event_type,
-					notes: form.notes.trim() || null,
-					occurred_at: new Date(form.occurred_at).toISOString(),
-					logged_by: user?.id ?? null,
-				});
+			const { error: insertErr } = await supabase.from("job_timeline").insert({
+				job_id: jobId,
+				event_type: form.event_type,
+				notes: form.notes.trim() || null,
+				occurred_at: new Date(form.occurred_at).toISOString(),
+				logged_by: user?.id ?? null,
+			});
 			if (insertErr) throw insertErr;
 			reset();
 			setOpen(false);
@@ -86,12 +84,7 @@ export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 
 	return (
 		<>
-			<Button
-				type="button"
-				onClick={() => setOpen(true)}
-				variant="secondary"
-				size="sm"
-			>
+			<Button type="button" onClick={() => setOpen(true)} variant="secondary" size="sm">
 				<Plus size={13} aria-hidden="true" />
 				{tTimeline("logEvent")}
 			</Button>
@@ -125,9 +118,7 @@ export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 								<Select
 									id="timeline-event-type"
 									value={form.event_type}
-									onChange={(e) =>
-										setForm({ ...form, event_type: e.target.value })
-									}
+									onChange={(e) => setForm({ ...form, event_type: e.target.value })}
 									required
 								>
 									{EVENT_TYPE_VALUES.map((value) => (
@@ -143,9 +134,7 @@ export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 									id="timeline-occurred-at"
 									type="datetime-local"
 									value={form.occurred_at}
-									onChange={(e) =>
-										setForm({ ...form, occurred_at: e.target.value })
-									}
+									onChange={(e) => setForm({ ...form, occurred_at: e.target.value })}
 									required
 								/>
 							</Field>
@@ -163,13 +152,7 @@ export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 
 							{error && <FormError>{error}</FormError>}
 
-							<Button
-								type="submit"
-								loading={saving}
-								variant="primary"
-								size="md"
-								className="w-full"
-							>
+							<Button type="submit" loading={saving} variant="primary" size="md" className="w-full">
 								{saving && <Loader2 size={14} className="animate-spin" />}
 								{saving ? tButtons("saving") : tModal("saveEvent")}
 							</Button>

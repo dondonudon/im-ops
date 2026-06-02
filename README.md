@@ -55,12 +55,17 @@ Built around workflows, not modules. **Current UI/UX + design system: `imops_red
 
 ## Scripts
 
-| Command         | What it does |
-|-----------------|--------------|
-| `npm run dev`   | Next.js dev server on :3000 |
-| `npm run build` | Production build |
-| `npm run start` | Run the production build |
-| `npm run lint`  | ESLint (`next lint`) |
+| Command              | What it does |
+|----------------------|--------------|
+| `npm run dev`        | Next.js dev server on :3000 |
+| `npm run build`      | Production build |
+| `npm run start`      | Run the production build |
+| `npm run lint`       | ESLint via `next lint` (Next.js-specific rules) |
+| `npm run format`     | Biome — format all files in-place |
+| `npm run check`      | Biome — report format + lint issues (read-only) |
+| `npm run check:fix`  | Biome — fix all auto-fixable issues in-place |
+
+Biome (`biome.json`) owns formatting and general linting. `next lint` is kept alongside it for Next.js-specific rules (Image, Link, a11y helpers) that Biome doesn't cover.
 
 ## Routes
 

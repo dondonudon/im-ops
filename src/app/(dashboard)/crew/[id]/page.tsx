@@ -1,16 +1,12 @@
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { formatRupiah } from "@/lib/utils";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
-import { PageHeader, Badge, buttonStyles } from "@/components/ui";
-import Link from "next/link";
+import { Badge, buttonStyles, PageHeader } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatRupiah } from "@/lib/utils";
 
-export default async function CrewDetailPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function CrewDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const supabase = await createClient();
 	const t = await getTranslations("pages.crewDetail");
@@ -29,10 +25,7 @@ export default async function CrewDetailPage({
 			<PageHeader
 				title={member.name}
 				actions={
-					<Link
-						href={`/crew/${id}/edit`}
-						className={buttonStyles({ variant: "secondary" })}
-					>
+					<Link href={`/crew/${id}/edit`} className={buttonStyles({ variant: "secondary" })}>
 						{tCommon("edit")}
 					</Link>
 				}
@@ -54,9 +47,7 @@ export default async function CrewDetailPage({
 				{member.daily_rate && (
 					<div className="flex gap-4">
 						<span className="w-36 text-ink-muted shrink-0">{t("dailyRate")}</span>
-						<span className="tabular-nums text-ink">
-							{formatRupiah(member.daily_rate)}
-						</span>
+						<span className="tabular-nums text-ink">{formatRupiah(member.daily_rate)}</span>
 					</div>
 				)}
 				{member.skills && (

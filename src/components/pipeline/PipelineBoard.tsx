@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect, useTransition } from "react";
+import { GripVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { GripVertical } from "lucide-react";
-import { cn, formatRupiah } from "@/lib/utils";
-import { Badge, Money, RouteLine, toneFor } from "@/components/ui";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { advanceLead, type Stage } from "@/app/(dashboard)/pipeline/actions";
+import { Badge, Money, RouteLine, toneFor } from "@/components/ui";
+import { cn, formatRupiah } from "@/lib/utils";
 
 export type PipelineCard = {
 	id: string;
@@ -45,11 +45,7 @@ type Press = {
 	started: boolean;
 };
 
-export function PipelineBoard({
-	initialColumns,
-}: {
-	initialColumns: ColumnsData;
-}) {
+export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData }) {
 	const t = useTranslations("pipeline");
 	const tStatus = useTranslations("status.lead");
 	const router = useRouter();
@@ -135,9 +131,7 @@ export function PipelineBoard({
 			}
 			setColumns((cur) => ({
 				...cur,
-				[toStage]: cur[toStage].map((c) =>
-					c.id === id ? { ...c, status: result.status } : c,
-				),
+				[toStage]: cur[toStage].map((c) => (c.id === id ? { ...c, status: result.status } : c)),
 			}));
 			startTransition(() => routerRef.current.refresh());
 		});
@@ -164,10 +158,7 @@ export function PipelineBoard({
 			const dist = Math.hypot(e.clientX - p.x, e.clientY - p.y);
 
 			if (!p.started) {
-				const canDrag =
-					p.fromHandle ||
-					p.pointerType === "mouse" ||
-					p.pointerType === "pen";
+				const canDrag = p.fromHandle || p.pointerType === "mouse" || p.pointerType === "pen";
 				if (canDrag && dist > THRESHOLD) {
 					activateDrag();
 				} else if (!p.fromHandle && p.pointerType === "touch") {
@@ -188,12 +179,7 @@ export function PipelineBoard({
 			const board = boardRef.current;
 			if (board) {
 				const r = board.getBoundingClientRect();
-				autoDirRef.current =
-					e.clientX > r.right - EDGE
-						? 1
-						: e.clientX < r.left + EDGE
-							? -1
-							: 0;
+				autoDirRef.current = e.clientX > r.right - EDGE ? 1 : e.clientX < r.left + EDGE ? -1 : 0;
 			}
 		}
 
@@ -226,7 +212,7 @@ export function PipelineBoard({
 			window.removeEventListener("pointercancel", onUp);
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [stageAtPoint, performDrop, activateDrag]);
 
 	// Auto-scroll the board horizontally while dragging near an edge.
 	useEffect(() => {
@@ -243,11 +229,7 @@ export function PipelineBoard({
 		return () => cancelAnimationFrame(raf);
 	}, [dragId]);
 
-	function startPress(
-		e: React.PointerEvent,
-		card: PipelineCard,
-		fromHandle: boolean,
-	) {
+	function startPress(e: React.PointerEvent, card: PipelineCard, fromHandle: boolean) {
 		if (e.button && e.button !== 0) return;
 		dragCardRef.current = card;
 		pressRef.current = {
@@ -264,10 +246,7 @@ export function PipelineBoard({
 
 	return (
 		<>
-			<div
-				ref={boardRef}
-				className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin snap-x"
-			>
+			<div ref={boardRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin snap-x">
 				{STAGE_ORDER.map((stage) => {
 					const items = columns[stage];
 					const colValue = items.reduce((s, c) => s + c.value, 0);
@@ -365,15 +344,9 @@ export function PipelineBoard({
 														{tStatus(card.status as never)}
 													</Badge>
 												</div>
-												<RouteLine
-													from={card.pickup}
-													to={card.destination}
-													className="mb-2"
-												/>
+												<RouteLine from={card.pickup} to={card.destination} className="mb-2" />
 												<div className="flex items-center justify-between text-xs">
-													<span className="text-ink-faint tabular-nums">
-														{card.dateLabel}
-													</span>
+													<span className="text-ink-faint tabular-nums">{card.dateLabel}</span>
 													{card.value > 0 && (
 														<span className="text-xs font-semibold text-ink tabular-nums">
 															{formatRupiah(card.value)}
@@ -405,10 +378,7 @@ export function PipelineBoard({
 								{tStatus(dragCardRef.current.status as never)}
 							</Badge>
 						</div>
-						<RouteLine
-							from={dragCardRef.current.pickup}
-							to={dragCardRef.current.destination}
-						/>
+						<RouteLine from={dragCardRef.current.pickup} to={dragCardRef.current.destination} />
 					</div>
 				</div>
 			)}

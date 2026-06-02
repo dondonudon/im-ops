@@ -1,23 +1,15 @@
-import { createClient } from "@/lib/supabase/server";
-import { notFound } from "next/navigation";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { jobStatusVariant, leadStatusVariant, StatusChip } from "@/components/shared/StatusChip";
+import { buttonStyles, PageHeader } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatRupiah } from "@/lib/utils";
-import {
-	StatusChip,
-	leadStatusVariant,
-	jobStatusVariant,
-} from "@/components/shared/StatusChip";
-import { PageHeader, buttonStyles } from "@/components/ui";
 
 /**
  * Customer detail page — history of leads, jobs, invoices.
  */
-export default async function CustomerDetailPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const supabase = await createClient();
 	const t = await getTranslations("pages.customerDetail");
@@ -26,22 +18,21 @@ export default async function CustomerDetailPage({
 	const tLeadStatus = await getTranslations("status.lead");
 	const tJobStatus = await getTranslations("status.job");
 
-	const [{ data: customer }, { data: leads }, { data: jobs }] =
-		await Promise.all([
-			supabase.from("customers").select("*").eq("id", id).single(),
-			supabase
-				.from("leads")
-				.select("id, status, pickup_address, destination_address, created_at")
-				.eq("customer_id", id)
-				.order("created_at", { ascending: false }),
-			supabase
-				.from("jobs")
-				.select(
-					"id, job_number, status, move_date, revenue, proposals!inner(lead_id, leads!inner(customer_id))",
-				)
-				.eq("proposals.leads.customer_id", id)
-				.order("created_at", { ascending: false }),
-		]);
+	const [{ data: customer }, { data: leads }, { data: jobs }] = await Promise.all([
+		supabase.from("customers").select("*").eq("id", id).single(),
+		supabase
+			.from("leads")
+			.select("id, status, pickup_address, destination_address, created_at")
+			.eq("customer_id", id)
+			.order("created_at", { ascending: false }),
+		supabase
+			.from("jobs")
+			.select(
+				"id, job_number, status, move_date, revenue, proposals!inner(lead_id, leads!inner(customer_id))",
+			)
+			.eq("proposals.leads.customer_id", id)
+			.order("created_at", { ascending: false }),
+	]);
 
 	if (!customer) notFound();
 
@@ -51,20 +42,14 @@ export default async function CustomerDetailPage({
 				title={customer.name}
 				subtitle={tType(customer.type as never)}
 				actions={
-					<Link
-						href={`/customers/${id}/edit`}
-						className={buttonStyles({ variant: "secondary" })}
-					>
+					<Link href={`/customers/${id}/edit`} className={buttonStyles({ variant: "secondary" })}>
 						{tCommon("edit")}
 					</Link>
 				}
 			/>
 
 			{/* Contact info */}
-			<section
-				aria-label={t("contactInformation")}
-				className="grid grid-cols-2 gap-4 text-sm"
-			>
+			<section aria-label={t("contactInformation")} className="grid grid-cols-2 gap-4 text-sm">
 				{customer.phone && (
 					<div>
 						<p className="text-ink-muted">{t("phone")}</p>
@@ -92,9 +77,7 @@ export default async function CustomerDetailPage({
 			{/* Leads */}
 			<section>
 				<div className="flex items-center justify-between mb-3">
-					<h2 className="text-lg font-semibold text-ink">
-						{t("leads")}
-					</h2>
+					<h2 className="text-lg font-semibold text-ink">{t("leads")}</h2>
 					<Link
 						href={`/leads/new?customer_id=${id}`}
 						className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
@@ -120,9 +103,7 @@ export default async function CustomerDetailPage({
 											label={tLeadStatus(l.status as never)}
 											variant={leadStatusVariant(l.status)}
 										/>
-										<span className="text-xs text-ink-faint">
-											{formatDate(l.created_at)}
-										</span>
+										<span className="text-xs text-ink-faint">{formatDate(l.created_at)}</span>
 									</div>
 								</Link>
 							</li>
@@ -133,9 +114,7 @@ export default async function CustomerDetailPage({
 
 			{/* Jobs */}
 			<section>
-				<h2 className="text-lg font-semibold text-ink mb-3">
-					{t("jobs")}
-				</h2>
+				<h2 className="text-lg font-semibold text-ink mb-3">{t("jobs")}</h2>
 				{(jobs ?? []).length === 0 ? (
 					<p className="text-sm text-ink-faint">{t("noJobsYet")}</p>
 				) : (
@@ -153,9 +132,7 @@ export default async function CustomerDetailPage({
 											label={tJobStatus(j.status as never)}
 											variant={jobStatusVariant(j.status)}
 										/>
-										<span className="text-xs text-ink-faint">
-											{formatDate(j.move_date)}
-										</span>
+										<span className="text-xs text-ink-faint">{formatDate(j.move_date)}</span>
 									</div>
 								</Link>
 							</li>

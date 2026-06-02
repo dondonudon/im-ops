@@ -1,1088 +1,1088 @@
 {
-  "nav": {
-    "dashboard": "Dashboard",
-    "today": "Today",
-    "board": "Board",
-    "pipeline": "Pipeline",
-    "money": "Money",
-    "directory": "Directory",
-    "leads": "Leads",
-    "proposals": "Proposals",
-    "jobs": "Jobs",
-    "calendar": "Calendar",
-    "customers": "Customers",
-    "fleet": "Fleet",
-    "crew": "Crew",
-    "invoices": "Invoices",
-    "reports": "Reports",
-    "settings": "Settings",
-    "signOut": "Sign out",
-    "groups": {
-      "pipeline": "Pipeline",
-      "operations": "Operations",
-      "resources": "Resources",
-      "finance": "Finance"
-    },
-    "overview": "Overview"
-  },
-  "topbar": {
-    "searchPlaceholder": "Search…",
-    "openMenu": "Open menu",
-    "expandSidebar": "Expand sidebar",
-    "collapseSidebar": "Collapse sidebar",
-    "account": "Account",
-    "language": "Language"
-  },
-  "field": {
-    "quickAdd": "Quick add",
-    "newLead": "New lead",
-    "newCustomer": "New customer",
-    "search": "Search",
-    "menu": "Menu",
-    "newFleet": "New fleet",
-    "newCrew": "New crew"
-  },
-  "pipeline": {
-    "title": "Pipeline",
-    "subtitle": "{count} active deal(s) in the funnel",
-    "lostCount": "{count} lost",
-    "pipelineValue": "Pipeline value",
-    "empty": "No active deals.",
-    "emptyHint": "New leads will appear here as they come in.",
-    "emptyColumn": "Nothing here.",
-    "dropHere": "Drop here",
-    "stages": {
-      "new": "New",
-      "survey": "Survey",
-      "estimate": "Estimate",
-      "proposal": "Proposal",
-      "won": "Won"
-    },
-    "notices": {
-      "needs_survey": "Schedule a survey from the lead first.",
-      "needs_proposal": "Create a proposal for this lead first.",
-      "needs_job": "Convert the approved proposal to a job first.",
-      "error": "Couldn't move that deal. Please try again."
-    }
-  },
-  "today": {
-    "title": "Today",
-    "subtitleNeeds": "{date} · {count} thing(s) need you",
-    "subtitleClear": "{date} · you're all caught up",
-    "openPipeline": "Open pipeline",
-    "todaysMoves": "Today's moves",
-    "noMovesToday": "No moves scheduled today.",
-    "needsYou": "Needs you",
-    "allClear": "All clear",
-    "allClearHint": "Nothing needs your attention right now.",
-    "money": "Money this month",
-    "revenueTarget": "Revenue vs target",
-    "ofTarget": "{pct}% of monthly target",
-    "revenue": "Revenue",
-    "expenses": "Expenses",
-    "net": "Net this month",
-    "viewReport": "View full report →",
-    "atAGlance": "At a glance",
-    "upcoming": "Upcoming",
-    "viewCalendar": "Calendar",
-    "noUpcoming": "No upcoming moves.",
-    "queue": {
-      "surveyDue": "Survey due",
-      "proposalReady": "Proposal ready to send",
-      "invoiceOverdue": "Invoice overdue",
-      "syncFailed": "Calendar sync failed",
-      "review": "Review",
-      "send": "Send",
-      "collect": "Collect",
-      "fix": "Fix"
-    },
-    "kpi": {
-      "activeJobs": "Active jobs",
-      "activeJobsSub": "{count} move(s) today",
-      "openProposals": "Open proposals",
-      "openProposalsSub": "Awaiting approval",
-      "unpaid": "Unpaid invoices",
-      "overdueSub": "{amount} overdue",
-      "outstandingSub": "{amount} outstanding",
-      "movesToday": "Moves today",
-      "movesTodaySub": "Confirmed bookings"
-    }
-  },
-  "search": {
-    "placeholder": "Search leads, jobs, customers, proposals, invoices…",
-    "groups": {
-      "leads": "Leads",
-      "jobs": "Jobs",
-      "proposals": "Proposals",
-      "customers": "Customers",
-      "fleet": "Fleet",
-      "crew": "Crew",
-      "invoices": "Invoices"
-    },
-    "emptyHint": "Type to search across the whole system.",
-    "emptyScope": "Leads · Jobs · Proposals · Customers · Invoices · Fleet · Crew",
-    "noResults": "No results for \"{query}\"",
-    "hintNavigate": "navigate",
-    "hintOpen": "open",
-    "hintClose": "close",
-    "hintToggle": "to toggle",
-    "actionsTitle": "Actions",
-    "create": "Create",
-    "openPage": "Go to page"
-  },
-  "common": {
-    "buttons": {
-      "save": "Save",
-      "saving": "Saving…",
-      "saveChanges": "Save changes",
-      "cancel": "Cancel",
-      "edit": "Edit",
-      "delete": "Delete",
-      "confirm": "Confirm",
-      "back": "Back",
-      "close": "Close",
-      "create": "Create",
-      "duplicate": "Duplicate",
-      "duplicating": "Duplicating…",
-      "view": "View",
-      "viewAll": "View all",
-      "loadMore": "Load more",
-      "tryAgain": "Try again",
-      "add": "Add",
-      "addAnyway": "Add anyway",
-      "remove": "Remove",
-      "filter": "Filter",
-      "all": "All",
-      "scheduling": "Scheduling…",
-      "uploading": "Uploading…",
-      "deleting": "Deleting…",
-      "saved": "Saved ✓"
-    },
-    "hints": {
-      "commaSeparated": "(comma-separated)",
-      "idr": "(IDR)",
-      "optionalParen": "(optional)",
-      "select": "Select…"
-    },
-    "actions": {
-      "search": "Search",
-      "filter": "Filter",
-      "sort": "Sort",
-      "export": "Export",
-      "download": "Download",
-      "downloadPdf": "Download PDF",
-      "generatingPdf": "Generating PDF…",
-      "loadingPdf": "Loading PDF…",
-      "upload": "Upload",
-      "share": "Share",
-      "open": "Open",
-      "manage": "Manage",
-      "syncCalendar": "Sync to Calendar",
-      "reSyncCalendar": "Re-sync to Calendar",
-      "synced": "Synced",
-      "syncAll": "Sync all to Calendar",
-      "syncing": "Syncing…",
-      "sendViaWhatsapp": "Send via WhatsApp"
-    },
-    "labels": {
-      "date": "Date",
-      "time": "Time",
-      "status": "Status",
-      "notes": "Notes",
-      "amount": "Amount",
-      "total": "Total",
-      "name": "Name",
-      "phone": "Phone",
-      "email": "Email",
-      "address": "Address",
-      "customer": "Customer",
-      "loading": "Loading…",
-      "noData": "No data.",
-      "optional": "optional",
-      "required": "required",
-      "createdAt": "Created",
-      "updatedAt": "Updated",
-      "dateTbd": "Date TBD",
-      "since": "Since",
-      "type": "Type",
-      "phoneShort": "Tel",
-      "active": "Active",
-      "inactive": "Inactive"
-    },
-    "errors": {
-      "generic": "Something went wrong.",
-      "saveFailed": "Save failed.",
-      "loadFailed": "Failed to load.",
-      "amountMustBePositive": "Amount must be positive.",
-      "networkOffline": "Offline — changes will sync when back online.",
-      "nameRequired": "Name is required.",
-      "priceRequired": "Price is required.",
-      "dateTimeRequired": "Please set a date and time.",
-      "moveDateRequired": "Move date is required.",
-      "notAnImage": "{name} is not an image.",
-      "uploadFailed": "Upload failed."
-    }
-  },
-  "status": {
-    "lead": {
-      "new": "New",
-      "survey_scheduled": "Survey scheduled",
-      "survey_done": "Survey done",
-      "estimating": "Estimating",
-      "proposal_sent": "Proposal sent",
-      "converted": "Converted",
-      "closed_lost": "Closed — lost"
-    },
-    "job": {
-      "scheduled": "Scheduled",
-      "in_progress": "In progress",
-      "completed": "Completed",
-      "closed": "Closed",
-      "cancelled": "Cancelled"
-    },
-    "proposal": {
-      "draft": "Draft",
-      "sent": "Sent",
-      "negotiating": "Negotiating",
-      "approved": "Approved",
-      "lost": "Lost",
-      "expired": "Expired"
-    },
-    "invoice": {
-      "draft": "Draft",
-      "sent": "Sent",
-      "partially_paid": "Partially paid",
-      "paid": "Paid",
-      "overdue": "Overdue",
-      "cancelled": "Cancelled"
-    }
-  },
-  "dashboard": {
-    "title": "Operations Dashboard",
-    "subtitle": "Real-time status for {date}",
-    "kpi": {
-      "totalRevenue": "Total revenue",
-      "totalProfit": "Total profit",
-      "leadConversion": "Lead conversion",
-      "totalLeads": "Total leads",
-      "outstanding": "Outstanding",
-      "unpaidInvoices": "Unpaid Invoices",
-      "monthRevenue": "Revenue this month",
-      "monthExpenses": "Expenses this month",
-      "activeJobs": "Active Jobs",
-      "openProposals": "Open Proposals",
-      "movesToday": "Moves Today",
-      "movesTodayCount": "{count} moves today",
-      "amountOverdue": "{amount} overdue",
-      "pendingApproval": "Pending approval",
-      "confirmedBookings": "Confirmed bookings",
-      "active": "Active",
-      "highValue": "High Value",
-      "actionRequired": "Action Req",
-      "scheduledBadge": "Scheduled",
-      "unpaidInvoicesCount": "{count} unpaid invoice(s)"
-    },
-    "tabs": {
-      "overview": "Overview",
-      "dispatch": "Dispatch",
-      "financials": "Financials"
-    },
-    "sections": {
-      "upcomingJobs": "Upcoming jobs",
-      "recentPayments": "Recent Payments",
-      "recentLeads": "Recent Leads",
-      "draftProposals": "Draft Proposals",
-      "priorityActiveJobs": "Priority Active Jobs",
-      "dispatchBoard": "Dispatch Board — Next 7 Days",
-      "financialHealth": "Financial Health",
-      "revenueMonthlyTarget": "Revenue (Monthly Target)",
-      "netThisMonth": "Net this month",
-      "netProfit": "Net Profit",
-      "monthRevenueLabel": "Month Revenue",
-      "monthExpensesLabel": "Month Expenses",
-      "actionItems": "Action Items",
-      "invoiceStatus": "Invoice Status",
-      "upcoming": "Upcoming"
-    },
-    "columns": {
-      "jobId": "Job ID",
-      "customer": "Customer",
-      "revenue": "Revenue",
-      "status": "Status",
-      "date": "Date",
-      "pickup": "Pickup",
-      "destination": "Destination",
-      "crew": "Crew",
-      "notes": "Notes"
-    },
-    "empty": {
-      "noJobs": "No upcoming jobs.",
-      "noPayments": "No payments recorded.",
-      "noLeads": "No recent leads.",
-      "noDrafts": "No draft proposals.",
-      "noActions": "No action items.",
-      "noActionsHint": "No pending tasks right now.",
-      "noDispatch": "Nothing dispatched in the next 7 days.",
-      "noInvoices": "No invoices yet."
-    },
-    "actions": {
-      "viewAll": "View all",
-      "inHomeSurvey": "In-Home Survey: {name}",
-      "scheduledAt": "Scheduled • {address}",
-      "addressTbd": "Address TBD",
-      "generateProposal": "Generate Proposal: {number}",
-      "draftReady": "Draft ready • Pending review",
-      "markSurveyDone": "Mark Survey Done",
-      "generateProposalAction": "Generate Proposal",
-      "viewFullReport": "View Full Report →",
-      "manageInvoices": "Manage Invoices →"
-    },
-    "dispatch": {
-      "noAssignments": "No crew/fleet assigned yet"
-    },
-    "progress": {
-      "monthlyTargetAria": "Monthly revenue progress: {pct}%",
-      "ofTargetAria": "{pct}% of monthly target"
-    },
-    "invoiceLegend": {
-      "draft": "Draft",
-      "sent": "Sent",
-      "partiallyPaid": "Partially Paid",
-      "paid": "Paid",
-      "overdue": "Overdue"
-    }
-  },
-  "pages": {
-    "leads": {
-      "title": "Leads",
-      "searchPlaceholder": "Search address…",
-      "filterAll": "All",
-      "empty": "No leads yet.",
-      "emptyFiltered": "No leads match your filters.",
-      "new": "New Lead"
-    },
-    "jobs": {
-      "title": "Jobs",
-      "filterAll": "All statuses",
-      "columns": {
-        "jobNumber": "Job No.",
-        "customer": "Customer",
-        "date": "Date",
-        "revenue": "Revenue",
-        "status": "Status"
-      },
-      "empty": "No jobs.",
-      "viewList": "List",
-      "viewBoard": "Board"
-    },
-    "proposals": {
-      "title": "Proposals",
-      "filterAll": "All statuses",
-      "columns": {
-        "proposalNumber": "Proposal No.",
-        "customer": "Customer",
-        "price": "Price",
-        "status": "Status",
-        "created": "Created"
-      },
-      "empty": "No proposals."
-    },
-    "customers": {
-      "title": "Customers",
-      "searchPlaceholder": "Search by name, phone or email…",
-      "columns": {
-        "name": "Name",
-        "phone": "Phone",
-        "type": "Type",
-        "since": "Since"
-      },
-      "empty": "No customers yet. Create the first one.",
-      "emptyFiltered": "No customers match your search.",
-      "new": "New Customer"
-    },
-    "fleet": {
-      "title": "Fleet",
-      "searchPlaceholder": "Search fleet…",
-      "columns": {
-        "name": "Name",
-        "contact": "Contact",
-        "phone": "Phone",
-        "vehicles": "Vehicles",
-        "status": "Status"
-      },
-      "empty": "No fleet members found.",
-      "new": "New Fleet"
-    },
-    "crew": {
-      "title": "Crew",
-      "searchPlaceholder": "Search crew…",
-      "columns": {
-        "name": "Name",
-        "phone": "Phone",
-        "dailyRate": "Daily rate",
-        "availability": "Availability"
-      },
-      "empty": "No crew members found.",
-      "new": "New Crew Member"
-    },
-    "invoices": {
-      "title": "Invoices",
-      "filterAll": "All statuses",
-      "columns": {
-        "invoiceNumber": "Invoice No.",
-        "customer": "Customer",
-        "total": "Total",
-        "paid": "Paid",
-        "dueDate": "Due date",
-        "status": "Status"
-      },
-      "empty": "No invoices."
-    },
-    "calendar": {
-      "title": "Calendar",
-      "legend": {
-        "survey": "Survey",
-        "scheduled": "Scheduled",
-        "inProgress": "In progress",
-        "completed": "Completed"
-      }
-    },
-    "reports": {
-      "title": "Reports",
-      "kpi": {
-        "totalRevenue": "Total revenue",
-        "totalProfit": "Total profit",
-        "leadConversion": "Lead conversion",
-        "totalLeads": "Total leads"
-      },
-      "profitByJob": {
-        "title": "Profit by job",
-        "job": "Job",
-        "revenue": "Revenue",
-        "cost": "Cost",
-        "profit": "Profit"
-      },
-      "expensesThisMonth": "Expenses this month",
-      "noExpensesThisMonth": "No expenses this month.",
-      "leadFunnel": "Lead funnel",
-      "noLeads": "No leads.",
-      "arAging": {
-        "title": "AR aging",
-        "totalLabel": "Total: {amount}",
-        "noOutstanding": "No outstanding invoices.",
-        "current": "Current",
-        "overdue": "{range} days overdue"
-      },
-      "lostProposals": {
-        "title": "Lost proposals — why",
-        "totalCount": "{count} total",
-        "empty": "No lost or expired proposals.",
-        "noReason": "No reason given"
-      }
-    },
-    "settings": {
-      "title": "Settings",
-      "hint": "Edit any value and click away to save. Changes take effect immediately.",
-      "sectionsAria": "Settings sections",
-      "noSettings": "No settings configured for this section.",
-      "groups": {
-        "companyAndDocs": "Company & Documents",
-        "operations": "Operations",
-        "pricing": "Pricing",
-        "billing": "Billing",
-        "integrations": "Integrations"
-      },
-      "descriptions": {
-        "companyAndDocs": "Branding, PDF templates, and signature blocks",
-        "operations": "Crew rates and vehicle costs",
-        "pricing": "Margins, negotiation buffers, and profit thresholds",
-        "billing": "Invoice defaults and financial dashboard targets",
-        "integrations": "Google Calendar sync and external service configuration"
-      },
-      "sections": {
-        "companyIdentity": "Company Identity",
-        "documentTemplates": "Document Templates",
-        "crewManpower": "Crew & Manpower",
-        "pricingMargins": "Pricing & Margins",
-        "vehicles": "Vehicles",
-        "packingMaterials": "Packing Materials",
-        "safetyThresholds": "Safety & Thresholds",
-        "invoiceSettings": "Invoice Settings",
-        "dashboard": "Dashboard",
-        "googleCalendar": "Google Calendar"
-      },
-      "marginTiers": {
-        "upTo": "Up to (IDR)",
-        "ratePct": "Rate %",
-        "minProfit": "Min profit (IDR)",
-        "andAbove": "And above",
-        "addTier": "Add tier",
-        "remove": "Remove tier"
-      }
-    },
-    "leadDetail": {
-      "moveDetails": "Move details",
-      "pickup": "Pickup",
-      "destination": "Destination",
-      "leadType": "Lead type",
-      "channel": "Channel",
-      "preferredDate": "Preferred date: {date}",
-      "createdOn": "Created {date}",
-      "lifecycle": "Deal lifecycle",
-      "stageIntake": "Lead intake",
-      "stageSurvey": "Survey",
-      "stageProposal": "Estimate & proposal",
-      "stageJob": "Job",
-      "surveyScheduledOn": "Scheduled {date}",
-      "surveyCompletedOn": "Completed {date}",
-      "surveySkipped": "Skipped (optional)",
-      "surveyOptional": "Optional — not scheduled",
-      "noProposalYet": "Not started yet",
-      "openProposal": "Open",
-      "viewSurvey": "View survey",
-      "viewJob": "View job",
-      "noJobYet": "Not converted yet"
-    },
-    "jobDetail": {
-      "moveSummary": "Move summary",
-      "pickup": "Pickup",
-      "destination": "Destination",
-      "revenue": "Revenue",
-      "expenses": "Expenses",
-      "assignments": "Assignments",
-      "noAssignments": "No assignments yet.",
-      "addOrViewAll": "Add / view all →",
-      "noExpenses": "No expenses logged.",
-      "timeline": "Timeline",
-      "noTimelineEvents": "No events yet. Log loading, transit, unloading or custom events as the job progresses.",
-      "profit": "Profit",
-      "logExpense": "Log Expense",
-      "invoice": "Invoice",
-      "payments": "Payments",
-      "manageInvoice": "Manage Invoice →",
-      "assignResources": "Assign Resources",
-      "expense": "+ Expense"
-    },
-    "jobsTimeline": {
-      "backToJob": "Back to job",
-      "title": "Timeline",
-      "emptyWithHint": "No events yet. Use Log Event to record loading, transit, unloading, or any custom note during the move."
-    },
-    "proposalDetail": {
-      "viewLead": "← View Lead",
-      "created": "Created {date}",
-      "approved": "Approved {date}",
-      "moveSummary": "Move summary",
-      "preferredDate": "Preferred date",
-      "finalPrice": "Final price",
-      "estimationBreakdown": "Estimation breakdown",
-      "editEstimation": "Edit →",
-      "negotiationHistory": "Negotiation history",
-      "noRevisions": "No revisions yet.",
-      "breakdown": {
-        "vehicle": "Vehicle",
-        "crew": "Crew",
-        "manpower": "Manpower",
-        "food": "Food",
-        "packing": "Packing materials",
-        "toll": "Toll",
-        "operationalBuffer": "Operational buffer",
-        "adjustedCost": "Adjusted cost",
-        "finalProfit": "Final profit",
-        "internalTarget": "Internal target",
-        "offerPrice": "Offer price"
-      }
-    },
-    "customerDetail": {
-      "contactInformation": "Contact information",
-      "phone": "Phone",
-      "email": "Email",
-      "company": "Company",
-      "since": "Customer since",
-      "leads": "Leads",
-      "newLead": "New Lead",
-      "noLeadsYet": "No leads yet.",
-      "jobs": "Jobs",
-      "noJobsYet": "No jobs yet."
-    },
-    "fleetDetail": {
-      "contact": "Contact",
-      "phone": "Phone",
-      "vehicles": "Vehicles",
-      "serviceAreas": "Service areas",
-      "bank": "Bank",
-      "notes": "Notes"
-    },
-    "crewDetail": {
-      "phone": "Phone",
-      "dailyRate": "Daily rate",
-      "skills": "Skills",
-      "availability": "Availability",
-      "emergency": "Emergency",
-      "notes": "Notes"
-    },
-    "invoiceDetail": {
-      "due": "Due {date}",
-      "customer": "Customer",
-      "phone": "Phone",
-      "email": "Email",
-      "moveDate": "Move date",
-      "invoiceDate": "Invoice date",
-      "dueDate": "Due date",
-      "notes": "Notes",
-      "total": "Total",
-      "downloadInvoicePdf": "Download Invoice PDF"
-    },
-    "estimation": {
-      "newTitle": "New Estimation",
-      "editTitle": "Edit Estimation"
-    },
-    "surveyDetail": {
-      "backToLead": "Back to Lead",
-      "completed": "Completed",
-      "scheduled": "Scheduled",
-      "inHomeSurvey": "In-Home Survey",
-      "scheduledLabel": "Scheduled",
-      "completedLabel": "Completed",
-      "pickup": "Pickup",
-      "destination": "Destination",
-      "accessNotes": "Access notes",
-      "specialItems": "Special items",
-      "generalNotes": "General notes",
-      "addItem": "Add item",
-      "removeItem": "Remove item",
-      "saveSurveyNotes": "Save survey notes",
-      "markAsDone": "Mark as Done",
-      "markedAsCompleted": "Survey marked as completed"
-    }
-  },
-  "forms": {
-    "lead": {
-      "customer": "Customer",
-      "existingCustomer": "Existing customer",
-      "newCustomer": "New customer",
-      "name": "Name",
-      "phone": "Phone",
-      "pickup": "Pickup address",
-      "destination": "Destination address",
-      "preferredDate": "Preferred move date",
-      "leadType": "Lead type",
-      "originChannel": "Origin channel",
-      "notes": "Notes",
-      "createLead": "Create lead",
-      "editTitle": "Edit Lead",
-      "newTitle": "New Lead",
-      "nameRequired": "Name is required.",
-      "addDetails": "Add details",
-      "linkExisting": "Link to an existing customer"
-    },
-    "customer": {
-      "fullName": "Full name",
-      "phone": "Phone",
-      "phonePlaceholder": "e.g. 08123456789",
-      "email": "Email",
-      "type": "Type",
-      "companyName": "Company name",
-      "notes": "Notes",
-      "newTitle": "New Customer",
-      "editTitle": "Edit Customer"
-    },
-    "fleet": {
-      "name": "Name",
-      "contactPerson": "Contact person",
-      "phone": "Phone",
-      "vehicleTypes": "Vehicle types",
-      "serviceAreas": "Service areas",
-      "bankName": "Bank name",
-      "bankAccount": "Bank account",
-      "notes": "Notes",
-      "active": "Active",
-      "newTitle": "New Fleet",
-      "editTitle": "Edit Fleet"
-    },
-    "crew": {
-      "name": "Name",
-      "phone": "Phone",
-      "skills": "Skills",
-      "dailyRate": "Daily rate",
-      "availability": "Availability",
-      "emergencyContact": "Emergency contact",
-      "emergencyPlaceholder": "Name — Phone",
-      "notes": "Notes",
-      "active": "Active",
-      "newTitle": "New Crew Member",
-      "editTitle": "Edit Crew Member"
-    },
-    "job": {
-      "status": "Status",
-      "schedule": "Schedule",
-      "startDate": "Start date",
-      "startTime": "Start time",
-      "endDate": "End date",
-      "endTime": "End time",
-      "endDateHint": "(blank = same day)",
-      "revenue": "Revenue (Rp)",
-      "notes": "Notes",
-      "editTitle": "Edit Job",
-      "backToJob": "Back to Job",
-      "backToLead": "Back to Lead",
-      "addresses": "Addresses"
-    },
-    "estimation": {
-      "title": "Estimation",
-      "inputs": "Inputs",
-      "vehicle": "Vehicle",
-      "vehicleType": "Vehicle type",
-      "vehicleCost": "Vehicle cost",
-      "distanceKm": "Distance (km)",
-      "crewCount": "Crew count",
-      "crewDayRate": "Crew day rate",
-      "foodPerCrew": "Meal per crew",
-      "manpowerQty": "Manpower",
-      "packingCost": "Packing materials",
-      "tollEstimate": "Toll estimate",
-      "otherCost": "Other cost",
-      "outOfTown": "Out of town",
-      "outOfTownHint": "(+1 crew, meals × {meals})",
-      "mealsCount": "Meals count",
-      "specialItems": "Special items",
-      "manualOverride": "Manual override",
-      "overridePrice": "Override final price",
-      "overridePriceLabel": "Override price",
-      "overrideReason": "Override reason",
-      "breakdownTitle": "Breakdown",
-      "saveEstimation": "Save Estimation",
-      "creating": "Saving…",
-      "summary": "Cost summary",
-      "breakdown": {
-        "other": "Other",
-        "jobCost": "Job cost",
-        "margin": "Margin ({pct}%)",
-        "minimumProfitFloor": "Minimum profit floor",
-        "negotiationBuffer": "Negotiation buffer ({pct}%)"
-      },
-      "engineFooter": "Engine v{version} · settings snapshot taken at save"
-    },
-    "expense": {
-      "title": "Log Expense",
-      "amount": "Amount",
-      "amountIdr": "Amount (IDR)",
-      "category": "Category",
-      "note": "Note",
-      "date": "Date",
-      "receipt": "Receipt photo",
-      "saveExpense": "Save Expense",
-      "moreOptions": "Note / date / receipt",
-      "hideOptions": "Hide options"
-    },
-    "payment": {
-      "type": "Type",
-      "method": "Method",
-      "amountIdr": "Amount (IDR)",
-      "date": "Date",
-      "notes": "Notes",
-      "savePayment": "Save Payment"
-    },
-    "survey": {
-      "accessNotes": "Access notes",
-      "accessNotesPlaceholder": "e.g. Gate code is 1234…",
-      "generalNotes": "General notes",
-      "generalNotesPlaceholder": "Anything else to note…",
-      "specialItems": "Special items",
-      "noSpecialItems": "No special items recorded.",
-      "itemType": "Item type",
-      "qty": "Qty",
-      "itemNote": "Note",
-      "addItem": "Add item",
-      "removeItem": "Remove item",
-      "saveSurveyNotes": "Save survey notes",
-      "markAsDone": "Mark as Done",
-      "markDoneFailed": "Failed to mark done.",
-      "markedAsCompleted": "Survey marked as completed",
-      "media": "Photos & videos",
-      "uploadMedia": "Upload media",
-      "noMedia": "No media yet.",
-      "photoAlt": "Survey photo"
-    }
-  },
-  "panels": {
-    "leadActions": {
-      "title": "Actions",
-      "scheduleSurvey": "Schedule Survey",
-      "skipToEstimate": "Skip → Estimate",
-      "surveyScheduled": "Survey scheduled",
-      "viewSurvey": "View Survey",
-      "markDone": "Mark Done",
-      "surveyCompleted": "Survey completed",
-      "createEstimation": "Create Estimation →",
-      "estimationInProgress": "Estimation in progress",
-      "openProposal": "Open Proposal →",
-      "convertedToJob": "✓ Converted to job",
-      "closedLost": "Closed — lost"
-    },
-    "proposalActions": {
-      "title": "Actions",
-      "createEstimation": "Create Estimation",
-      "editEstimation": "Edit Estimation",
-      "markAsSent": "Mark as Sent",
-      "sendViaWhatsapp": "Send via WhatsApp",
-      "recordCounterOffer": "Record Counter-Offer",
-      "markApproved": "Mark Approved ✓",
-      "markLost": "Mark Lost",
-      "approved": "Approved",
-      "convertToJob": "Convert to Job →",
-      "jobCreated": "Job created",
-      "viewJob": "View Job →",
-      "viewJobWith": "View Job {number} →",
-      "revenueLockedAmount": "Revenue locked at: {amount}",
-      "noFurtherActions": "No further actions."
-    },
-    "negotiation": {
-      "title": "Negotiation history",
-      "empty": "No revisions yet."
-    },
-    "assignments": {
-      "title": "Assignments",
-      "add": "Add",
-      "addAssignment": "Add Assignment",
-      "empty": "No assignments yet.",
-      "manage": "Manage →",
-      "type": "Type",
-      "role": "Role",
-      "rolePlaceholder": "Driver, Loader, Supervisor…",
-      "fleet": "Fleet",
-      "crewMember": "Crew member",
-      "fleetLabel": "Fleet",
-      "crewLabel": "Crew",
-      "overlapWarning": "⚠ This {type} is already assigned on {date}. Add anyway?",
-      "remove": "Remove",
-      "removeAria": "Remove {name}"
-    },
-    "payments": {
-      "total": "Total",
-      "paid": "Paid",
-      "outstanding": "Outstanding",
-      "recordPayment": "+ Record Payment",
-      "history": "History",
-      "noPayments": "No payments yet.",
-      "via": "via {method}"
-    },
-    "photos": {
-      "title": "Photos",
-      "titleCount": "Photos ({count})",
-      "upload": "Upload",
-      "uploading": "Uploading…",
-      "empty": "No photos yet.",
-      "viewPhoto": "View photo {n} of {total}",
-      "deletePhoto": "Delete photo",
-      "sectionAria": "Lead photos",
-      "listAria": "Uploaded photos",
-      "fallbackAlt": "Lead photo"
-    },
-    "timeline": {
-      "logEvent": "Log Event"
-    }
-  },
-  "modals": {
-    "scheduleSurvey": {
-      "title": "Schedule Survey",
-      "dateTime": "Date & time",
-      "notes": "Notes"
-    },
-    "counterOffer": {
-      "title": "Record Counter-Offer",
-      "proposedBy": "Proposed by",
-      "customer": "Customer",
-      "operator": "Operator",
-      "newPrice": "New price (IDR)",
-      "note": "Note"
-    },
-    "markLost": {
-      "title": "Mark as Lost",
-      "reason": "Reason",
-      "note": "Note",
-      "confirm": "Confirm Lost",
-      "reasons": {
-        "priceTooHigh": "Price too high",
-        "wentWithCompetitor": "Went with competitor",
-        "noResponse": "No response",
-        "other": "Other"
-      }
-    },
-    "convertToJob": {
-      "title": "Create Job for {name}",
-      "startDate": "Start date",
-      "startTime": "Start time",
-      "endDate": "End date",
-      "endDateHint": "(blank = same day)",
-      "endTime": "End time",
-      "revenueLockedAt": "Revenue locked at: {amount}",
-      "createJob": "Create Job",
-      "creating": "Creating…"
-    },
-    "logEvent": {
-      "title": "Log timeline event",
-      "event": "Event",
-      "when": "When",
-      "note": "Note",
-      "saveEvent": "Save event"
-    },
-    "confirmations": {
-      "duplicateLead": "Duplicate this lead as a new one?",
-      "duplicateProposal": "Duplicate this proposal as a new draft?",
-      "markJobDone": "Mark this job as completed? This cannot be easily undone.",
-      "startJob": "Start this job? Expenses can be logged once it's in progress.",
-      "syncAll": "Re-push recent + upcoming jobs and surveys to Google Calendar?"
-    }
-  },
-  "actions": {
-    "newLead": "New Lead",
-    "newJob": "New Job",
-    "newProposal": "New Proposal",
-    "newCustomer": "New Customer",
-    "newFleet": "New Fleet",
-    "newCrew": "New Crew Member",
-    "newInvoice": "New Invoice",
-    "createCustomer": "Create customer",
-    "addFleet": "Add fleet",
-    "addCrewMember": "Add member",
-    "generateInvoice": "Generate Invoice",
-    "generating": "Creating…",
-    "markAsSent": "Mark as Sent",
-    "markApproved": "Mark Approved",
-    "markLost": "Mark Lost",
-    "markDone": "Mark Done",
-    "startJob": "Start Job",
-    "starting": "Starting…",
-    "convertToJob": "Convert to Job",
-    "addItem": "Add item",
-    "removeItem": "Remove item",
-    "uploadPhoto": "Upload Photo"
-  },
-  "entity": {
-    "leadType": {
-      "whatsapp": "WhatsApp",
-      "onsite": "On-site",
-      "returning": "Returning",
-      "corporate": "Corporate"
-    },
-    "originChannel": {
-      "whatsapp": "WhatsApp",
-      "call": "Call",
-      "referral": "Referral",
-      "walkin": "Walk-in"
-    },
-    "customerType": {
-      "individual": "Individual",
-      "corporate": "Corporate"
-    },
-    "availability": {
-      "available": "Available",
-      "on_job": "On job",
-      "unavailable": "Unavailable"
-    },
-    "vehicleType": {
-      "box_small": "Box (Small)",
-      "box_medium": "Box (Medium)",
-      "box_large": "Box (Large)",
-      "truck_l300": "Truck L300",
-      "fuso": "Fuso",
-      "cde": "CDE",
-      "cdd": "CDD",
-      "wingbox": "Wingbox",
-      "pickup": "Pickup",
-      "box_truck": "Truck"
-    },
-    "skill": {
-      "loading": "Loading",
-      "unloading": "Unloading",
-      "packing": "Packing",
-      "assembly": "Assembly",
-      "driving": "Driving",
-      "supervision": "Supervision"
-    },
-    "paymentType": {
-      "down_payment": "Down payment",
-      "partial": "Partial",
-      "final": "Final",
-      "refund": "Refund"
-    },
-    "paymentMethod": {
-      "cash": "Cash",
-      "transfer": "Transfer"
-    },
-    "expenseCategory": {
-      "fuel": "Fuel",
-      "toll": "Toll",
-      "food": "Food",
-      "labor": "Labor",
-      "packing_materials": "Packing materials",
-      "transport": "Transport",
-      "parking": "Parking",
-      "other": "Other",
-      "vehicle_rental": "Vehicle rental",
-      "crew_payment": "Crew payment",
-      "miscellaneous": "Miscellaneous"
-    },
-    "eventType": {
-      "job_started": "Job started",
-      "loading_start": "Loading started",
-      "loading_done": "Loading done",
-      "transit_start": "In transit",
-      "transit_done": "Arrived at destination",
-      "unloading_start": "Unloading started",
-      "unloading_done": "Unloading complete",
-      "overtime_approved": "Overtime approved",
-      "overnight_approved": "Extended to overnight",
-      "crew_added": "Additional crew added",
-      "job_completed": "Job completed",
-      "custom": "Custom note",
-      "note": "Note"
-    }
-  },
-  "offline": {
-    "savedOffline": "Saved offline — will sync when back online.",
-    "removeReceiptToSave": "Offline: remove the receipt photo to save now, or wait for connectivity.",
-    "syncedCount": "Synced {count} pending expense(s).",
-    "pendingSync": "{count} pending sync",
-    "pending": "pending sync"
-  },
-  "syncAll": {
-    "nothing": "Nothing to sync (window: since {date}).",
-    "jobsLabel": "Jobs {ok}/{total}",
-    "surveysLabel": "Surveys {ok}/{total}",
-    "failedSuffix": "{count} failed"
-  },
-  "photoLightbox": {
-    "close": "Close photo viewer"
-  },
-  "money": {
-    "title": "Money",
-    "subtitle": "Where the cash is",
-    "outstanding": "Outstanding",
-    "overdue": "Overdue",
-    "cashIn": "Cash in (month)",
-    "net": "Net (month)",
-    "outstandingSub": "{count} unpaid invoice(s)",
-    "overdueSub": "needs collecting",
-    "cashInSub": "payments received",
-    "netSub": "revenue − expenses",
-    "arAging": "AR aging",
-    "recentPayments": "Recent payments",
-    "invoiceStatus": "Invoices by status",
-    "noOutstanding": "No outstanding invoices.",
-    "noPayments": "No payments yet.",
-    "noInvoices": "No invoices yet.",
-    "agingCurrent": "Not due yet",
-    "aging1": "1–30 days",
-    "aging31": "31–60 days",
-    "aging60": "60+ days",
-    "viewInvoices": "All invoices",
-    "viewReports": "Full report →"
-  },
-  "pagination": {
-    "showing": "{from}–{to} of {total}",
-    "prev": "Previous",
-    "next": "Next"
-  }
+	"nav": {
+		"dashboard": "Dashboard",
+		"today": "Today",
+		"board": "Board",
+		"pipeline": "Pipeline",
+		"money": "Money",
+		"directory": "Directory",
+		"leads": "Leads",
+		"proposals": "Proposals",
+		"jobs": "Jobs",
+		"calendar": "Calendar",
+		"customers": "Customers",
+		"fleet": "Fleet",
+		"crew": "Crew",
+		"invoices": "Invoices",
+		"reports": "Reports",
+		"settings": "Settings",
+		"signOut": "Sign out",
+		"groups": {
+			"pipeline": "Pipeline",
+			"operations": "Operations",
+			"resources": "Resources",
+			"finance": "Finance"
+		},
+		"overview": "Overview"
+	},
+	"topbar": {
+		"searchPlaceholder": "Search…",
+		"openMenu": "Open menu",
+		"expandSidebar": "Expand sidebar",
+		"collapseSidebar": "Collapse sidebar",
+		"account": "Account",
+		"language": "Language"
+	},
+	"field": {
+		"quickAdd": "Quick add",
+		"newLead": "New lead",
+		"newCustomer": "New customer",
+		"search": "Search",
+		"menu": "Menu",
+		"newFleet": "New fleet",
+		"newCrew": "New crew"
+	},
+	"pipeline": {
+		"title": "Pipeline",
+		"subtitle": "{count} active deal(s) in the funnel",
+		"lostCount": "{count} lost",
+		"pipelineValue": "Pipeline value",
+		"empty": "No active deals.",
+		"emptyHint": "New leads will appear here as they come in.",
+		"emptyColumn": "Nothing here.",
+		"dropHere": "Drop here",
+		"stages": {
+			"new": "New",
+			"survey": "Survey",
+			"estimate": "Estimate",
+			"proposal": "Proposal",
+			"won": "Won"
+		},
+		"notices": {
+			"needs_survey": "Schedule a survey from the lead first.",
+			"needs_proposal": "Create a proposal for this lead first.",
+			"needs_job": "Convert the approved proposal to a job first.",
+			"error": "Couldn't move that deal. Please try again."
+		}
+	},
+	"today": {
+		"title": "Today",
+		"subtitleNeeds": "{date} · {count} thing(s) need you",
+		"subtitleClear": "{date} · you're all caught up",
+		"openPipeline": "Open pipeline",
+		"todaysMoves": "Today's moves",
+		"noMovesToday": "No moves scheduled today.",
+		"needsYou": "Needs you",
+		"allClear": "All clear",
+		"allClearHint": "Nothing needs your attention right now.",
+		"money": "Money this month",
+		"revenueTarget": "Revenue vs target",
+		"ofTarget": "{pct}% of monthly target",
+		"revenue": "Revenue",
+		"expenses": "Expenses",
+		"net": "Net this month",
+		"viewReport": "View full report →",
+		"atAGlance": "At a glance",
+		"upcoming": "Upcoming",
+		"viewCalendar": "Calendar",
+		"noUpcoming": "No upcoming moves.",
+		"queue": {
+			"surveyDue": "Survey due",
+			"proposalReady": "Proposal ready to send",
+			"invoiceOverdue": "Invoice overdue",
+			"syncFailed": "Calendar sync failed",
+			"review": "Review",
+			"send": "Send",
+			"collect": "Collect",
+			"fix": "Fix"
+		},
+		"kpi": {
+			"activeJobs": "Active jobs",
+			"activeJobsSub": "{count} move(s) today",
+			"openProposals": "Open proposals",
+			"openProposalsSub": "Awaiting approval",
+			"unpaid": "Unpaid invoices",
+			"overdueSub": "{amount} overdue",
+			"outstandingSub": "{amount} outstanding",
+			"movesToday": "Moves today",
+			"movesTodaySub": "Confirmed bookings"
+		}
+	},
+	"search": {
+		"placeholder": "Search leads, jobs, customers, proposals, invoices…",
+		"groups": {
+			"leads": "Leads",
+			"jobs": "Jobs",
+			"proposals": "Proposals",
+			"customers": "Customers",
+			"fleet": "Fleet",
+			"crew": "Crew",
+			"invoices": "Invoices"
+		},
+		"emptyHint": "Type to search across the whole system.",
+		"emptyScope": "Leads · Jobs · Proposals · Customers · Invoices · Fleet · Crew",
+		"noResults": "No results for \"{query}\"",
+		"hintNavigate": "navigate",
+		"hintOpen": "open",
+		"hintClose": "close",
+		"hintToggle": "to toggle",
+		"actionsTitle": "Actions",
+		"create": "Create",
+		"openPage": "Go to page"
+	},
+	"common": {
+		"buttons": {
+			"save": "Save",
+			"saving": "Saving…",
+			"saveChanges": "Save changes",
+			"cancel": "Cancel",
+			"edit": "Edit",
+			"delete": "Delete",
+			"confirm": "Confirm",
+			"back": "Back",
+			"close": "Close",
+			"create": "Create",
+			"duplicate": "Duplicate",
+			"duplicating": "Duplicating…",
+			"view": "View",
+			"viewAll": "View all",
+			"loadMore": "Load more",
+			"tryAgain": "Try again",
+			"add": "Add",
+			"addAnyway": "Add anyway",
+			"remove": "Remove",
+			"filter": "Filter",
+			"all": "All",
+			"scheduling": "Scheduling…",
+			"uploading": "Uploading…",
+			"deleting": "Deleting…",
+			"saved": "Saved ✓"
+		},
+		"hints": {
+			"commaSeparated": "(comma-separated)",
+			"idr": "(IDR)",
+			"optionalParen": "(optional)",
+			"select": "Select…"
+		},
+		"actions": {
+			"search": "Search",
+			"filter": "Filter",
+			"sort": "Sort",
+			"export": "Export",
+			"download": "Download",
+			"downloadPdf": "Download PDF",
+			"generatingPdf": "Generating PDF…",
+			"loadingPdf": "Loading PDF…",
+			"upload": "Upload",
+			"share": "Share",
+			"open": "Open",
+			"manage": "Manage",
+			"syncCalendar": "Sync to Calendar",
+			"reSyncCalendar": "Re-sync to Calendar",
+			"synced": "Synced",
+			"syncAll": "Sync all to Calendar",
+			"syncing": "Syncing…",
+			"sendViaWhatsapp": "Send via WhatsApp"
+		},
+		"labels": {
+			"date": "Date",
+			"time": "Time",
+			"status": "Status",
+			"notes": "Notes",
+			"amount": "Amount",
+			"total": "Total",
+			"name": "Name",
+			"phone": "Phone",
+			"email": "Email",
+			"address": "Address",
+			"customer": "Customer",
+			"loading": "Loading…",
+			"noData": "No data.",
+			"optional": "optional",
+			"required": "required",
+			"createdAt": "Created",
+			"updatedAt": "Updated",
+			"dateTbd": "Date TBD",
+			"since": "Since",
+			"type": "Type",
+			"phoneShort": "Tel",
+			"active": "Active",
+			"inactive": "Inactive"
+		},
+		"errors": {
+			"generic": "Something went wrong.",
+			"saveFailed": "Save failed.",
+			"loadFailed": "Failed to load.",
+			"amountMustBePositive": "Amount must be positive.",
+			"networkOffline": "Offline — changes will sync when back online.",
+			"nameRequired": "Name is required.",
+			"priceRequired": "Price is required.",
+			"dateTimeRequired": "Please set a date and time.",
+			"moveDateRequired": "Move date is required.",
+			"notAnImage": "{name} is not an image.",
+			"uploadFailed": "Upload failed."
+		}
+	},
+	"status": {
+		"lead": {
+			"new": "New",
+			"survey_scheduled": "Survey scheduled",
+			"survey_done": "Survey done",
+			"estimating": "Estimating",
+			"proposal_sent": "Proposal sent",
+			"converted": "Converted",
+			"closed_lost": "Closed — lost"
+		},
+		"job": {
+			"scheduled": "Scheduled",
+			"in_progress": "In progress",
+			"completed": "Completed",
+			"closed": "Closed",
+			"cancelled": "Cancelled"
+		},
+		"proposal": {
+			"draft": "Draft",
+			"sent": "Sent",
+			"negotiating": "Negotiating",
+			"approved": "Approved",
+			"lost": "Lost",
+			"expired": "Expired"
+		},
+		"invoice": {
+			"draft": "Draft",
+			"sent": "Sent",
+			"partially_paid": "Partially paid",
+			"paid": "Paid",
+			"overdue": "Overdue",
+			"cancelled": "Cancelled"
+		}
+	},
+	"dashboard": {
+		"title": "Operations Dashboard",
+		"subtitle": "Real-time status for {date}",
+		"kpi": {
+			"totalRevenue": "Total revenue",
+			"totalProfit": "Total profit",
+			"leadConversion": "Lead conversion",
+			"totalLeads": "Total leads",
+			"outstanding": "Outstanding",
+			"unpaidInvoices": "Unpaid Invoices",
+			"monthRevenue": "Revenue this month",
+			"monthExpenses": "Expenses this month",
+			"activeJobs": "Active Jobs",
+			"openProposals": "Open Proposals",
+			"movesToday": "Moves Today",
+			"movesTodayCount": "{count} moves today",
+			"amountOverdue": "{amount} overdue",
+			"pendingApproval": "Pending approval",
+			"confirmedBookings": "Confirmed bookings",
+			"active": "Active",
+			"highValue": "High Value",
+			"actionRequired": "Action Req",
+			"scheduledBadge": "Scheduled",
+			"unpaidInvoicesCount": "{count} unpaid invoice(s)"
+		},
+		"tabs": {
+			"overview": "Overview",
+			"dispatch": "Dispatch",
+			"financials": "Financials"
+		},
+		"sections": {
+			"upcomingJobs": "Upcoming jobs",
+			"recentPayments": "Recent Payments",
+			"recentLeads": "Recent Leads",
+			"draftProposals": "Draft Proposals",
+			"priorityActiveJobs": "Priority Active Jobs",
+			"dispatchBoard": "Dispatch Board — Next 7 Days",
+			"financialHealth": "Financial Health",
+			"revenueMonthlyTarget": "Revenue (Monthly Target)",
+			"netThisMonth": "Net this month",
+			"netProfit": "Net Profit",
+			"monthRevenueLabel": "Month Revenue",
+			"monthExpensesLabel": "Month Expenses",
+			"actionItems": "Action Items",
+			"invoiceStatus": "Invoice Status",
+			"upcoming": "Upcoming"
+		},
+		"columns": {
+			"jobId": "Job ID",
+			"customer": "Customer",
+			"revenue": "Revenue",
+			"status": "Status",
+			"date": "Date",
+			"pickup": "Pickup",
+			"destination": "Destination",
+			"crew": "Crew",
+			"notes": "Notes"
+		},
+		"empty": {
+			"noJobs": "No upcoming jobs.",
+			"noPayments": "No payments recorded.",
+			"noLeads": "No recent leads.",
+			"noDrafts": "No draft proposals.",
+			"noActions": "No action items.",
+			"noActionsHint": "No pending tasks right now.",
+			"noDispatch": "Nothing dispatched in the next 7 days.",
+			"noInvoices": "No invoices yet."
+		},
+		"actions": {
+			"viewAll": "View all",
+			"inHomeSurvey": "In-Home Survey: {name}",
+			"scheduledAt": "Scheduled • {address}",
+			"addressTbd": "Address TBD",
+			"generateProposal": "Generate Proposal: {number}",
+			"draftReady": "Draft ready • Pending review",
+			"markSurveyDone": "Mark Survey Done",
+			"generateProposalAction": "Generate Proposal",
+			"viewFullReport": "View Full Report →",
+			"manageInvoices": "Manage Invoices →"
+		},
+		"dispatch": {
+			"noAssignments": "No crew/fleet assigned yet"
+		},
+		"progress": {
+			"monthlyTargetAria": "Monthly revenue progress: {pct}%",
+			"ofTargetAria": "{pct}% of monthly target"
+		},
+		"invoiceLegend": {
+			"draft": "Draft",
+			"sent": "Sent",
+			"partiallyPaid": "Partially Paid",
+			"paid": "Paid",
+			"overdue": "Overdue"
+		}
+	},
+	"pages": {
+		"leads": {
+			"title": "Leads",
+			"searchPlaceholder": "Search address…",
+			"filterAll": "All",
+			"empty": "No leads yet.",
+			"emptyFiltered": "No leads match your filters.",
+			"new": "New Lead"
+		},
+		"jobs": {
+			"title": "Jobs",
+			"filterAll": "All statuses",
+			"columns": {
+				"jobNumber": "Job No.",
+				"customer": "Customer",
+				"date": "Date",
+				"revenue": "Revenue",
+				"status": "Status"
+			},
+			"empty": "No jobs.",
+			"viewList": "List",
+			"viewBoard": "Board"
+		},
+		"proposals": {
+			"title": "Proposals",
+			"filterAll": "All statuses",
+			"columns": {
+				"proposalNumber": "Proposal No.",
+				"customer": "Customer",
+				"price": "Price",
+				"status": "Status",
+				"created": "Created"
+			},
+			"empty": "No proposals."
+		},
+		"customers": {
+			"title": "Customers",
+			"searchPlaceholder": "Search by name, phone or email…",
+			"columns": {
+				"name": "Name",
+				"phone": "Phone",
+				"type": "Type",
+				"since": "Since"
+			},
+			"empty": "No customers yet. Create the first one.",
+			"emptyFiltered": "No customers match your search.",
+			"new": "New Customer"
+		},
+		"fleet": {
+			"title": "Fleet",
+			"searchPlaceholder": "Search fleet…",
+			"columns": {
+				"name": "Name",
+				"contact": "Contact",
+				"phone": "Phone",
+				"vehicles": "Vehicles",
+				"status": "Status"
+			},
+			"empty": "No fleet members found.",
+			"new": "New Fleet"
+		},
+		"crew": {
+			"title": "Crew",
+			"searchPlaceholder": "Search crew…",
+			"columns": {
+				"name": "Name",
+				"phone": "Phone",
+				"dailyRate": "Daily rate",
+				"availability": "Availability"
+			},
+			"empty": "No crew members found.",
+			"new": "New Crew Member"
+		},
+		"invoices": {
+			"title": "Invoices",
+			"filterAll": "All statuses",
+			"columns": {
+				"invoiceNumber": "Invoice No.",
+				"customer": "Customer",
+				"total": "Total",
+				"paid": "Paid",
+				"dueDate": "Due date",
+				"status": "Status"
+			},
+			"empty": "No invoices."
+		},
+		"calendar": {
+			"title": "Calendar",
+			"legend": {
+				"survey": "Survey",
+				"scheduled": "Scheduled",
+				"inProgress": "In progress",
+				"completed": "Completed"
+			}
+		},
+		"reports": {
+			"title": "Reports",
+			"kpi": {
+				"totalRevenue": "Total revenue",
+				"totalProfit": "Total profit",
+				"leadConversion": "Lead conversion",
+				"totalLeads": "Total leads"
+			},
+			"profitByJob": {
+				"title": "Profit by job",
+				"job": "Job",
+				"revenue": "Revenue",
+				"cost": "Cost",
+				"profit": "Profit"
+			},
+			"expensesThisMonth": "Expenses this month",
+			"noExpensesThisMonth": "No expenses this month.",
+			"leadFunnel": "Lead funnel",
+			"noLeads": "No leads.",
+			"arAging": {
+				"title": "AR aging",
+				"totalLabel": "Total: {amount}",
+				"noOutstanding": "No outstanding invoices.",
+				"current": "Current",
+				"overdue": "{range} days overdue"
+			},
+			"lostProposals": {
+				"title": "Lost proposals — why",
+				"totalCount": "{count} total",
+				"empty": "No lost or expired proposals.",
+				"noReason": "No reason given"
+			}
+		},
+		"settings": {
+			"title": "Settings",
+			"hint": "Edit any value and click away to save. Changes take effect immediately.",
+			"sectionsAria": "Settings sections",
+			"noSettings": "No settings configured for this section.",
+			"groups": {
+				"companyAndDocs": "Company & Documents",
+				"operations": "Operations",
+				"pricing": "Pricing",
+				"billing": "Billing",
+				"integrations": "Integrations"
+			},
+			"descriptions": {
+				"companyAndDocs": "Branding, PDF templates, and signature blocks",
+				"operations": "Crew rates and vehicle costs",
+				"pricing": "Margins, negotiation buffers, and profit thresholds",
+				"billing": "Invoice defaults and financial dashboard targets",
+				"integrations": "Google Calendar sync and external service configuration"
+			},
+			"sections": {
+				"companyIdentity": "Company Identity",
+				"documentTemplates": "Document Templates",
+				"crewManpower": "Crew & Manpower",
+				"pricingMargins": "Pricing & Margins",
+				"vehicles": "Vehicles",
+				"packingMaterials": "Packing Materials",
+				"safetyThresholds": "Safety & Thresholds",
+				"invoiceSettings": "Invoice Settings",
+				"dashboard": "Dashboard",
+				"googleCalendar": "Google Calendar"
+			},
+			"marginTiers": {
+				"upTo": "Up to (IDR)",
+				"ratePct": "Rate %",
+				"minProfit": "Min profit (IDR)",
+				"andAbove": "And above",
+				"addTier": "Add tier",
+				"remove": "Remove tier"
+			}
+		},
+		"leadDetail": {
+			"moveDetails": "Move details",
+			"pickup": "Pickup",
+			"destination": "Destination",
+			"leadType": "Lead type",
+			"channel": "Channel",
+			"preferredDate": "Preferred date: {date}",
+			"createdOn": "Created {date}",
+			"lifecycle": "Deal lifecycle",
+			"stageIntake": "Lead intake",
+			"stageSurvey": "Survey",
+			"stageProposal": "Estimate & proposal",
+			"stageJob": "Job",
+			"surveyScheduledOn": "Scheduled {date}",
+			"surveyCompletedOn": "Completed {date}",
+			"surveySkipped": "Skipped (optional)",
+			"surveyOptional": "Optional — not scheduled",
+			"noProposalYet": "Not started yet",
+			"openProposal": "Open",
+			"viewSurvey": "View survey",
+			"viewJob": "View job",
+			"noJobYet": "Not converted yet"
+		},
+		"jobDetail": {
+			"moveSummary": "Move summary",
+			"pickup": "Pickup",
+			"destination": "Destination",
+			"revenue": "Revenue",
+			"expenses": "Expenses",
+			"assignments": "Assignments",
+			"noAssignments": "No assignments yet.",
+			"addOrViewAll": "Add / view all →",
+			"noExpenses": "No expenses logged.",
+			"timeline": "Timeline",
+			"noTimelineEvents": "No events yet. Log loading, transit, unloading or custom events as the job progresses.",
+			"profit": "Profit",
+			"logExpense": "Log Expense",
+			"invoice": "Invoice",
+			"payments": "Payments",
+			"manageInvoice": "Manage Invoice →",
+			"assignResources": "Assign Resources",
+			"expense": "+ Expense"
+		},
+		"jobsTimeline": {
+			"backToJob": "Back to job",
+			"title": "Timeline",
+			"emptyWithHint": "No events yet. Use Log Event to record loading, transit, unloading, or any custom note during the move."
+		},
+		"proposalDetail": {
+			"viewLead": "← View Lead",
+			"created": "Created {date}",
+			"approved": "Approved {date}",
+			"moveSummary": "Move summary",
+			"preferredDate": "Preferred date",
+			"finalPrice": "Final price",
+			"estimationBreakdown": "Estimation breakdown",
+			"editEstimation": "Edit →",
+			"negotiationHistory": "Negotiation history",
+			"noRevisions": "No revisions yet.",
+			"breakdown": {
+				"vehicle": "Vehicle",
+				"crew": "Crew",
+				"manpower": "Manpower",
+				"food": "Food",
+				"packing": "Packing materials",
+				"toll": "Toll",
+				"operationalBuffer": "Operational buffer",
+				"adjustedCost": "Adjusted cost",
+				"finalProfit": "Final profit",
+				"internalTarget": "Internal target",
+				"offerPrice": "Offer price"
+			}
+		},
+		"customerDetail": {
+			"contactInformation": "Contact information",
+			"phone": "Phone",
+			"email": "Email",
+			"company": "Company",
+			"since": "Customer since",
+			"leads": "Leads",
+			"newLead": "New Lead",
+			"noLeadsYet": "No leads yet.",
+			"jobs": "Jobs",
+			"noJobsYet": "No jobs yet."
+		},
+		"fleetDetail": {
+			"contact": "Contact",
+			"phone": "Phone",
+			"vehicles": "Vehicles",
+			"serviceAreas": "Service areas",
+			"bank": "Bank",
+			"notes": "Notes"
+		},
+		"crewDetail": {
+			"phone": "Phone",
+			"dailyRate": "Daily rate",
+			"skills": "Skills",
+			"availability": "Availability",
+			"emergency": "Emergency",
+			"notes": "Notes"
+		},
+		"invoiceDetail": {
+			"due": "Due {date}",
+			"customer": "Customer",
+			"phone": "Phone",
+			"email": "Email",
+			"moveDate": "Move date",
+			"invoiceDate": "Invoice date",
+			"dueDate": "Due date",
+			"notes": "Notes",
+			"total": "Total",
+			"downloadInvoicePdf": "Download Invoice PDF"
+		},
+		"estimation": {
+			"newTitle": "New Estimation",
+			"editTitle": "Edit Estimation"
+		},
+		"surveyDetail": {
+			"backToLead": "Back to Lead",
+			"completed": "Completed",
+			"scheduled": "Scheduled",
+			"inHomeSurvey": "In-Home Survey",
+			"scheduledLabel": "Scheduled",
+			"completedLabel": "Completed",
+			"pickup": "Pickup",
+			"destination": "Destination",
+			"accessNotes": "Access notes",
+			"specialItems": "Special items",
+			"generalNotes": "General notes",
+			"addItem": "Add item",
+			"removeItem": "Remove item",
+			"saveSurveyNotes": "Save survey notes",
+			"markAsDone": "Mark as Done",
+			"markedAsCompleted": "Survey marked as completed"
+		}
+	},
+	"forms": {
+		"lead": {
+			"customer": "Customer",
+			"existingCustomer": "Existing customer",
+			"newCustomer": "New customer",
+			"name": "Name",
+			"phone": "Phone",
+			"pickup": "Pickup address",
+			"destination": "Destination address",
+			"preferredDate": "Preferred move date",
+			"leadType": "Lead type",
+			"originChannel": "Origin channel",
+			"notes": "Notes",
+			"createLead": "Create lead",
+			"editTitle": "Edit Lead",
+			"newTitle": "New Lead",
+			"nameRequired": "Name is required.",
+			"addDetails": "Add details",
+			"linkExisting": "Link to an existing customer"
+		},
+		"customer": {
+			"fullName": "Full name",
+			"phone": "Phone",
+			"phonePlaceholder": "e.g. 08123456789",
+			"email": "Email",
+			"type": "Type",
+			"companyName": "Company name",
+			"notes": "Notes",
+			"newTitle": "New Customer",
+			"editTitle": "Edit Customer"
+		},
+		"fleet": {
+			"name": "Name",
+			"contactPerson": "Contact person",
+			"phone": "Phone",
+			"vehicleTypes": "Vehicle types",
+			"serviceAreas": "Service areas",
+			"bankName": "Bank name",
+			"bankAccount": "Bank account",
+			"notes": "Notes",
+			"active": "Active",
+			"newTitle": "New Fleet",
+			"editTitle": "Edit Fleet"
+		},
+		"crew": {
+			"name": "Name",
+			"phone": "Phone",
+			"skills": "Skills",
+			"dailyRate": "Daily rate",
+			"availability": "Availability",
+			"emergencyContact": "Emergency contact",
+			"emergencyPlaceholder": "Name — Phone",
+			"notes": "Notes",
+			"active": "Active",
+			"newTitle": "New Crew Member",
+			"editTitle": "Edit Crew Member"
+		},
+		"job": {
+			"status": "Status",
+			"schedule": "Schedule",
+			"startDate": "Start date",
+			"startTime": "Start time",
+			"endDate": "End date",
+			"endTime": "End time",
+			"endDateHint": "(blank = same day)",
+			"revenue": "Revenue (Rp)",
+			"notes": "Notes",
+			"editTitle": "Edit Job",
+			"backToJob": "Back to Job",
+			"backToLead": "Back to Lead",
+			"addresses": "Addresses"
+		},
+		"estimation": {
+			"title": "Estimation",
+			"inputs": "Inputs",
+			"vehicle": "Vehicle",
+			"vehicleType": "Vehicle type",
+			"vehicleCost": "Vehicle cost",
+			"distanceKm": "Distance (km)",
+			"crewCount": "Crew count",
+			"crewDayRate": "Crew day rate",
+			"foodPerCrew": "Meal per crew",
+			"manpowerQty": "Manpower",
+			"packingCost": "Packing materials",
+			"tollEstimate": "Toll estimate",
+			"otherCost": "Other cost",
+			"outOfTown": "Out of town",
+			"outOfTownHint": "(+1 crew, meals × {meals})",
+			"mealsCount": "Meals count",
+			"specialItems": "Special items",
+			"manualOverride": "Manual override",
+			"overridePrice": "Override final price",
+			"overridePriceLabel": "Override price",
+			"overrideReason": "Override reason",
+			"breakdownTitle": "Breakdown",
+			"saveEstimation": "Save Estimation",
+			"creating": "Saving…",
+			"summary": "Cost summary",
+			"breakdown": {
+				"other": "Other",
+				"jobCost": "Job cost",
+				"margin": "Margin ({pct}%)",
+				"minimumProfitFloor": "Minimum profit floor",
+				"negotiationBuffer": "Negotiation buffer ({pct}%)"
+			},
+			"engineFooter": "Engine v{version} · settings snapshot taken at save"
+		},
+		"expense": {
+			"title": "Log Expense",
+			"amount": "Amount",
+			"amountIdr": "Amount (IDR)",
+			"category": "Category",
+			"note": "Note",
+			"date": "Date",
+			"receipt": "Receipt photo",
+			"saveExpense": "Save Expense",
+			"moreOptions": "Note / date / receipt",
+			"hideOptions": "Hide options"
+		},
+		"payment": {
+			"type": "Type",
+			"method": "Method",
+			"amountIdr": "Amount (IDR)",
+			"date": "Date",
+			"notes": "Notes",
+			"savePayment": "Save Payment"
+		},
+		"survey": {
+			"accessNotes": "Access notes",
+			"accessNotesPlaceholder": "e.g. Gate code is 1234…",
+			"generalNotes": "General notes",
+			"generalNotesPlaceholder": "Anything else to note…",
+			"specialItems": "Special items",
+			"noSpecialItems": "No special items recorded.",
+			"itemType": "Item type",
+			"qty": "Qty",
+			"itemNote": "Note",
+			"addItem": "Add item",
+			"removeItem": "Remove item",
+			"saveSurveyNotes": "Save survey notes",
+			"markAsDone": "Mark as Done",
+			"markDoneFailed": "Failed to mark done.",
+			"markedAsCompleted": "Survey marked as completed",
+			"media": "Photos & videos",
+			"uploadMedia": "Upload media",
+			"noMedia": "No media yet.",
+			"photoAlt": "Survey photo"
+		}
+	},
+	"panels": {
+		"leadActions": {
+			"title": "Actions",
+			"scheduleSurvey": "Schedule Survey",
+			"skipToEstimate": "Skip → Estimate",
+			"surveyScheduled": "Survey scheduled",
+			"viewSurvey": "View Survey",
+			"markDone": "Mark Done",
+			"surveyCompleted": "Survey completed",
+			"createEstimation": "Create Estimation →",
+			"estimationInProgress": "Estimation in progress",
+			"openProposal": "Open Proposal →",
+			"convertedToJob": "✓ Converted to job",
+			"closedLost": "Closed — lost"
+		},
+		"proposalActions": {
+			"title": "Actions",
+			"createEstimation": "Create Estimation",
+			"editEstimation": "Edit Estimation",
+			"markAsSent": "Mark as Sent",
+			"sendViaWhatsapp": "Send via WhatsApp",
+			"recordCounterOffer": "Record Counter-Offer",
+			"markApproved": "Mark Approved ✓",
+			"markLost": "Mark Lost",
+			"approved": "Approved",
+			"convertToJob": "Convert to Job →",
+			"jobCreated": "Job created",
+			"viewJob": "View Job →",
+			"viewJobWith": "View Job {number} →",
+			"revenueLockedAmount": "Revenue locked at: {amount}",
+			"noFurtherActions": "No further actions."
+		},
+		"negotiation": {
+			"title": "Negotiation history",
+			"empty": "No revisions yet."
+		},
+		"assignments": {
+			"title": "Assignments",
+			"add": "Add",
+			"addAssignment": "Add Assignment",
+			"empty": "No assignments yet.",
+			"manage": "Manage →",
+			"type": "Type",
+			"role": "Role",
+			"rolePlaceholder": "Driver, Loader, Supervisor…",
+			"fleet": "Fleet",
+			"crewMember": "Crew member",
+			"fleetLabel": "Fleet",
+			"crewLabel": "Crew",
+			"overlapWarning": "⚠ This {type} is already assigned on {date}. Add anyway?",
+			"remove": "Remove",
+			"removeAria": "Remove {name}"
+		},
+		"payments": {
+			"total": "Total",
+			"paid": "Paid",
+			"outstanding": "Outstanding",
+			"recordPayment": "+ Record Payment",
+			"history": "History",
+			"noPayments": "No payments yet.",
+			"via": "via {method}"
+		},
+		"photos": {
+			"title": "Photos",
+			"titleCount": "Photos ({count})",
+			"upload": "Upload",
+			"uploading": "Uploading…",
+			"empty": "No photos yet.",
+			"viewPhoto": "View photo {n} of {total}",
+			"deletePhoto": "Delete photo",
+			"sectionAria": "Lead photos",
+			"listAria": "Uploaded photos",
+			"fallbackAlt": "Lead photo"
+		},
+		"timeline": {
+			"logEvent": "Log Event"
+		}
+	},
+	"modals": {
+		"scheduleSurvey": {
+			"title": "Schedule Survey",
+			"dateTime": "Date & time",
+			"notes": "Notes"
+		},
+		"counterOffer": {
+			"title": "Record Counter-Offer",
+			"proposedBy": "Proposed by",
+			"customer": "Customer",
+			"operator": "Operator",
+			"newPrice": "New price (IDR)",
+			"note": "Note"
+		},
+		"markLost": {
+			"title": "Mark as Lost",
+			"reason": "Reason",
+			"note": "Note",
+			"confirm": "Confirm Lost",
+			"reasons": {
+				"priceTooHigh": "Price too high",
+				"wentWithCompetitor": "Went with competitor",
+				"noResponse": "No response",
+				"other": "Other"
+			}
+		},
+		"convertToJob": {
+			"title": "Create Job for {name}",
+			"startDate": "Start date",
+			"startTime": "Start time",
+			"endDate": "End date",
+			"endDateHint": "(blank = same day)",
+			"endTime": "End time",
+			"revenueLockedAt": "Revenue locked at: {amount}",
+			"createJob": "Create Job",
+			"creating": "Creating…"
+		},
+		"logEvent": {
+			"title": "Log timeline event",
+			"event": "Event",
+			"when": "When",
+			"note": "Note",
+			"saveEvent": "Save event"
+		},
+		"confirmations": {
+			"duplicateLead": "Duplicate this lead as a new one?",
+			"duplicateProposal": "Duplicate this proposal as a new draft?",
+			"markJobDone": "Mark this job as completed? This cannot be easily undone.",
+			"startJob": "Start this job? Expenses can be logged once it's in progress.",
+			"syncAll": "Re-push recent + upcoming jobs and surveys to Google Calendar?"
+		}
+	},
+	"actions": {
+		"newLead": "New Lead",
+		"newJob": "New Job",
+		"newProposal": "New Proposal",
+		"newCustomer": "New Customer",
+		"newFleet": "New Fleet",
+		"newCrew": "New Crew Member",
+		"newInvoice": "New Invoice",
+		"createCustomer": "Create customer",
+		"addFleet": "Add fleet",
+		"addCrewMember": "Add member",
+		"generateInvoice": "Generate Invoice",
+		"generating": "Creating…",
+		"markAsSent": "Mark as Sent",
+		"markApproved": "Mark Approved",
+		"markLost": "Mark Lost",
+		"markDone": "Mark Done",
+		"startJob": "Start Job",
+		"starting": "Starting…",
+		"convertToJob": "Convert to Job",
+		"addItem": "Add item",
+		"removeItem": "Remove item",
+		"uploadPhoto": "Upload Photo"
+	},
+	"entity": {
+		"leadType": {
+			"whatsapp": "WhatsApp",
+			"onsite": "On-site",
+			"returning": "Returning",
+			"corporate": "Corporate"
+		},
+		"originChannel": {
+			"whatsapp": "WhatsApp",
+			"call": "Call",
+			"referral": "Referral",
+			"walkin": "Walk-in"
+		},
+		"customerType": {
+			"individual": "Individual",
+			"corporate": "Corporate"
+		},
+		"availability": {
+			"available": "Available",
+			"on_job": "On job",
+			"unavailable": "Unavailable"
+		},
+		"vehicleType": {
+			"box_small": "Box (Small)",
+			"box_medium": "Box (Medium)",
+			"box_large": "Box (Large)",
+			"truck_l300": "Truck L300",
+			"fuso": "Fuso",
+			"cde": "CDE",
+			"cdd": "CDD",
+			"wingbox": "Wingbox",
+			"pickup": "Pickup",
+			"box_truck": "Truck"
+		},
+		"skill": {
+			"loading": "Loading",
+			"unloading": "Unloading",
+			"packing": "Packing",
+			"assembly": "Assembly",
+			"driving": "Driving",
+			"supervision": "Supervision"
+		},
+		"paymentType": {
+			"down_payment": "Down payment",
+			"partial": "Partial",
+			"final": "Final",
+			"refund": "Refund"
+		},
+		"paymentMethod": {
+			"cash": "Cash",
+			"transfer": "Transfer"
+		},
+		"expenseCategory": {
+			"fuel": "Fuel",
+			"toll": "Toll",
+			"food": "Food",
+			"labor": "Labor",
+			"packing_materials": "Packing materials",
+			"transport": "Transport",
+			"parking": "Parking",
+			"other": "Other",
+			"vehicle_rental": "Vehicle rental",
+			"crew_payment": "Crew payment",
+			"miscellaneous": "Miscellaneous"
+		},
+		"eventType": {
+			"job_started": "Job started",
+			"loading_start": "Loading started",
+			"loading_done": "Loading done",
+			"transit_start": "In transit",
+			"transit_done": "Arrived at destination",
+			"unloading_start": "Unloading started",
+			"unloading_done": "Unloading complete",
+			"overtime_approved": "Overtime approved",
+			"overnight_approved": "Extended to overnight",
+			"crew_added": "Additional crew added",
+			"job_completed": "Job completed",
+			"custom": "Custom note",
+			"note": "Note"
+		}
+	},
+	"offline": {
+		"savedOffline": "Saved offline — will sync when back online.",
+		"removeReceiptToSave": "Offline: remove the receipt photo to save now, or wait for connectivity.",
+		"syncedCount": "Synced {count} pending expense(s).",
+		"pendingSync": "{count} pending sync",
+		"pending": "pending sync"
+	},
+	"syncAll": {
+		"nothing": "Nothing to sync (window: since {date}).",
+		"jobsLabel": "Jobs {ok}/{total}",
+		"surveysLabel": "Surveys {ok}/{total}",
+		"failedSuffix": "{count} failed"
+	},
+	"photoLightbox": {
+		"close": "Close photo viewer"
+	},
+	"money": {
+		"title": "Money",
+		"subtitle": "Where the cash is",
+		"outstanding": "Outstanding",
+		"overdue": "Overdue",
+		"cashIn": "Cash in (month)",
+		"net": "Net (month)",
+		"outstandingSub": "{count} unpaid invoice(s)",
+		"overdueSub": "needs collecting",
+		"cashInSub": "payments received",
+		"netSub": "revenue − expenses",
+		"arAging": "AR aging",
+		"recentPayments": "Recent payments",
+		"invoiceStatus": "Invoices by status",
+		"noOutstanding": "No outstanding invoices.",
+		"noPayments": "No payments yet.",
+		"noInvoices": "No invoices yet.",
+		"agingCurrent": "Not due yet",
+		"aging1": "1–30 days",
+		"aging31": "31–60 days",
+		"aging60": "60+ days",
+		"viewInvoices": "All invoices",
+		"viewReports": "Full report →"
+	},
+	"pagination": {
+		"showing": "{from}–{to} of {total}",
+		"prev": "Previous",
+		"next": "Next"
+	}
 }

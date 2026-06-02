@@ -1,15 +1,11 @@
-import { redirect, notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 /**
  * /estimations/[id] — resolves an estimation by id to its parent proposal
  * and redirects to the form (which detects the existing row and switches to edit mode).
  */
-export default async function EstimationByIdPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function EstimationByIdPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const supabase = await createClient();
 

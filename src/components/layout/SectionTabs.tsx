@@ -1,11 +1,11 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useNavFeedback } from "@/lib/useNavFeedback";
+import { cn } from "@/lib/utils";
 
 type Tab = { href: string; key: string; match: (p: string) => boolean };
 
@@ -16,10 +16,7 @@ type Tab = { href: string; key: string; match: (p: string) => boolean };
  */
 const AREAS: { test: (p: string) => boolean; tabs: Tab[] }[] = [
 	{
-		test: (p) =>
-			p.startsWith("/pipeline") ||
-			p.startsWith("/leads") ||
-			p.startsWith("/proposals"),
+		test: (p) => p.startsWith("/pipeline") || p.startsWith("/leads") || p.startsWith("/proposals"),
 		tabs: [
 			{ href: "/pipeline", key: "board", match: (p) => p.startsWith("/pipeline") },
 			{ href: "/leads", key: "leads", match: (p) => p.startsWith("/leads") },
@@ -31,10 +28,7 @@ const AREAS: { test: (p: string) => boolean; tabs: Tab[] }[] = [
 		],
 	},
 	{
-		test: (p) =>
-			p.startsWith("/money") ||
-			p.startsWith("/invoices") ||
-			p.startsWith("/reports"),
+		test: (p) => p.startsWith("/money") || p.startsWith("/invoices") || p.startsWith("/reports"),
 		tabs: [
 			{ href: "/money", key: "overview", match: (p) => p.startsWith("/money") },
 			{
@@ -46,10 +40,7 @@ const AREAS: { test: (p: string) => boolean; tabs: Tab[] }[] = [
 		],
 	},
 	{
-		test: (p) =>
-			p.startsWith("/customers") ||
-			p.startsWith("/fleet") ||
-			p.startsWith("/crew"),
+		test: (p) => p.startsWith("/customers") || p.startsWith("/fleet") || p.startsWith("/crew"),
 		tabs: [
 			{
 				href: "/customers",
@@ -92,9 +83,7 @@ export function SectionTabs() {
 								: "text-ink-muted border-transparent hover:text-ink",
 						)}
 					>
-						{loading && (
-							<Loader2 size={13} className="animate-spin" aria-hidden="true" />
-						)}
+						{loading && <Loader2 size={13} className="animate-spin" aria-hidden="true" />}
 						{t(tab.key)}
 					</Link>
 				);

@@ -1,6 +1,4 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
 	Briefcase,
 	CalendarDays,
@@ -19,7 +17,9 @@ import {
 	Wallet,
 	X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { sanitizeSearch } from "@/lib/utils";
 
@@ -36,14 +36,7 @@ type Action = {
 
 // ── Types ────────────────────────────────────────────────────────────────
 
-type Group =
-	| "leads"
-	| "jobs"
-	| "proposals"
-	| "customers"
-	| "fleet"
-	| "crew"
-	| "invoices";
+type Group = "leads" | "jobs" | "proposals" | "customers" | "fleet" | "crew" | "invoices";
 
 type Hit = {
 	id: string; // entity uuid
@@ -53,10 +46,7 @@ type Hit = {
 	url: string;
 };
 
-const GROUP_META: Record<
-	Group,
-	{ icon: typeof Briefcase; order: number }
-> = {
+const GROUP_META: Record<Group, { icon: typeof Briefcase; order: number }> = {
 	leads: { icon: Search, order: 1 },
 	jobs: { icon: Briefcase, order: 2 },
 	proposals: { icon: FileText, order: 3 },
@@ -204,9 +194,7 @@ export function CommandPalette() {
 	const filteredActions = useMemo(() => {
 		const q = query.trim().toLowerCase();
 		if (!q) return actions;
-		return actions.filter(
-			(a) => a.title.toLowerCase().includes(q) || a.keywords.includes(q),
-		);
+		return actions.filter((a) => a.title.toLowerCase().includes(q) || a.keywords.includes(q));
 	}, [actions, query]);
 
 	// ⌘K / Ctrl+K global shortcut + external trigger event
@@ -289,9 +277,7 @@ export function CommandPalette() {
 			else map.set(h.group, [h]);
 		}
 		// Stable, deterministic ordering per GROUP_META.order
-		return Array.from(map.entries()).sort(
-			([a], [b]) => GROUP_META[a].order - GROUP_META[b].order,
-		);
+		return Array.from(map.entries()).sort(([a], [b]) => GROUP_META[a].order - GROUP_META[b].order);
 	}, [hits]);
 
 	const flatHits = useMemo(() => grouped.flatMap(([, items]) => items), [grouped]);
@@ -308,9 +294,7 @@ export function CommandPalette() {
 	// Scroll active row into view
 	useEffect(() => {
 		if (!listRef.current) return;
-		const node = listRef.current.querySelector<HTMLElement>(
-			`[data-hit-idx="${activeIdx}"]`,
-		);
+		const node = listRef.current.querySelector<HTMLElement>(`[data-hit-idx="${activeIdx}"]`);
 		node?.scrollIntoView({ block: "nearest" });
 	}, [activeIdx]);
 
@@ -385,11 +369,7 @@ export function CommandPalette() {
 						spellCheck={false}
 					/>
 					{loading && (
-						<Loader2
-							size={14}
-							className="animate-spin text-ink-faint"
-							aria-hidden="true"
-						/>
+						<Loader2 size={14} className="animate-spin text-ink-faint" aria-hidden="true" />
 					)}
 					<button
 						type="button"
@@ -402,11 +382,7 @@ export function CommandPalette() {
 				</div>
 
 				{/* Results */}
-				<div
-					ref={listRef}
-					className="flex-1 overflow-y-auto py-2"
-					role="listbox"
-				>
+				<div ref={listRef} className="flex-1 overflow-y-auto py-2" role="listbox">
 					{/* Actions */}
 					{filteredActions.length > 0 && (
 						<section className="py-1">
@@ -418,7 +394,7 @@ export function CommandPalette() {
 									const active = i === activeIdx;
 									const Icon = action.icon;
 									return (
-										<li key={action.id} role="option" aria-selected={active}>
+										<li key={action.id} aria-selected={active}>
 											<button
 												type="button"
 												data-hit-idx={i}
@@ -431,19 +407,13 @@ export function CommandPalette() {
 												<Icon
 													size={14}
 													className={
-														active
-															? "text-primary-text shrink-0"
-															: "text-ink-faint shrink-0"
+														active ? "text-primary-text shrink-0" : "text-ink-faint shrink-0"
 													}
 													aria-hidden="true"
 												/>
 												<div className="min-w-0 flex-1">
-													<p className="text-sm font-medium text-ink truncate">
-														{action.title}
-													</p>
-													<p className="text-xs text-ink-muted truncate">
-														{action.subtitle}
-													</p>
+													<p className="text-sm font-medium text-ink truncate">{action.title}</p>
+													<p className="text-xs text-ink-muted truncate">{action.subtitle}</p>
 												</div>
 											</button>
 										</li>
@@ -453,13 +423,8 @@ export function CommandPalette() {
 						</section>
 					)}
 
-					{query.trim() &&
-					grouped.length === 0 &&
-					filteredActions.length === 0 &&
-					!loading ? (
-						<p className="text-center text-sm text-ink-faint py-8">
-							{t("noResults", { query })}
-						</p>
+					{query.trim() && grouped.length === 0 && filteredActions.length === 0 && !loading ? (
+						<p className="text-center text-sm text-ink-faint py-8">{t("noResults", { query })}</p>
 					) : (
 						grouped.map(([group, items]) => {
 							const meta = GROUP_META[group];
@@ -474,35 +439,27 @@ export function CommandPalette() {
 											const idx = actionCount + flatHits.indexOf(hit);
 											const active = idx === activeIdx;
 											return (
-												<li key={hit.id} role="option" aria-selected={active}>
+												<li key={hit.id} aria-selected={active}>
 													<button
 														type="button"
 														data-hit-idx={idx}
 														onMouseEnter={() => setActiveIdx(idx)}
 														onClick={() => navigateTo(hit)}
 														className={`w-full text-left flex items-center gap-3 px-3 py-2 transition-colors ${
-															active
-																? "bg-primary-subtle"
-																: "hover:bg-subtle"
+															active ? "bg-primary-subtle" : "hover:bg-subtle"
 														}`}
 													>
 														<Icon
 															size={14}
 															className={
-																active
-																	? "text-primary-text shrink-0"
-																	: "text-ink-faint shrink-0"
+																active ? "text-primary-text shrink-0" : "text-ink-faint shrink-0"
 															}
 															aria-hidden="true"
 														/>
 														<div className="min-w-0 flex-1">
-															<p className="text-sm font-medium text-ink truncate">
-																{hit.title}
-															</p>
+															<p className="text-sm font-medium text-ink truncate">{hit.title}</p>
 															{hit.subtitle && (
-																<p className="text-xs text-ink-muted truncate">
-																	{hit.subtitle}
-																</p>
+																<p className="text-xs text-ink-muted truncate">{hit.subtitle}</p>
 															)}
 														</div>
 													</button>
@@ -608,9 +565,7 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 
 		supabase
 			.from("leads")
-			.select(
-				"id, pickup_address, destination_address, customers(name)",
-			)
+			.select("id, pickup_address, destination_address, customers(name)")
 			.or(
 				`pickup_address.ilike.${pattern},destination_address.ilike.${pattern},notes.ilike.${pattern}`,
 			)
@@ -618,26 +573,20 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 			.abortSignal(signal),
 		supabase
 			.from("leads")
-			.select(
-				"id, pickup_address, destination_address, customers!inner(name)",
-			)
+			.select("id, pickup_address, destination_address, customers!inner(name)")
 			.ilike("customers.name", pattern)
 			.limit(PER_GROUP_LIMIT)
 			.abortSignal(signal),
 
 		supabase
 			.from("jobs")
-			.select(
-				"id, job_number, move_date, proposals(leads(customers(name)))",
-			)
+			.select("id, job_number, move_date, proposals(leads(customers(name)))")
 			.ilike("job_number", pattern)
 			.limit(PER_GROUP_LIMIT)
 			.abortSignal(signal),
 		supabase
 			.from("jobs")
-			.select(
-				"id, job_number, move_date, proposals!inner(leads!inner(customers!inner(name)))",
-			)
+			.select("id, job_number, move_date, proposals!inner(leads!inner(customers!inner(name)))")
 			.ilike("proposals.leads.customers.name", pattern)
 			.limit(PER_GROUP_LIMIT)
 			.abortSignal(signal),
@@ -650,9 +599,7 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 			.abortSignal(signal),
 		supabase
 			.from("proposals")
-			.select(
-				"id, proposal_number, status, leads!inner(customers!inner(name))",
-			)
+			.select("id, proposal_number, status, leads!inner(customers!inner(name))")
 			.ilike("leads.customers.name", pattern)
 			.limit(PER_GROUP_LIMIT)
 			.abortSignal(signal),
@@ -673,9 +620,7 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 
 		supabase
 			.from("invoices")
-			.select(
-				"id, invoice_number, jobs(job_number, proposals(leads(customers(name))))",
-			)
+			.select("id, invoice_number, jobs(job_number, proposals(leads(customers(name))))")
 			.ilike("invoice_number", pattern)
 			.limit(PER_GROUP_LIMIT)
 			.abortSignal(signal),
@@ -709,9 +654,7 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 		...((leadsByCustomer.data ?? []) as LeadRow[]),
 	]) {
 		const route =
-			[lead.pickup_address, lead.destination_address]
-				.filter(Boolean)
-				.join(" → ") || "Lead";
+			[lead.pickup_address, lead.destination_address].filter(Boolean).join(" → ") || "Lead";
 		const title = lead.customers?.name ?? "Unknown customer";
 		add("leads", lead.id, title, route);
 	}
@@ -720,8 +663,7 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 		...((jobsByNumber.data ?? []) as JobRow[]),
 		...((jobsByCustomer.data ?? []) as JobRow[]),
 	]) {
-		const customerName =
-			job.proposals?.leads?.customers?.name ?? "Unknown customer";
+		const customerName = job.proposals?.leads?.customers?.name ?? "Unknown customer";
 		const sub = [job.move_date, customerName].filter(Boolean).join(" · ");
 		add("jobs", job.id, job.job_number, sub || undefined);
 	}
@@ -744,8 +686,7 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 	}
 
 	for (const inv of (invoicesRes.data ?? []) as InvoiceRow[]) {
-		const customerName =
-			inv.jobs?.proposals?.leads?.customers?.name ?? "Unknown customer";
+		const customerName = inv.jobs?.proposals?.leads?.customers?.name ?? "Unknown customer";
 		const jobNumber = inv.jobs?.job_number ?? "";
 		const sub = [jobNumber, customerName].filter(Boolean).join(" · ");
 		add("invoices", inv.id, inv.invoice_number, sub || undefined);

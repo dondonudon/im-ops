@@ -1,39 +1,27 @@
-import { createClient } from "@/lib/supabase/server";
+import { Columns3, List } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { List, Columns3 } from "lucide-react";
-import { formatJobSchedule, formatRupiah, cn } from "@/lib/utils";
 import {
 	Badge,
-	toneFor,
+	EmptyState,
+	PageHeader,
+	Pagination,
 	Select,
 	Table,
-	THead,
-	TH,
 	TBody,
-	TR,
 	TD,
-	PageHeader,
-	EmptyState,
-	Pagination,
+	TH,
+	THead,
+	TR,
+	toneFor,
 } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { cn, formatJobSchedule, formatRupiah } from "@/lib/utils";
 
-const STATUS_OPTS = [
-	"",
-	"scheduled",
-	"in_progress",
-	"completed",
-	"cancelled",
-] as const;
+const STATUS_OPTS = ["", "scheduled", "in_progress", "completed", "cancelled"] as const;
 
 /** Board column order — the operational lifecycle of a job. */
-const BOARD_STATUSES = [
-	"scheduled",
-	"in_progress",
-	"completed",
-	"closed",
-	"cancelled",
-] as const;
+const BOARD_STATUSES = ["scheduled", "in_progress", "completed", "closed", "cancelled"] as const;
 
 type JobRow = {
 	id: string;
@@ -98,10 +86,7 @@ export default async function JobsPage({
 
 	return (
 		<div className="space-y-5">
-			<PageHeader
-				title={t("title")}
-				actions={<ViewToggle view={view} status={status} t={t} />}
-			/>
+			<PageHeader title={t("title")} actions={<ViewToggle view={view} status={status} t={t} />} />
 
 			{view === "list" && (
 				<form method="GET" role="search">
@@ -125,10 +110,7 @@ export default async function JobsPage({
 				<div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin snap-x">
 					{BOARD_STATUSES.map((s) => {
 						const items = jobs.filter((j) => j.status === s);
-						const colRevenue = items.reduce(
-							(sum, j) => sum + (j.revenue ?? 0),
-							0,
-						);
+						const colRevenue = items.reduce((sum, j) => sum + (j.revenue ?? 0), 0);
 						return (
 							<section
 								key={s}
@@ -140,9 +122,7 @@ export default async function JobsPage({
 										<Badge tone={toneFor("job", s)} dot>
 											{tStatus(s as never)}
 										</Badge>
-										<span className="text-[11px] font-bold text-ink-muted">
-											{items.length}
-										</span>
+										<span className="text-[11px] font-bold text-ink-muted">{items.length}</span>
 									</div>
 									{colRevenue > 0 && (
 										<span className="text-[11px] font-semibold text-ink-muted tabular-nums shrink-0">
@@ -152,9 +132,7 @@ export default async function JobsPage({
 								</div>
 								<div className="flex-1 p-2.5 space-y-2.5 min-h-[120px]">
 									{items.length === 0 ? (
-										<p className="px-2 py-6 text-center text-xs text-ink-faint">
-											—
-										</p>
+										<p className="px-2 py-6 text-center text-xs text-ink-faint">—</p>
 									) : (
 										items.map((job) => (
 											<Link
@@ -177,11 +155,7 @@ export default async function JobsPage({
 												</p>
 												<p className="text-xs text-ink-faint mt-0.5">
 													{job.move_date
-														? formatJobSchedule(
-																job.move_date,
-																job.move_time,
-																job.move_end_date,
-															)
+														? formatJobSchedule(job.move_date, job.move_time, job.move_end_date)
 														: "—"}
 												</p>
 											</Link>
@@ -218,16 +192,10 @@ export default async function JobsPage({
 										<TD>{customerOf(job)}</TD>
 										<TD className="text-ink-muted">
 											{job.move_date
-												? formatJobSchedule(
-														job.move_date,
-														job.move_time,
-														job.move_end_date,
-													)
+												? formatJobSchedule(job.move_date, job.move_time, job.move_end_date)
 												: "—"}
 										</TD>
-										<TD align="right">
-											{job.revenue ? formatRupiah(job.revenue) : "—"}
-										</TD>
+										<TD align="right">{job.revenue ? formatRupiah(job.revenue) : "—"}</TD>
 										<TD>
 											<Badge tone={toneFor("job", job.status)} dot>
 												{tStatus(job.status as never)}
@@ -256,12 +224,8 @@ export default async function JobsPage({
 							>
 								<div className="flex items-start justify-between mb-2">
 									<div>
-										<p className="font-mono text-xs text-ink-faint">
-											{job.job_number}
-										</p>
-										<p className="font-semibold text-ink mt-0.5">
-											{customerOf(job)}
-										</p>
+										<p className="font-mono text-xs text-ink-faint">{job.job_number}</p>
+										<p className="font-semibold text-ink mt-0.5">{customerOf(job)}</p>
 									</div>
 									<Badge tone={toneFor("job", job.status)} dot>
 										{tStatus(job.status as never)}
@@ -272,18 +236,12 @@ export default async function JobsPage({
 										<p className="text-xs text-ink-faint">{t("columns.date")}</p>
 										<p className="text-ink-muted">
 											{job.move_date
-												? formatJobSchedule(
-														job.move_date,
-														job.move_time,
-														job.move_end_date,
-													)
+												? formatJobSchedule(job.move_date, job.move_time, job.move_end_date)
 												: "—"}
 										</p>
 									</div>
 									<div>
-										<p className="text-xs text-ink-faint">
-											{t("columns.revenue")}
-										</p>
+										<p className="text-xs text-ink-faint">{t("columns.revenue")}</p>
 										<p className="font-semibold text-ink tabular-nums">
 											{job.revenue ? formatRupiah(job.revenue) : "—"}
 										</p>
@@ -292,9 +250,7 @@ export default async function JobsPage({
 							</Link>
 						))}
 						{jobs.length === 0 && (
-							<p className="py-10 text-center text-sm text-ink-faint">
-								{t("empty")}
-							</p>
+							<p className="py-10 text-center text-sm text-ink-faint">{t("empty")}</p>
 						)}
 					</div>
 
@@ -324,9 +280,7 @@ function ViewToggle({
 				aria-current={view === "list" ? "page" : undefined}
 				className={cn(
 					base,
-					view === "list"
-						? "bg-primary text-primary-fg"
-						: "text-ink-muted hover:text-ink",
+					view === "list" ? "bg-primary text-primary-fg" : "text-ink-muted hover:text-ink",
 				)}
 			>
 				<List size={14} aria-hidden="true" />
@@ -337,9 +291,7 @@ function ViewToggle({
 				aria-current={view === "board" ? "page" : undefined}
 				className={cn(
 					base,
-					view === "board"
-						? "bg-primary text-primary-fg"
-						: "text-ink-muted hover:text-ink",
+					view === "board" ? "bg-primary text-primary-fg" : "text-ink-muted hover:text-ink",
 				)}
 			>
 				<Columns3 size={14} aria-hidden="true" />

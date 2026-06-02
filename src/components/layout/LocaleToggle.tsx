@@ -1,7 +1,7 @@
 "use client";
+import { Loader2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useTransition } from "react";
-import { Loader2 } from "lucide-react";
 import { setLocale } from "@/app/actions/locale";
 import { LOCALES, type Locale } from "@/i18n/config";
 

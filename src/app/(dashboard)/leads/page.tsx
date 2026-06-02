@@ -1,18 +1,18 @@
-import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { formatDate, sanitizeSearch } from "@/lib/utils";
 import {
-	PageHeader,
 	Badge,
-	RouteLine,
-	Input,
-	Select,
 	Button,
 	EmptyState,
+	Input,
+	PageHeader,
 	Pagination,
+	RouteLine,
+	Select,
 	toneFor,
 } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatDate, sanitizeSearch } from "@/lib/utils";
 
 const STATUS_VALUES = [
 	"",
@@ -40,22 +40,18 @@ export default async function LeadsPage({
 	const tStatus = await getTranslations("status.lead");
 	const tCommon = await getTranslations("common.buttons");
 
-	let query = supabase
-		.from("leads")
-		.select(
-			`
+	let query = supabase.from("leads").select(
+		`
       id, status, pickup_address, destination_address, preferred_date, created_at,
       customers(id, name, phone)
     `,
-			{ count: "exact" },
-		);
+		{ count: "exact" },
+	);
 
 	if (status) query = query.filter("status", "eq", status);
 	if (q) {
 		const safe = sanitizeSearch(q);
-		query = query.or(
-			`pickup_address.ilike.%${safe}%,destination_address.ilike.%${safe}%`,
-		);
+		query = query.or(`pickup_address.ilike.%${safe}%,destination_address.ilike.%${safe}%`);
 	}
 
 	const { data: leads, count } = await query
@@ -67,11 +63,7 @@ export default async function LeadsPage({
 			<PageHeader title={t("title")} />
 
 			{/* Filters */}
-			<form
-				method="GET"
-				className="flex flex-wrap gap-2"
-				role="search"
-			>
+			<form method="GET" className="flex flex-wrap gap-2" role="search">
 				<Input
 					type="search"
 					name="q"
@@ -112,9 +104,7 @@ export default async function LeadsPage({
 							className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface shadow-token px-5 py-4 transition-all hover:border-line-strong hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 						>
 							<div className="min-w-0 flex-1">
-								<p className="font-semibold text-ink truncate">
-									{customer?.name ?? "—"}
-								</p>
+								<p className="font-semibold text-ink truncate">{customer?.name ?? "—"}</p>
 								<RouteLine
 									from={lead.pickup_address}
 									to={lead.destination_address}

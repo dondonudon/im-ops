@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Copy, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
 import { Button } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
 
 /**
  * Re-quote a proposal: clones it as a fresh `draft` on the same lead,
@@ -92,13 +92,7 @@ export function ProposalDuplicateButton({
 
 	return (
 		<div>
-			<Button
-				type="button"
-				onClick={handleClick}
-				loading={loading}
-				variant="secondary"
-				size="md"
-			>
+			<Button type="button" onClick={handleClick} loading={loading} variant="secondary" size="md">
 				{loading ? (
 					<Loader2 size={14} className="animate-spin" aria-hidden="true" />
 				) : (

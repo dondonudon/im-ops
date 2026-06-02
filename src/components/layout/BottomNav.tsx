@@ -1,23 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import { useTranslations } from "next-intl";
 import {
-	LayoutDashboard,
 	Briefcase,
-	Wallet,
+	FilePlus2,
+	LayoutDashboard,
+	Loader2,
 	Menu as MenuIcon,
 	Plus,
 	Search,
 	UserPlus,
-	FilePlus2,
-	Loader2,
+	Wallet,
 	X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { useNavFeedback } from "@/lib/useNavFeedback";
+import { cn } from "@/lib/utils";
 
 type Item = {
 	href: string;
@@ -35,10 +35,7 @@ const RIGHT: Item[] = [
 		href: "/money",
 		key: "money",
 		icon: Wallet,
-		match: (p) =>
-			p.startsWith("/money") ||
-			p.startsWith("/invoices") ||
-			p.startsWith("/reports"),
+		match: (p) => p.startsWith("/money") || p.startsWith("/invoices") || p.startsWith("/reports"),
 	},
 ];
 
@@ -135,9 +132,7 @@ export function BottomNav({ onMenu }: { onMenu: () => void }) {
 					/>
 					<div className="absolute bottom-0 inset-x-0 bg-surface rounded-t-2xl border-t border-line p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] animate-fade-in-up">
 						<div className="flex items-center justify-between mb-3">
-							<h2 className="text-sm font-semibold text-ink">
-								{tField("quickAdd")}
-							</h2>
+							<h2 className="text-sm font-semibold text-ink">{tField("quickAdd")}</h2>
 							<button
 								type="button"
 								onClick={() => setSheetOpen(false)}

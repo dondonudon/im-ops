@@ -1,8 +1,8 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { buttonStyles } from "./Button";
 
@@ -47,13 +47,8 @@ export function Pagination({
 	});
 
 	return (
-		<nav
-			className="flex items-center justify-between gap-3 pt-1"
-			aria-label="Pagination"
-		>
-			<p className="text-xs text-ink-muted tabular-nums">
-				{t("showing", { from, to, total })}
-			</p>
+		<nav className="flex items-center justify-between gap-3 pt-1" aria-label="Pagination">
+			<p className="text-xs text-ink-muted tabular-nums">{t("showing", { from, to, total })}</p>
 			<div className="flex items-center gap-2">
 				{prevDisabled ? (
 					<span className={disabledCls} aria-disabled="true">

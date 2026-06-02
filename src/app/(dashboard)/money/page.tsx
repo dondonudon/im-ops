@@ -1,17 +1,17 @@
-import { createClient } from "@/lib/supabase/server";
+import { AlertTriangle, Banknote, TrendingUp, Wallet } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Wallet, AlertTriangle, Banknote, TrendingUp } from "lucide-react";
-import { formatRupiah, formatDate } from "@/lib/utils";
 import {
-	PageHeader,
 	Card,
 	CardHeader,
-	Stat,
-	Money,
 	EmptyState,
+	Money,
 	MonthPicker,
+	PageHeader,
+	Stat,
 } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatDate, formatRupiah } from "@/lib/utils";
 
 function parseMonth(raw?: string): string {
 	if (raw && /^\d{4}-\d{2}$/.test(raw)) return raw;
@@ -76,11 +76,7 @@ export default async function MoneyPage({
 			.neq("status", "paid")
 			.neq("status", "cancelled"),
 		// Actual cash received: payments made in this month
-		supabase
-			.from("payments")
-			.select("amount")
-			.gte("paid_at", monthStart)
-			.lt("paid_at", monthEnd),
+		supabase.from("payments").select("amount").gte("paid_at", monthStart).lt("paid_at", monthEnd),
 		supabase
 			.from("expenses")
 			.select("amount")
@@ -89,9 +85,7 @@ export default async function MoneyPage({
 		// Recent payments in the selected month
 		supabase
 			.from("payments")
-			.select(
-				"id, amount, paid_at, method, jobs(job_number, invoices(invoice_number))",
-			)
+			.select("id, amount, paid_at, method, jobs(job_number, invoices(invoice_number))")
 			.gte("paid_at", monthStart)
 			.lt("paid_at", monthEnd)
 			.order("paid_at", { ascending: false })
@@ -111,17 +105,11 @@ export default async function MoneyPage({
 
 	const totalOutstanding = outstanding.reduce((s, i) => s + i.outstanding, 0);
 	const overdue = outstanding.filter(
-		(i) => i.due_date && new Date(i.due_date + "T00:00:00") < today,
+		(i) => i.due_date && new Date(`${i.due_date}T00:00:00`) < today,
 	);
 	const overdueAmount = overdue.reduce((s, i) => s + i.outstanding, 0);
-	const monthRevenue = (monthlyPayments ?? []).reduce(
-		(s, p) => s + (p.amount ?? 0),
-		0,
-	);
-	const monthExpenses = (monthlyExp ?? []).reduce(
-		(s, i) => s + (i.amount ?? 0),
-		0,
-	);
+	const monthRevenue = (monthlyPayments ?? []).reduce((s, p) => s + (p.amount ?? 0), 0);
+	const monthExpenses = (monthlyExp ?? []).reduce((s, i) => s + (i.amount ?? 0), 0);
 	const net = monthRevenue - monthExpenses;
 
 	// AR aging buckets
@@ -133,7 +121,7 @@ export default async function MoneyPage({
 			continue;
 		}
 		const days = Math.floor(
-			(today.getTime() - new Date(inv.due_date + "T00:00:00").getTime()) / DAY,
+			(today.getTime() - new Date(`${inv.due_date}T00:00:00`).getTime()) / DAY,
 		);
 		if (days <= 0) aging.current += amt;
 		else if (days <= 30) aging.b1 += amt;
@@ -264,14 +252,9 @@ export default async function MoneyPage({
 											<Banknote size={13} className="text-success" aria-hidden="true" />
 										</span>
 										<div className="flex-1 min-w-0">
-											<Money
-												value={p.amount}
-												className="text-[13px] font-semibold"
-											/>
+											<Money value={p.amount} className="text-[13px] font-semibold" />
 											<p className="text-xs text-ink-faint truncate">
-												{p.jobs?.invoices?.[0]?.invoice_number ??
-													p.jobs?.job_number ??
-													"—"}
+												{p.jobs?.invoices?.[0]?.invoice_number ?? p.jobs?.job_number ?? "—"}
 												{p.method ? ` · ${p.method}` : ""}
 											</p>
 										</div>
@@ -303,9 +286,7 @@ export default async function MoneyPage({
 									<span className="flex-1 text-ink-muted capitalize">
 										{tInv(status as never)} ({count})
 									</span>
-									<span className="tabular-nums font-medium text-ink">
-										{formatRupiah(total)}
-									</span>
+									<span className="tabular-nums font-medium text-ink">{formatRupiah(total)}</span>
 								</div>
 							))}
 						</div>

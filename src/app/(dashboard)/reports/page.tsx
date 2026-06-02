@@ -1,19 +1,19 @@
-import { createClient } from "@/lib/supabase/server";
 import { getTranslations } from "next-intl/server";
-import { formatRupiah } from "@/lib/utils";
 import {
-	PageHeader,
 	Card,
 	CardHeader,
-	Table,
-	THead,
-	TH,
-	TBody,
-	TR,
-	TD,
 	Money,
 	MonthPicker,
+	PageHeader,
+	Table,
+	TBody,
+	TD,
+	TH,
+	THead,
+	TR,
 } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { formatRupiah } from "@/lib/utils";
 
 function parseMonth(raw?: string): string {
 	if (raw && /^\d{4}-\d{2}$/.test(raw)) return raw;
@@ -95,8 +95,7 @@ export default async function ReportsPage({
 
 	const expenseByCategory: Record<string, number> = {};
 	for (const e of monthlyExpenses ?? []) {
-		expenseByCategory[e.category] =
-			(expenseByCategory[e.category] ?? 0) + e.amount;
+		expenseByCategory[e.category] = (expenseByCategory[e.category] ?? 0) + e.amount;
 	}
 
 	const funnelCounts: Record<string, number> = {};
@@ -104,18 +103,11 @@ export default async function ReportsPage({
 		funnelCounts[lead.status] = (funnelCounts[lead.status] ?? 0) + 1;
 	}
 	const totalLeads = Object.values(funnelCounts).reduce((s, c) => s + c, 0);
-	const convertedLeads = funnelCounts["converted"] ?? 0;
-	const conversionRate =
-		totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
+	const convertedLeads = funnelCounts.converted ?? 0;
+	const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
 
-	const totalRevenue = (monthJobsData ?? []).reduce(
-		(s, j) => s + (j.revenue ?? 0),
-		0,
-	);
-	const totalExpenses = (monthlyExpenses ?? []).reduce(
-		(s, e) => s + (e.amount ?? 0),
-		0,
-	);
+	const totalRevenue = (monthJobsData ?? []).reduce((s, j) => s + (j.revenue ?? 0), 0);
+	const totalExpenses = (monthlyExpenses ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
 	const totalProfit = totalRevenue - totalExpenses;
 
 	const aging = { current: 0, "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
@@ -147,10 +139,7 @@ export default async function ReportsPage({
 
 	return (
 		<div className="space-y-8">
-			<PageHeader
-				title={t("title")}
-				actions={<MonthPicker value={selectedMonth} />}
-			/>
+			<PageHeader title={t("title")} actions={<MonthPicker value={selectedMonth} />} />
 
 			{/* KPI summary */}
 			<section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -177,12 +166,8 @@ export default async function ReportsPage({
 					},
 				].map((kpi) => (
 					<Card key={kpi.label} className="p-5">
-						<p className="text-xs text-ink-muted uppercase tracking-wide mb-1">
-							{kpi.label}
-						</p>
-						<p className={`text-2xl font-bold tabular-nums ${kpi.className}`}>
-							{kpi.value}
-						</p>
+						<p className="text-xs text-ink-muted uppercase tracking-wide mb-1">{kpi.label}</p>
+						<p className={`text-2xl font-bold tabular-nums ${kpi.className}`}>{kpi.value}</p>
 					</Card>
 				))}
 			</section>
@@ -243,12 +228,8 @@ export default async function ReportsPage({
 											// Stored categories may be labels ("Packing materials") or
 											// keys ("packing_materials"); normalize, then fall back to
 											// the raw value if there's no translation.
-											const key = cat
-												.toLowerCase()
-												.replace(/[\s-]+/g, "_");
-											const label = tExpenseCat.has(key as never)
-												? tExpenseCat(key as never)
-												: cat;
+											const key = cat.toLowerCase().replace(/[\s-]+/g, "_");
+											const label = tExpenseCat.has(key as never) ? tExpenseCat(key as never) : cat;
 											return (
 												<li key={cat} className="flex justify-between text-sm">
 													<span className="text-ink-muted">{label}</span>
@@ -267,9 +248,7 @@ export default async function ReportsPage({
 							<ul className="space-y-2">
 								{Object.entries(funnelCounts).map(([status, count]) => (
 									<li key={status} className="flex justify-between text-sm">
-										<span className="text-ink-muted">
-											{tLeadStatus(status as never)}
-										</span>
+										<span className="text-ink-muted">{tLeadStatus(status as never)}</span>
 										<span className="font-medium text-ink">{count}</span>
 									</li>
 								))}
@@ -300,9 +279,7 @@ export default async function ReportsPage({
 							<ul className="space-y-2">
 								{Object.entries(aging).map(([bucket, amount]) => {
 									const pct =
-										totalOutstanding > 0
-											? Math.round((amount / totalOutstanding) * 100)
-											: 0;
+										totalOutstanding > 0 ? Math.round((amount / totalOutstanding) * 100) : 0;
 									return (
 										<li key={bucket} className="text-sm">
 											<div className="flex justify-between mb-1">
@@ -313,10 +290,7 @@ export default async function ReportsPage({
 												</span>
 												<Money value={amount} className="font-medium" />
 											</div>
-											<div
-												className="h-1.5 bg-subtle rounded overflow-hidden"
-												aria-hidden="true"
-											>
+											<div className="h-1.5 bg-subtle rounded overflow-hidden" aria-hidden="true">
 												<div
 													className={`h-full ${
 														bucket === "current"
@@ -374,4 +348,3 @@ export default async function ReportsPage({
 		</div>
 	);
 }
-

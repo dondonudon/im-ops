@@ -16,8 +16,8 @@ import { Suspense, useEffect, useRef, useState } from "react";
  * wrapped below.
  */
 function Inner() {
-	const pathname = usePathname();
-	const searchParams = useSearchParams();
+	const _pathname = usePathname();
+	const _searchParams = useSearchParams();
 	const [active, setActive] = useState(false);
 	const firstRender = useRef(true);
 
@@ -29,7 +29,7 @@ function Inner() {
 		}
 		setActive(false);
 		document.body.style.cursor = "";
-	}, [pathname, searchParams]);
+	}, []);
 
 	// Capture link clicks to start the bar.
 	useEffect(() => {
@@ -40,14 +40,7 @@ function Inner() {
 
 		function onClick(e: MouseEvent) {
 			// Skip modifier/middle/right clicks — those don't navigate the current tab.
-			if (
-				e.metaKey ||
-				e.ctrlKey ||
-				e.shiftKey ||
-				e.altKey ||
-				e.button !== 0 ||
-				e.defaultPrevented
-			)
+			if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0 || e.defaultPrevented)
 				return;
 
 			const anchor = (e.target as HTMLElement | null)?.closest("a");

@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Copy, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
 import { Button } from "@/components/ui";
+import { createClient } from "@/lib/supabase/client";
 
 /**
  * Duplicates a lead into a fresh "new"-status row tied to the same customer.
@@ -62,13 +62,7 @@ export function LeadDuplicateButton({ leadId }: { leadId: string }) {
 
 	return (
 		<div>
-			<Button
-				type="button"
-				onClick={handleClick}
-				loading={loading}
-				variant="secondary"
-				size="md"
-			>
+			<Button type="button" onClick={handleClick} loading={loading} variant="secondary" size="md">
 				{loading ? (
 					<Loader2 size={14} className="animate-spin" aria-hidden="true" />
 				) : (

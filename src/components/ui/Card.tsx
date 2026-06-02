@@ -1,17 +1,10 @@
 import { cn } from "@/lib/utils";
 
 /** Standard surface card — token-backed, single elevation level. */
-export function Card({
-	className,
-	children,
-	...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function Card({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
 	return (
 		<div
-			className={cn(
-				"bg-surface border border-line rounded-xl shadow-token",
-				className,
-			)}
+			className={cn("bg-surface border border-line rounded-xl shadow-token", className)}
 			{...props}
 		>
 			{children}
