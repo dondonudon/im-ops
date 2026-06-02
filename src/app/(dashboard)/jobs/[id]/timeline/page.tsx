@@ -40,7 +40,7 @@ export default async function JobTimelinePage({ params }: { params: Promise<{ id
 						<span className="block text-sm text-ink-faint font-mono">{job.job_number}</span>
 					</>
 				}
-				actions={<TimelineLogEventButton jobId={id} />}
+				actions={<TimelineLogEventButton jobId={id} jobStatus={job.status} />}
 			/>
 
 			<Card className="p-5">

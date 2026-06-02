@@ -19,6 +19,16 @@ const EVENT_TYPE_VALUES = [
 	"custom",
 ] as const;
 
+// Events that signal the job has physically started — trigger auto-start when job is still scheduled
+const OPERATIONAL_EVENTS = new Set([
+	"loading_start",
+	"loading_done",
+	"transit_start",
+	"transit_done",
+	"unloading_start",
+	"unloading_done",
+]);
+
 function nowLocalISO(): string {
 	const d = new Date();
 	const off = d.getTimezoneOffset();
@@ -26,17 +36,20 @@ function nowLocalISO(): string {
 	return local.toISOString().slice(0, 16);
 }
 
-/**
- * "+ Log Event" button that opens a modal to insert a job_timeline row.
- * Used on the job detail page and the dedicated timeline route.
- */
-export function TimelineLogEventButton({ jobId }: { jobId: string }) {
+export function TimelineLogEventButton({
+	jobId,
+	jobStatus,
+}: {
+	jobId: string;
+	jobStatus: string;
+}) {
 	const router = useRouter();
 	const tTimeline = useTranslations("panels.timeline");
 	const tModal = useTranslations("modals.logEvent");
 	const tButtons = useTranslations("common.buttons");
 	const tHints = useTranslations("common.hints");
 	const tEventType = useTranslations("entity.eventType");
+	const tConfirm = useTranslations("modals.confirmations");
 	const [open, setOpen] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -64,6 +77,7 @@ export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 			const {
 				data: { user },
 			} = await supabase.auth.getUser();
+
 			const { error: insertErr } = await supabase.from("job_timeline").insert({
 				job_id: jobId,
 				event_type: form.event_type,
@@ -72,8 +86,34 @@ export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 				logged_by: user?.id ?? null,
 			});
 			if (insertErr) throw insertErr;
+
+			// Auto-start: if job is still scheduled and the logged event signals physical work has begun
+			let effectiveStatus = jobStatus;
+			if (jobStatus === "scheduled" && OPERATIONAL_EVENTS.has(form.event_type)) {
+				await supabase.from("jobs").update({ status: "in_progress" }).eq("id", jobId);
+				await supabase.from("job_timeline").insert({
+					job_id: jobId,
+					event_type: "job_started",
+					logged_by: user?.id ?? null,
+				});
+				effectiveStatus = "in_progress";
+			}
+
 			reset();
 			setOpen(false);
+
+			// Nudge to complete the job after unloading is done
+			if (form.event_type === "unloading_done" && effectiveStatus === "in_progress") {
+				if (window.confirm(tConfirm("markJobDone"))) {
+					await supabase.from("jobs").update({ status: "completed" }).eq("id", jobId);
+					await supabase.from("job_timeline").insert({
+						job_id: jobId,
+						event_type: "job_completed",
+						logged_by: user?.id ?? null,
+					});
+				}
+			}
+
 			router.refresh();
 		} catch (err: unknown) {
 			setError(err instanceof Error ? err.message : "Insert failed.");
@@ -96,10 +136,14 @@ export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 					aria-label="Log timeline event"
 					className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40"
 					onClick={() => !saving && setOpen(false)}
+					onKeyDown={(e) => { if (e.key === "Escape" && !saving) setOpen(false); }}
 				>
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: modal panel stops backdrop click propagation — not a user-interactive element */}
 					<div
+						role="presentation"
 						className="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl bg-surface border border-line p-5 shadow-token-md space-y-4"
 						onClick={(e) => e.stopPropagation()}
+						onKeyDown={(e) => e.stopPropagation()}
 					>
 						<div className="flex items-center justify-between">
 							<h3 className="text-base font-semibold text-ink">{tModal("title")}</h3>

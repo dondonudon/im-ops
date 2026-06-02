@@ -7,7 +7,6 @@ import { getTranslations } from "next-intl/server";
 import { GenerateInvoiceButton } from "@/components/invoices/GenerateInvoiceButton";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { JobMarkDoneButton } from "@/components/jobs/JobMarkDoneButton";
-import { JobStartButton } from "@/components/jobs/JobStartButton";
 import { TimelineLogEventButton } from "@/components/jobs/TimelineLogEventButton";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
@@ -137,7 +136,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							{tCommon("edit")}
 						</Link>
 						<GCalRetryButton kind="job" id={id} hasEvent={Boolean(job.gcal_event_id)} />
-						{job.status === "scheduled" && <JobStartButton jobId={id} />}
 						{job.status === "in_progress" && <JobMarkDoneButton jobId={id} />}
 						<JobStatusActions jobId={id} status={job.status} />
 					</div>
@@ -261,7 +259,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							}
 							action={
 								<div className="flex items-center gap-2">
-									<TimelineLogEventButton jobId={id} />
+									<TimelineLogEventButton jobId={id} jobStatus={job.status} />
 									<Link
 										href={`/jobs/${id}/timeline`}
 										className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
@@ -309,7 +307,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 						</h2>
 						<div
 							className="text-2xl font-bold"
-							aria-label={`${t("profit")}: ${formatRupiah(profit)}`}
 						>
 							<span className={profit >= 0 ? "text-success" : "text-danger"}>
 								{formatRupiah(profit)}
