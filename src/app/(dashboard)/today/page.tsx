@@ -520,7 +520,6 @@ async function AtAGlanceSection({
 
 async function UpcomingSection() {
 	const t = await getTranslations("today");
-	const tCommon = await getTranslations("common.buttons");
 	const supabase = await createClient();
 	const today = todayISO();
 
