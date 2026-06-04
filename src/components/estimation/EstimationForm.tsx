@@ -197,7 +197,7 @@ export function EstimationForm({
 					<NumericInput
 						id="crew_count"
 						value={inputs.crew_count}
-						onChange={(v) => setInput("crew_count", Math.max(1, v || 1))}
+						onChange={(v) => setInput("crew_count", v ?? 0)}
 						className="w-32 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
 					/>
 				</Field>
@@ -241,7 +241,7 @@ export function EstimationForm({
 						<NumericInput
 							id="meals_count"
 							value={inputs.meals_count}
-							onChange={(v) => setInput("meals_count", Math.max(1, v || 1))}
+							onChange={(v) => setInput("meals_count", v ?? 0)}
 							className="w-32 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
 						/>
 					</Field>
