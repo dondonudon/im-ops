@@ -37,6 +37,7 @@ export function LeadPhotoGallery({
 	const [uploading, setUploading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+	const [showAll, setShowAll] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const supabase = useMemo(() => createClient(), []);
@@ -87,6 +88,7 @@ export function LeadPhotoGallery({
 
 				// Optimistic UI update
 				setPhotos((prev) => [...prev, record]);
+				setShowAll(true);
 			}
 		} catch (err: unknown) {
 			setError(err instanceof Error ? err.message : tErrors("uploadFailed"));
@@ -142,44 +144,62 @@ export function LeadPhotoGallery({
 			{photos.length === 0 ? (
 				<p className="text-sm text-ink-faint text-center py-4">{t("empty")}</p>
 			) : (
-				<ul className="grid grid-cols-2 sm:grid-cols-3 gap-3" aria-label={t("listAria")}>
-					{photos.map((photo, i) => (
-						<li
-							key={photo.id}
-							className="relative group rounded-lg overflow-hidden aspect-square bg-subtle"
+				<>
+					<ul
+						className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
+						aria-label={t("listAria")}
+					>
+						{(showAll ? photos : photos.slice(0, 8)).map((photo) => {
+							const actualIndex = photos.indexOf(photo);
+							return (
+								<li
+									key={photo.id}
+									className="relative group rounded-lg overflow-hidden aspect-square bg-subtle"
+								>
+									<Image
+										src={photoUrls.get(photo.storage_path) ?? ""}
+										alt={photo.caption ?? t("fallbackAlt")}
+										fill
+										priority={actualIndex === 0}
+										className="object-cover transition-transform duration-200 group-hover:scale-105"
+										sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+									/>
+									<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+									<button
+										type="button"
+										onClick={() => setLightboxIndex(actualIndex)}
+										className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+										aria-label={t("viewPhoto", {
+											n: actualIndex + 1,
+											total: photos.length,
+										})}
+									>
+										<ZoomIn size={22} className="text-white drop-shadow-lg" aria-hidden="true" />
+									</button>
+									<button
+										type="button"
+										onClick={() => handleDelete(photo)}
+										className="absolute top-1.5 right-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-opacity z-10"
+										aria-label={t("deletePhoto")}
+									>
+										<X size={12} aria-hidden="true" />
+									</button>
+								</li>
+							);
+						})}
+					</ul>
+					{photos.length > 8 && (
+						<button
+							type="button"
+							onClick={() => setShowAll((v) => !v)}
+							className="w-full text-xs font-medium text-ink-muted hover:text-ink transition-colors py-1.5"
 						>
-							<Image
-								src={photoUrls.get(photo.storage_path) ?? ""}
-								alt={photo.caption ?? t("fallbackAlt")}
-								fill
-								priority={i === 0}
-								className="object-cover transition-transform duration-200 group-hover:scale-105"
-								sizes="(max-width: 640px) 50vw, 200px"
-							/>
-							{/* Overlay buttons */}
-							<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-							<button
-								type="button"
-								onClick={() => setLightboxIndex(i)}
-								className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
-								aria-label={t("viewPhoto", {
-									n: i + 1,
-									total: photos.length,
-								})}
-							>
-								<ZoomIn size={22} className="text-white drop-shadow-lg" aria-hidden="true" />
-							</button>
-							<button
-								type="button"
-								onClick={() => handleDelete(photo)}
-								className="absolute top-1.5 right-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-opacity z-10"
-								aria-label={t("deletePhoto")}
-							>
-								<X size={12} aria-hidden="true" />
-							</button>
-						</li>
-					))}
-				</ul>
+							{showAll
+								? "Show less"
+								: `Show ${photos.length - 8} more photo${photos.length - 8 !== 1 ? "s" : ""}`}
+						</button>
+					)}
+				</>
 			)}
 
 			{/* Lightbox */}

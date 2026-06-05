@@ -65,6 +65,7 @@ export function SurveyDetailClient({
 	const [error, setError] = useState<string | null>(null);
 	const [markingDone, setMarkingDone] = useState(false);
 	const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+	const [showAllMedia, setShowAllMedia] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const isDone = !!initial.conducted_at;
@@ -137,7 +138,10 @@ export function SurveyDetailClient({
 					.select("id, media_type, storage_path, caption, uploaded_at")
 					.single();
 				if (dbErr) throw dbErr;
-				if (row) setMedia((prev) => [...prev, row]);
+				if (row) {
+					setMedia((prev) => [...prev, row]);
+					setShowAllMedia(true);
+				}
 			}
 		} catch (e) {
 			setError(e instanceof Error ? e.message : tErrors("uploadFailed"));
@@ -301,48 +305,65 @@ export function SurveyDetailClient({
 				{media.length === 0 ? (
 					<p className="text-sm text-ink-faint text-center py-6">{t("noMedia")}</p>
 				) : (
-					<ul className="grid grid-cols-2 sm:grid-cols-3 gap-3" aria-label={t("media")}>
-						{media.map((m, i) => {
-							const supabase = createClient();
-							const { data: urlData } = supabase.storage
-								.from("survey-media")
-								.getPublicUrl(m.storage_path);
-							return (
-								<li
-									key={m.id}
-									className="relative group rounded-xl overflow-hidden aspect-square bg-subtle"
-								>
-									<Image
-										src={urlData.publicUrl}
-										alt={m.caption ?? t("photoAlt")}
-										fill
-										sizes="(max-width: 640px) 50vw, 33vw"
-										className="object-cover transition-transform duration-200 group-hover:scale-105"
-									/>
-									<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-									<button
-										type="button"
-										onClick={() => setLightboxIndex(i)}
-										className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
-										aria-label={tPhotos("viewPhoto", {
-											n: i + 1,
-											total: media.length,
-										})}
+					<>
+						<ul
+							className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
+							aria-label={t("media")}
+						>
+							{(showAllMedia ? media : media.slice(0, 8)).map((m) => {
+								const actualIndex = media.indexOf(m);
+								const supabase = createClient();
+								const { data: urlData } = supabase.storage
+									.from("survey-media")
+									.getPublicUrl(m.storage_path);
+								return (
+									<li
+										key={m.id}
+										className="relative group rounded-xl overflow-hidden aspect-square bg-subtle"
 									>
-										<ZoomIn size={22} className="text-white drop-shadow-lg" aria-hidden="true" />
-									</button>
-									<button
-										type="button"
-										onClick={() => removeMedia(m.id, m.storage_path)}
-										aria-label={tPhotos("deletePhoto")}
-										className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white z-10"
-									>
-										<Trash2 size={11} aria-hidden="true" />
-									</button>
-								</li>
-							);
-						})}
-					</ul>
+										<Image
+											src={urlData.publicUrl}
+											alt={m.caption ?? t("photoAlt")}
+											fill
+											sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+											className="object-cover transition-transform duration-200 group-hover:scale-105"
+										/>
+										<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+										<button
+											type="button"
+											onClick={() => setLightboxIndex(actualIndex)}
+											className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+											aria-label={tPhotos("viewPhoto", {
+												n: actualIndex + 1,
+												total: media.length,
+											})}
+										>
+											<ZoomIn size={22} className="text-white drop-shadow-lg" aria-hidden="true" />
+										</button>
+										<button
+											type="button"
+											onClick={() => removeMedia(m.id, m.storage_path)}
+											aria-label={tPhotos("deletePhoto")}
+											className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white z-10"
+										>
+											<Trash2 size={11} aria-hidden="true" />
+										</button>
+									</li>
+								);
+							})}
+						</ul>
+						{media.length > 8 && (
+							<button
+								type="button"
+								onClick={() => setShowAllMedia((v) => !v)}
+								className="w-full text-xs font-medium text-ink-muted hover:text-ink transition-colors py-1.5"
+							>
+								{showAllMedia
+									? "Show less"
+									: `Show ${media.length - 8} more photo${media.length - 8 !== 1 ? "s" : ""}`}
+							</button>
+						)}
+					</>
 				)}
 
 				{/* Lightbox */}
