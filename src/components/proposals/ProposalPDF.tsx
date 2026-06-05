@@ -1,5 +1,6 @@
 "use client";
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import type { ProposalCustomFields } from "@/lib/proposalCustomFields";
 import {
 	formatIndonesianDate,
 	formatRupiahLetter,
@@ -107,9 +108,17 @@ export interface ProposalPDFProps {
 		logo: string;
 	};
 	template: { includedServices: string[]; signatureName: string; signatureRole: string };
+	customFields?: ProposalCustomFields;
 }
 
-export function ProposalPDF({ proposal, customer, lead, company, template }: ProposalPDFProps) {
+export function ProposalPDF({
+	proposal,
+	customer,
+	lead,
+	company,
+	template,
+	customFields = {},
+}: ProposalPDFProps) {
 	const displayDate = `${company.city}, ${formatIndonesianDate(proposal.created_at)}`;
 	const price = proposal.final_price ?? 0;
 	const priceFormatted = formatRupiahLetter(price);
@@ -119,6 +128,13 @@ export function ProposalPDF({ proposal, customer, lead, company, template }: Pro
 	const pickup = lead.pickup_address;
 	const destination = lead.destination_address;
 	const hasRoute = Boolean(pickup || destination);
+
+	const effectiveServices = customFields.override_services
+		? customFields.override_services
+				.split("\n")
+				.map((s) => s.trim())
+				.filter(Boolean)
+		: template.includedServices;
 
 	return (
 		<Document title={`Proposal ${proposal.proposal_number}`} author={company.name}>
@@ -194,7 +210,10 @@ export function ProposalPDF({ proposal, customer, lead, company, template }: Pro
 					{price > 0 ? (
 						<>
 							{". Sehingga biayanya menjadi "}
-							<Text style={{ fontFamily: "Helvetica-Bold" }}>{priceFormatted}</Text>{" "}
+							<Text style={{ fontFamily: "Helvetica-Bold" }}>
+								{priceFormatted}
+								{customFields.price_suffix ? ` ${customFields.price_suffix}` : ""}
+							</Text>{" "}
 							<Text style={{ fontFamily: "Helvetica-BoldOblique" }}>({priceWordsDisplay}).</Text>
 						</>
 					) : (
@@ -203,13 +222,13 @@ export function ProposalPDF({ proposal, customer, lead, company, template }: Pro
 				</Text>
 
 				{/* Included services */}
-				{template.includedServices.length > 0 && (
+				{effectiveServices.length > 0 && (
 					<>
 						<Text style={[styles.para, { marginBottom: 4 }]}>
 							{"      "}Dengan biaya tersebut, sudah termasuk :
 						</Text>
 						<View style={styles.listContainer}>
-							{template.includedServices.map((svc) => (
+							{effectiveServices.map((svc) => (
 								<View key={svc} style={styles.listItem}>
 									<Text style={styles.listBullet}>-</Text>
 									<Text style={styles.listText}>{svc}</Text>
@@ -218,6 +237,22 @@ export function ProposalPDF({ proposal, customer, lead, company, template }: Pro
 						</View>
 					</>
 				)}
+
+				{/* Per-proposal: DP note */}
+				{customFields.dp_note ? (
+					<Text style={styles.para}>
+						{"      "}
+						{customFields.dp_note}
+					</Text>
+				) : null}
+
+				{/* Per-proposal: custom conditions */}
+				{customFields.custom_conditions ? (
+					<Text style={styles.para}>
+						{"      "}
+						{customFields.custom_conditions}
+					</Text>
+				) : null}
 
 				{/* Closing */}
 				<Text style={styles.para}>

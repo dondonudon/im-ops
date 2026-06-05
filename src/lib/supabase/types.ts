@@ -240,6 +240,7 @@ export type Database = {
 					closed_reason: string | null;
 					approved_at: string | null;
 					pdf_url: string | null;
+					custom_fields: Json | null;
 					created_by: string | null;
 					created_at: string;
 				};
@@ -253,6 +254,7 @@ export type Database = {
 					closed_reason?: string | null;
 					approved_at?: string | null;
 					pdf_url?: string | null;
+					custom_fields?: Json | null;
 					created_by?: string | null;
 					created_at?: string;
 				};
@@ -266,6 +268,7 @@ export type Database = {
 					closed_reason?: string | null;
 					approved_at?: string | null;
 					pdf_url?: string | null;
+					custom_fields?: Json | null;
 					created_by?: string | null;
 					created_at?: string;
 				};

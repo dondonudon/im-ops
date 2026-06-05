@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { NegotiationHistory } from "@/components/proposals/NegotiationHistory";
 import { ProposalActionPanel } from "@/components/proposals/ProposalActionPanel";
+import { ProposalCustomFieldsEditor } from "@/components/proposals/ProposalCustomFieldsEditor";
 import { ProposalDuplicateButton } from "@/components/proposals/ProposalDuplicateButton";
 import { ProposalPDFDownloadButton } from "@/components/proposals/ProposalPDFDownloadButton";
 import { BackLink } from "@/components/shared/BackLink";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
 import { buildCompanySettings, buildProposalTemplateSettings } from "@/lib/pdfSettings";
+import { parseCustomFields } from "@/lib/proposalCustomFields";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatRupiah } from "@/lib/utils";
 
@@ -65,6 +67,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const pdfCompany = buildCompanySettings(settingsMap);
 	const pdfTemplate = buildProposalTemplateSettings(settingsMap);
+	const customFields = parseCustomFields(proposal.custom_fields);
 
 	const lead = proposal.leads as {
 		id: string;
@@ -156,6 +159,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 									outputs: estimationOutputs,
 									company: pdfCompany,
 									template: pdfTemplate,
+									customFields,
 								}}
 							/>
 						)}
@@ -226,6 +230,9 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 						revisions={revisions ?? []}
 						status={proposal.status}
 					/>
+
+					{/* Per-proposal PDF customization */}
+					<ProposalCustomFieldsEditor proposalId={id} initial={customFields} />
 				</div>
 
 				{/* Right: action panel */}
