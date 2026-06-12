@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -92,6 +93,9 @@ export function ExpensePanel({
 	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [deleteInProgress, setDeleteInProgress] = useState(false);
 
+	// Lightbox
+	const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
 	// Keep the pending badge in sync with the queue + auto-flush when back online.
 	useEffect(() => {
 		setPendingCount(queuedCount());
@@ -163,10 +167,9 @@ export function ExpensePanel({
 				const resized = await resizeImage(editReceiptFile);
 				const path = `${jobId}/${Date.now()}.webp`;
 				const { error: uploadErr } = await supabase.storage.from("receipts").upload(path, resized);
-				if (!uploadErr) {
-					const { data: urlData } = supabase.storage.from("receipts").getPublicUrl(path);
-					receipt_url = urlData.publicUrl;
-				}
+				if (uploadErr) throw uploadErr;
+				const { data: urlData } = supabase.storage.from("receipts").getPublicUrl(path);
+				receipt_url = urlData.publicUrl;
 			} else if (editReceiptRemove && currentExpense?.receipt_url) {
 				const oldPath = extractStoragePath(currentExpense.receipt_url);
 				if (oldPath) await supabase.storage.from("receipts").remove([oldPath]);
@@ -275,10 +278,9 @@ export function ExpensePanel({
 				const resized = await resizeImage(receiptFile);
 				const path = `${jobId}/${Date.now()}.webp`;
 				const { error: uploadErr } = await supabase.storage.from("receipts").upload(path, resized);
-				if (!uploadErr) {
-					const { data: urlData } = supabase.storage.from("receipts").getPublicUrl(path);
-					receipt_url = urlData.publicUrl;
-				}
+				if (uploadErr) throw uploadErr;
+				const { data: urlData } = supabase.storage.from("receipts").getPublicUrl(path);
+				receipt_url = urlData.publicUrl;
 			}
 
 			const { data, error: insertErr } = await supabase
@@ -314,401 +316,508 @@ export function ExpensePanel({
 	const total = expenses.reduce((s, e) => s + e.amount, 0);
 
 	return (
-		<div className="space-y-6">
-			{/* Entry form — large touch targets for mobile */}
-			<form onSubmit={handleSubmit}>
-				<Card className="p-5 space-y-4">
-					<div className="flex items-center justify-between gap-3">
-						<h2 className="text-base font-semibold text-ink">{tExpense("title")}</h2>
-						{pendingCount > 0 && (
-							<Badge tone="pending" dot>
-								{tOffline("pendingSync", { count: pendingCount })}
-							</Badge>
-						)}
-					</div>
-
-					{info && (
-						<div
-							role="status"
-							className="rounded bg-warning-bg border border-warning px-3 py-2 text-sm text-warning-text"
-						>
-							{info}
+		<>
+			<div className="space-y-6">
+				{/* Entry form — large touch targets for mobile */}
+				<form onSubmit={handleSubmit}>
+					<Card className="p-5 space-y-4">
+						<div className="flex items-center justify-between gap-3">
+							<h2 className="text-base font-semibold text-ink">{tExpense("title")}</h2>
+							{pendingCount > 0 && (
+								<Badge tone="pending" dot>
+									{tOffline("pendingSync", { count: pendingCount })}
+								</Badge>
+							)}
 						</div>
-					)}
 
-					{error && <FormError>{error}</FormError>}
-
-					{/* Amount — large input for thumb-friendly entry */}
-					<div>
-						<label htmlFor="exp-amount" className="block text-sm font-medium mb-1 text-ink">
-							{tExpense("amountIdr")}{" "}
-							<span aria-hidden="true" className="text-danger">
-								*
-							</span>
-						</label>
-						<NumericInput
-							id="exp-amount"
-							required
-							autoFocus
-							value={Number(form.amount) || 0}
-							onChange={(v) => setForm((p) => ({ ...p, amount: v > 0 ? String(v) : "" }))}
-							className="w-full rounded-lg border border-line-strong bg-surface px-4 py-4 text-2xl tabular-nums font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-right text-ink"
-						/>
-						{form.amount && Number(form.amount) > 0 && (
-							<p className="text-xs text-ink-faint mt-1 text-right">
-								{formatRupiah(Number(form.amount))}
-							</p>
-						)}
-					</div>
-
-					{/* Category chips */}
-					<div>
-						<span className="block text-sm font-medium mb-2 text-ink">{tExpense("category")}</span>
-						<fieldset aria-label={tExpense("category")} className="flex flex-wrap gap-2">
-							{CATEGORIES.map((c) => (
-								<button
-									key={c.value}
-									type="button"
-									onClick={() => setForm((p) => ({ ...p, category: c.value }))}
-									aria-pressed={form.category === c.value}
-									className={`rounded-full min-h-[44px] px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
-										form.category === c.value
-											? "bg-primary text-primary-fg"
-											: "bg-subtle text-ink-muted hover:bg-subtle hover:text-ink"
-									}`}
-								>
-									{tEntityCategory(c.key)}
-								</button>
-							))}
-						</fieldset>
-					</div>
-
-					<Button
-						type="submit"
-						disabled={saving || isPending}
-						loading={saving}
-						variant="primary"
-						size="lg"
-						className="w-full"
-					>
-						{saving ? tCommonButtons("saving") : tExpense("saveExpense")}
-					</Button>
-
-					{/* Secondary fields — toggle to keep critical path short */}
-					<div>
-						<button
-							type="button"
-							onClick={() => setShowMore((p) => !p)}
-							aria-expanded={showMore}
-							className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-						>
-							{showMore ? `▲ ${tExpense("hideOptions")}` : `▼ ${tExpense("moreOptions")}`}
-						</button>
-						{showMore && (
-							<div className="mt-3 space-y-3">
-								<Field label={tExpense("note")} htmlFor="exp-note">
-									<Input
-										id="exp-note"
-										type="text"
-										value={form.note}
-										onChange={(e) => setForm((p) => ({ ...p, note: e.target.value }))}
-										placeholder="e.g. Jakarta–Bandung toll"
-									/>
-								</Field>
-								<Field label={tExpense("date")} htmlFor="exp-date">
-									<Input
-										id="exp-date"
-										type="date"
-										value={form.date}
-										onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
-									/>
-								</Field>
-								<div>
-									<label htmlFor="exp-receipt" className="block text-sm font-medium mb-1 text-ink">
-										{tExpense("receipt")}{" "}
-										<span className="text-ink-faint font-normal">
-											{tCommonHints("optionalParen")}
-										</span>
-									</label>
-									<input
-										id="exp-receipt"
-										type="file"
-										accept="image/*"
-										onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
-										className="block text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary-subtle file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-text hover:file:opacity-80"
-									/>
-									{receiptFile && <p className="text-xs text-ink-faint mt-1">{receiptFile.name}</p>}
-								</div>
+						{info && (
+							<div
+								role="status"
+								className="rounded bg-warning-bg border border-warning px-3 py-2 text-sm text-warning-text"
+							>
+								{info}
 							</div>
 						)}
-					</div>
-				</Card>
-			</form>
 
-			{/* List */}
-			<Card>
-				<CardHeader
-					title={tJobDetail("expenses")}
-					action={
-						<span className="tabular-nums text-sm font-bold text-ink">{formatRupiah(total)}</span>
-					}
-				/>
-				{lockReason && (
-					<div className="px-4 py-2.5 border-b border-line bg-subtle">
-						<p className="text-xs text-ink-muted">{lockReason}</p>
-					</div>
-				)}
-				{expenses.length === 0 && (
-					<p className="px-4 py-6 text-center text-sm text-ink-faint">{tJobDetail("noExpenses")}</p>
-				)}
-				{expenses.map((e) => {
-					const isPendingItem = e.id.startsWith("pending:");
-					const isEditing = editingId === e.id;
-					const isDeleting = deletingId === e.id;
+						{error && <FormError>{error}</FormError>}
 
-					if (isEditing) {
-						return (
-							<div key={e.id} className="px-4 py-3 border-b border-line last:border-0 space-y-3">
-								<p className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
-									{tExpense("editTitle")}
+						{/* Amount — large input for thumb-friendly entry */}
+						<div>
+							<label htmlFor="exp-amount" className="block text-sm font-medium mb-1 text-ink">
+								{tExpense("amountIdr")}{" "}
+								<span aria-hidden="true" className="text-danger">
+									*
+								</span>
+							</label>
+							<NumericInput
+								id="exp-amount"
+								required
+								autoFocus
+								value={Number(form.amount) || 0}
+								onChange={(v) => setForm((p) => ({ ...p, amount: v > 0 ? String(v) : "" }))}
+								className="w-full rounded-lg border border-line-strong bg-surface px-4 py-4 text-2xl tabular-nums font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-right text-ink"
+							/>
+							{form.amount && Number(form.amount) > 0 && (
+								<p className="text-xs text-ink-faint mt-1 text-right">
+									{formatRupiah(Number(form.amount))}
 								</p>
-								{editError && <FormError>{editError}</FormError>}
+							)}
+						</div>
 
-								{/* Edit amount */}
-								<div>
-									<label
-										htmlFor={`edit-amount-${e.id}`}
-										className="block text-sm font-medium mb-1 text-ink"
-									>
-										{tExpense("amountIdr")}
-									</label>
-									<NumericInput
-										id={`edit-amount-${e.id}`}
-										value={Number(editForm.amount) || 0}
-										onChange={(v) => setEditForm((p) => ({ ...p, amount: v > 0 ? String(v) : "" }))}
-										className="w-full rounded-lg border border-line-strong bg-surface px-4 py-3 text-xl tabular-nums font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-right text-ink"
-									/>
-									{editForm.amount && Number(editForm.amount) > 0 && (
-										<p className="text-xs text-ink-faint mt-1 text-right">
-											{formatRupiah(Number(editForm.amount))}
-										</p>
-									)}
-								</div>
-
-								{/* Edit category chips */}
-								<div>
-									<span className="block text-sm font-medium mb-2 text-ink">
-										{tExpense("category")}
-									</span>
-									<fieldset aria-label={tExpense("category")} className="flex flex-wrap gap-2">
-										{CATEGORIES.map((c) => (
-											<button
-												key={c.value}
-												type="button"
-												onClick={() => setEditForm((p) => ({ ...p, category: c.value }))}
-												aria-pressed={editForm.category === c.value}
-												className={`rounded-full min-h-[44px] px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
-													editForm.category === c.value
-														? "bg-primary text-primary-fg"
-														: "bg-subtle text-ink-muted hover:bg-subtle hover:text-ink"
-												}`}
-											>
-												{tEntityCategory(c.key)}
-											</button>
-										))}
-									</fieldset>
-								</div>
-
-								{/* Edit note and date */}
-								<Field label={tExpense("note")} htmlFor={`edit-note-${e.id}`}>
-									<Input
-										id={`edit-note-${e.id}`}
-										type="text"
-										value={editForm.note}
-										onChange={(ev) => setEditForm((p) => ({ ...p, note: ev.target.value }))}
-									/>
-								</Field>
-								<Field label={tExpense("date")} htmlFor={`edit-date-${e.id}`}>
-									<Input
-										id={`edit-date-${e.id}`}
-										type="date"
-										value={editForm.date}
-										onChange={(ev) => setEditForm((p) => ({ ...p, date: ev.target.value }))}
-									/>
-								</Field>
-
-								{/* Receipt edit section */}
-								<div>
-									<label
-										htmlFor="edit-receipt-upload"
-										className="block text-sm font-medium mb-1 text-ink"
-									>
-										{tExpense("receipt")}{" "}
-										<span className="text-ink-faint font-normal">
-											{tCommonHints("optionalParen")}
-										</span>
-									</label>
-
-									{/* Existing receipt — show when not removing and no new file selected */}
-									{e.receipt_url && !editReceiptRemove && !editReceiptFile && (
-										<div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-subtle">
-											<a
-												href={e.receipt_url}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="text-sm text-primary-text underline flex-1 truncate"
-											>
-												{tExpense("viewReceipt")}
-											</a>
-											<button
-												type="button"
-												onClick={() => setEditReceiptRemove(true)}
-												className="text-xs text-danger hover:underline shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-											>
-												{tCommonButtons("remove")}
-											</button>
-										</div>
-									)}
-
-									{/* Marked for removal — show undo option */}
-									{e.receipt_url && editReceiptRemove && !editReceiptFile && (
-										<div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-subtle">
-											<span className="text-sm text-ink-faint line-through flex-1">
-												{tExpense("receiptMarkedForRemoval")}
-											</span>
-											<button
-												type="button"
-												onClick={() => setEditReceiptRemove(false)}
-												className="text-xs text-primary-text hover:underline shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-											>
-												{tCommonButtons("cancel")}
-											</button>
-										</div>
-									)}
-
-									{/* File input — for adding or replacing */}
-									<input
-										id="edit-receipt-upload"
-										type="file"
-										accept="image/*"
-										onChange={(ev) => {
-											const file = ev.target.files?.[0] ?? null;
-											setEditReceiptFile(file);
-											if (file) setEditReceiptRemove(false);
-										}}
-										className="block text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary-subtle file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-text hover:file:opacity-80"
-									/>
-									{editReceiptFile && (
-										<p className="text-xs text-ink-faint mt-1">{editReceiptFile.name}</p>
-									)}
-								</div>
-
-								<div className="flex gap-2 pt-1">
-									<Button
+						{/* Category chips */}
+						<div>
+							<span className="block text-sm font-medium mb-2 text-ink">
+								{tExpense("category")}
+							</span>
+							<fieldset aria-label={tExpense("category")} className="flex flex-wrap gap-2">
+								{CATEGORIES.map((c) => (
+									<button
+										key={c.value}
 										type="button"
-										variant="primary"
-										size="sm"
-										loading={editSaving}
-										disabled={editSaving}
-										onClick={() => handleUpdate(e.id)}
+										onClick={() => setForm((p) => ({ ...p, category: c.value }))}
+										aria-pressed={form.category === c.value}
+										className={`rounded-full min-h-[44px] px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
+											form.category === c.value
+												? "bg-primary text-primary-fg"
+												: "bg-subtle text-ink-muted hover:bg-subtle hover:text-ink"
+										}`}
 									>
-										{tCommonButtons("saveChanges")}
-									</Button>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										disabled={editSaving}
-										onClick={cancelEdit}
-									>
-										{tCommonButtons("cancel")}
-									</Button>
-								</div>
-							</div>
-						);
-					}
+										{tEntityCategory(c.key)}
+									</button>
+								))}
+							</fieldset>
+						</div>
 
-					return (
-						<div
-							key={e.id}
-							className={`border-b border-line last:border-0 text-sm ${isPendingItem ? "bg-warning-bg" : ""}`}
+						<Button
+							type="submit"
+							disabled={saving || isPending}
+							loading={saving}
+							variant="primary"
+							size="lg"
+							className="w-full"
 						>
-							<div className="flex items-center justify-between px-4 py-3">
-								<div>
-									<span className="font-medium text-ink">
-										{CATEGORY_KEY_BY_VALUE[e.category]
-											? tEntityCategory(CATEGORY_KEY_BY_VALUE[e.category])
-											: e.category}
-									</span>
-									{e.description && (
-										<span className="text-ink-faint text-xs ml-2">{e.description}</span>
-									)}
-									<span className="block text-xs text-ink-faint">
-										{e.incurred_at}
-										{isPendingItem && (
-											<span className="ml-1 text-warning-text">· {tOffline("pending")}</span>
-										)}
-									</span>
-								</div>
-								<div className="flex items-center gap-3">
-									<span className="tabular-nums font-medium text-ink">
-										{formatRupiah(e.amount)}
-									</span>
-									{!isPendingItem && !lockReason && (
-										<div className="flex gap-1">
-											<button
-												type="button"
-												onClick={() => startEdit(e)}
-												aria-label={tCommonButtons("edit")}
-												className="p-1.5 rounded text-ink-faint hover:text-ink hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
-											>
-												<PencilIcon />
-											</button>
-											<button
-												type="button"
-												onClick={() => {
-													setDeletingId(e.id);
-													setEditingId(null);
-												}}
-												aria-label={tCommonButtons("delete")}
-												className="p-1.5 rounded text-ink-faint hover:text-danger hover:bg-danger-bg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
-											>
-												<TrashIcon />
-											</button>
-										</div>
-									)}
-								</div>
-							</div>
+							{saving ? tCommonButtons("saving") : tExpense("saveExpense")}
+						</Button>
 
-							{/* Inline delete confirmation */}
-							{isDeleting && (
-								<div className="px-4 pb-3 flex items-center gap-3">
-									<span className="text-xs text-ink-muted">{tExpense("deleteConfirm")}</span>
-									<Button
-										type="button"
-										variant="danger"
-										size="sm"
-										loading={deleteInProgress}
-										disabled={deleteInProgress}
-										onClick={() => handleDelete(e.id)}
-									>
-										{tCommonButtons("delete")}
-									</Button>
-									<Button
-										type="button"
-										variant="ghost"
-										size="sm"
-										disabled={deleteInProgress}
-										onClick={() => setDeletingId(null)}
-									>
-										{tCommonButtons("cancel")}
-									</Button>
+						{/* Secondary fields — toggle to keep critical path short */}
+						<div>
+							<button
+								type="button"
+								onClick={() => setShowMore((p) => !p)}
+								aria-expanded={showMore}
+								className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+							>
+								{showMore ? `▲ ${tExpense("hideOptions")}` : `▼ ${tExpense("moreOptions")}`}
+							</button>
+							{showMore && (
+								<div className="mt-3 space-y-3">
+									<Field label={tExpense("note")} htmlFor="exp-note">
+										<Input
+											id="exp-note"
+											type="text"
+											value={form.note}
+											onChange={(e) => setForm((p) => ({ ...p, note: e.target.value }))}
+											placeholder="e.g. Jakarta–Bandung toll"
+										/>
+									</Field>
+									<Field label={tExpense("date")} htmlFor="exp-date">
+										<Input
+											id="exp-date"
+											type="date"
+											value={form.date}
+											onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+										/>
+									</Field>
+									<div>
+										<label
+											htmlFor="exp-receipt"
+											className="block text-sm font-medium mb-1 text-ink"
+										>
+											{tExpense("receipt")}{" "}
+											<span className="text-ink-faint font-normal">
+												{tCommonHints("optionalParen")}
+											</span>
+										</label>
+										<input
+											id="exp-receipt"
+											type="file"
+											accept="image/*"
+											onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+											className="block text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary-subtle file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-text hover:file:opacity-80"
+										/>
+										{receiptFile && (
+											<p className="text-xs text-ink-faint mt-1">{receiptFile.name}</p>
+										)}
+									</div>
 								</div>
 							)}
 						</div>
-					);
-				})}
-			</Card>
+					</Card>
+				</form>
+
+				{/* List */}
+				<Card>
+					<CardHeader
+						title={tJobDetail("expenses")}
+						action={
+							<span className="tabular-nums text-sm font-bold text-ink">{formatRupiah(total)}</span>
+						}
+					/>
+					{lockReason && (
+						<div className="px-4 py-2.5 border-b border-line bg-subtle">
+							<p className="text-xs text-ink-muted">{lockReason}</p>
+						</div>
+					)}
+					{expenses.length === 0 && (
+						<p className="px-4 py-6 text-center text-sm text-ink-faint">
+							{tJobDetail("noExpenses")}
+						</p>
+					)}
+					{expenses.map((e) => {
+						const isPendingItem = e.id.startsWith("pending:");
+						const isEditing = editingId === e.id;
+						const isDeleting = deletingId === e.id;
+
+						if (isEditing) {
+							return (
+								<div key={e.id} className="px-4 py-3 border-b border-line last:border-0 space-y-3">
+									<p className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
+										{tExpense("editTitle")}
+									</p>
+									{editError && <FormError>{editError}</FormError>}
+
+									{/* Edit amount */}
+									<div>
+										<label
+											htmlFor={`edit-amount-${e.id}`}
+											className="block text-sm font-medium mb-1 text-ink"
+										>
+											{tExpense("amountIdr")}
+										</label>
+										<NumericInput
+											id={`edit-amount-${e.id}`}
+											value={Number(editForm.amount) || 0}
+											onChange={(v) =>
+												setEditForm((p) => ({ ...p, amount: v > 0 ? String(v) : "" }))
+											}
+											className="w-full rounded-lg border border-line-strong bg-surface px-4 py-3 text-xl tabular-nums font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-right text-ink"
+										/>
+										{editForm.amount && Number(editForm.amount) > 0 && (
+											<p className="text-xs text-ink-faint mt-1 text-right">
+												{formatRupiah(Number(editForm.amount))}
+											</p>
+										)}
+									</div>
+
+									{/* Edit category chips */}
+									<div>
+										<span className="block text-sm font-medium mb-2 text-ink">
+											{tExpense("category")}
+										</span>
+										<fieldset aria-label={tExpense("category")} className="flex flex-wrap gap-2">
+											{CATEGORIES.map((c) => (
+												<button
+													key={c.value}
+													type="button"
+													onClick={() => setEditForm((p) => ({ ...p, category: c.value }))}
+													aria-pressed={editForm.category === c.value}
+													className={`rounded-full min-h-[44px] px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
+														editForm.category === c.value
+															? "bg-primary text-primary-fg"
+															: "bg-subtle text-ink-muted hover:bg-subtle hover:text-ink"
+													}`}
+												>
+													{tEntityCategory(c.key)}
+												</button>
+											))}
+										</fieldset>
+									</div>
+
+									{/* Edit note and date */}
+									<Field label={tExpense("note")} htmlFor={`edit-note-${e.id}`}>
+										<Input
+											id={`edit-note-${e.id}`}
+											type="text"
+											value={editForm.note}
+											onChange={(ev) => setEditForm((p) => ({ ...p, note: ev.target.value }))}
+										/>
+									</Field>
+									<Field label={tExpense("date")} htmlFor={`edit-date-${e.id}`}>
+										<Input
+											id={`edit-date-${e.id}`}
+											type="date"
+											value={editForm.date}
+											onChange={(ev) => setEditForm((p) => ({ ...p, date: ev.target.value }))}
+										/>
+									</Field>
+
+									{/* Receipt edit section */}
+									<div>
+										<label
+											htmlFor="edit-receipt-upload"
+											className="block text-sm font-medium mb-1 text-ink"
+										>
+											{tExpense("receipt")}{" "}
+											<span className="text-ink-faint font-normal">
+												{tCommonHints("optionalParen")}
+											</span>
+										</label>
+
+										{/* Existing receipt — show when not removing and no new file selected */}
+										{e.receipt_url && !editReceiptRemove && !editReceiptFile && (
+											<div className="mb-2 rounded-lg overflow-hidden border border-line bg-subtle">
+												<button
+													type="button"
+													onClick={() => setLightboxUrl(e.receipt_url)}
+													className="block w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+													aria-label={tExpense("viewReceipt")}
+												>
+													<Image
+														src={e.receipt_url}
+														alt={tExpense("viewReceipt")}
+														width={600}
+														height={400}
+														className="w-full max-h-48 object-contain"
+													/>
+												</button>
+												<div className="flex items-center gap-2 px-3 py-1.5">
+													<span className="text-xs text-ink-faint flex-1">
+														{tExpense("receipt")}
+													</span>
+													<button
+														type="button"
+														onClick={() => setEditReceiptRemove(true)}
+														className="text-xs text-danger hover:underline shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+													>
+														{tCommonButtons("remove")}
+													</button>
+												</div>
+											</div>
+										)}
+
+										{/* Marked for removal — show undo option */}
+										{e.receipt_url && editReceiptRemove && !editReceiptFile && (
+											<div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-subtle">
+												<span className="text-sm text-ink-faint line-through flex-1">
+													{tExpense("receiptMarkedForRemoval")}
+												</span>
+												<button
+													type="button"
+													onClick={() => setEditReceiptRemove(false)}
+													className="text-xs text-primary-text hover:underline shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+												>
+													{tCommonButtons("cancel")}
+												</button>
+											</div>
+										)}
+
+										{/* File input — for adding or replacing */}
+										<input
+											id="edit-receipt-upload"
+											type="file"
+											accept="image/*"
+											onChange={(ev) => {
+												const file = ev.target.files?.[0] ?? null;
+												setEditReceiptFile(file);
+												if (file) setEditReceiptRemove(false);
+											}}
+											className="block text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary-subtle file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-text hover:file:opacity-80"
+										/>
+										{editReceiptFile && (
+											<p className="text-xs text-ink-faint mt-1">{editReceiptFile.name}</p>
+										)}
+									</div>
+
+									<div className="flex gap-2 pt-1">
+										<Button
+											type="button"
+											variant="primary"
+											size="sm"
+											loading={editSaving}
+											disabled={editSaving}
+											onClick={() => handleUpdate(e.id)}
+										>
+											{tCommonButtons("saveChanges")}
+										</Button>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											disabled={editSaving}
+											onClick={cancelEdit}
+										>
+											{tCommonButtons("cancel")}
+										</Button>
+									</div>
+								</div>
+							);
+						}
+
+						return (
+							<div
+								key={e.id}
+								className={`border-b border-line last:border-0 text-sm ${isPendingItem ? "bg-warning-bg" : ""}`}
+							>
+								<div className="flex items-start justify-between px-4 py-3 gap-3">
+									<div className="flex items-start gap-3 min-w-0">
+										{/* Receipt thumbnail */}
+										{e.receipt_url && (
+											<button
+												type="button"
+												onClick={() => setLightboxUrl(e.receipt_url)}
+												aria-label={tExpense("viewReceipt")}
+												className="shrink-0 rounded overflow-hidden border border-line w-10 h-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+											>
+												<Image
+													src={e.receipt_url}
+													alt={tExpense("viewReceipt")}
+													width={40}
+													height={40}
+													className="w-10 h-10 object-cover"
+												/>
+											</button>
+										)}
+										<div className="min-w-0">
+											<span className="font-medium text-ink">
+												{CATEGORY_KEY_BY_VALUE[e.category]
+													? tEntityCategory(CATEGORY_KEY_BY_VALUE[e.category])
+													: e.category}
+											</span>
+											{e.description && (
+												<span className="text-ink-faint text-xs ml-2">{e.description}</span>
+											)}
+											<span className="block text-xs text-ink-faint">
+												{e.incurred_at}
+												{isPendingItem && (
+													<span className="ml-1 text-warning-text">· {tOffline("pending")}</span>
+												)}
+											</span>
+										</div>
+									</div>
+									<div className="flex items-center gap-3 shrink-0">
+										<span className="tabular-nums font-medium text-ink">
+											{formatRupiah(e.amount)}
+										</span>
+										{!isPendingItem && !lockReason && (
+											<div className="flex gap-1">
+												<button
+													type="button"
+													onClick={() => startEdit(e)}
+													aria-label={tCommonButtons("edit")}
+													className="p-1.5 rounded text-ink-faint hover:text-ink hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+												>
+													<PencilIcon />
+												</button>
+												<button
+													type="button"
+													onClick={() => {
+														setDeletingId(e.id);
+														setEditingId(null);
+													}}
+													aria-label={tCommonButtons("delete")}
+													className="p-1.5 rounded text-ink-faint hover:text-danger hover:bg-danger-bg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+												>
+													<TrashIcon />
+												</button>
+											</div>
+										)}
+									</div>
+								</div>
+
+								{/* Inline delete confirmation */}
+								{isDeleting && (
+									<div className="px-4 pb-3 flex items-center gap-3">
+										<span className="text-xs text-ink-muted">{tExpense("deleteConfirm")}</span>
+										<Button
+											type="button"
+											variant="danger"
+											size="sm"
+											loading={deleteInProgress}
+											disabled={deleteInProgress}
+											onClick={() => handleDelete(e.id)}
+										>
+											{tCommonButtons("delete")}
+										</Button>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											disabled={deleteInProgress}
+											onClick={() => setDeletingId(null)}
+										>
+											{tCommonButtons("cancel")}
+										</Button>
+									</div>
+								)}
+							</div>
+						);
+					})}
+				</Card>
+			</div>
+			{lightboxUrl && (
+				<ReceiptLightbox
+					url={lightboxUrl}
+					onClose={() => setLightboxUrl(null)}
+					label={tExpense("viewReceipt")}
+					closeLabel={tCommonButtons("close")}
+				/>
+			)}
+		</>
+	);
+}
+
+function ReceiptLightbox({
+	url,
+	onClose,
+	label,
+	closeLabel,
+}: {
+	url: string;
+	onClose: () => void;
+	label: string;
+	closeLabel: string;
+}) {
+	useEffect(() => {
+		const handleKey = (e: KeyboardEvent) => {
+			if (e.key === "Escape") onClose();
+		};
+		document.addEventListener("keydown", handleKey);
+		return () => document.removeEventListener("keydown", handleKey);
+	}, [onClose]);
+
+	return (
+		<div
+			role="dialog"
+			aria-modal="true"
+			aria-label={label}
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+		>
+			{/* Backdrop close */}
+			<button
+				type="button"
+				className="absolute inset-0 w-full h-full cursor-default"
+				aria-label={closeLabel}
+				onClick={onClose}
+			/>
+			{/* Close button */}
+			<button
+				type="button"
+				className="absolute top-4 right-4 z-10 text-white text-2xl leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
+				onClick={onClose}
+				aria-label={closeLabel}
+			>
+				✕
+			</button>
+			{/* Image — click does nothing; backdrop button handles close */}
+			<div className="relative z-10 max-w-[90vw] max-h-[90vh]">
+				<Image
+					src={url}
+					alt={label}
+					width={800}
+					height={1100}
+					className="max-w-[90vw] max-h-[90vh] w-auto h-auto object-contain rounded shadow-2xl"
+				/>
+			</div>
 		</div>
 	);
 }
