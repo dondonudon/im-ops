@@ -96,9 +96,9 @@ export default function NewLeadPage() {
 			if (leadErr) throw leadErr;
 
 			router.push(`/leads/${lead.id}`);
+			// Leave saving=true — button stays in loading state until navigation unmounts this page
 		} catch (err: unknown) {
 			setError(err instanceof Error ? err.message : "An error occurred.");
-		} finally {
 			setSaving(false);
 		}
 	}
