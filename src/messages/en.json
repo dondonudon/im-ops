@@ -892,6 +892,22 @@
 		},
 		"timeline": {
 			"logEvent": "Log Event"
+		},
+		"jobMedia": {
+			"title": "Documentation",
+			"titleCount": "Documentation ({count})",
+			"upload": "Upload",
+			"uploading": "Uploading…",
+			"empty": "No documentation yet.",
+			"photos": "Job photos",
+			"documents": "Job documents",
+			"photoAlt": "Job photo",
+			"document": "Document",
+			"viewPhoto": "View photo {n} of {total}",
+			"deleteFile": "Delete file",
+			"showMore": "Show {count} more",
+			"showLess": "Show less",
+			"unsupportedFile": "{name} is not a supported file type."
 		}
 	},
 	"modals": {

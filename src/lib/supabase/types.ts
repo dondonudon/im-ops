@@ -229,6 +229,44 @@ export type Database = {
 					},
 				];
 			};
+			job_media: {
+				Row: {
+					id: string;
+					job_id: string;
+					media_type: "photo" | "pdf";
+					storage_path: string;
+					file_name: string | null;
+					caption: string | null;
+					uploaded_at: string;
+				};
+				Insert: {
+					id?: string;
+					job_id: string;
+					media_type: "photo" | "pdf";
+					storage_path: string;
+					file_name?: string | null;
+					caption?: string | null;
+					uploaded_at?: string;
+				};
+				Update: {
+					id?: string;
+					job_id?: string;
+					media_type?: "photo" | "pdf";
+					storage_path?: string;
+					file_name?: string | null;
+					caption?: string | null;
+					uploaded_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "job_media_job_id_fkey";
+						columns: ["job_id"];
+						isOneToOne: false;
+						referencedRelation: "jobs";
+						referencedColumns: ["id"];
+					},
+				];
+			};
 			proposals: {
 				Row: {
 					id: string;

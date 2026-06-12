@@ -892,6 +892,22 @@
 		},
 		"timeline": {
 			"logEvent": "Catat Peristiwa"
+		},
+		"jobMedia": {
+			"title": "Dokumentasi",
+			"titleCount": "Dokumentasi ({count})",
+			"upload": "Unggah",
+			"uploading": "Mengunggah…",
+			"empty": "Belum ada dokumentasi.",
+			"photos": "Foto pekerjaan",
+			"documents": "Dokumen pekerjaan",
+			"photoAlt": "Foto pekerjaan",
+			"document": "Dokumen",
+			"viewPhoto": "Lihat foto {n} dari {total}",
+			"deleteFile": "Hapus file",
+			"showMore": "Tampilkan {count} lainnya",
+			"showLess": "Tampilkan lebih sedikit",
+			"unsupportedFile": "{name} bukan tipe file yang didukung."
 		}
 	},
 	"modals": {

@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { GenerateInvoiceButton } from "@/components/invoices/GenerateInvoiceButton";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { JobMarkDoneButton } from "@/components/jobs/JobMarkDoneButton";
+import { JobMediaPanel } from "@/components/jobs/JobMediaPanel";
 import { TimelineLogEventButton } from "@/components/jobs/TimelineLogEventButton";
 import { BackLink } from "@/components/shared/BackLink";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
@@ -29,6 +30,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		{ data: timeline },
 		{ data: invoice },
 		{ data: payments },
+		{ data: jobMedia },
 	] = await Promise.all([
 		supabase
 			.from("jobs")
@@ -70,6 +72,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 			.select("id, payment_type, method, amount, paid_at, notes")
 			.eq("job_id", id)
 			.order("paid_at"),
+		supabase
+			.from("job_media")
+			.select("id, media_type, storage_path, file_name, caption, uploaded_at")
+			.eq("job_id", id)
+			.order("uploaded_at"),
 	]);
 
 	if (!job) notFound();
@@ -296,6 +303,21 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							)}
 						</div>
 					</Card>
+
+					{/* Documentation */}
+					<JobMediaPanel
+						jobId={id}
+						initialMedia={
+							(jobMedia ?? []) as {
+								id: string;
+								media_type: "photo" | "pdf";
+								storage_path: string;
+								file_name: string | null;
+								caption: string | null;
+								uploaded_at: string;
+							}[]
+						}
+					/>
 				</div>
 
 				{/* Right: profit + invoice panel */}
