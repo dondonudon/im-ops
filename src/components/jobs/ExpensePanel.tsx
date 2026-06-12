@@ -83,6 +83,8 @@ export function ExpensePanel({
 	// Edit state
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [editForm, setEditForm] = useState({ amount: "", category: "Fuel", note: "", date: "" });
+	const [editReceiptFile, setEditReceiptFile] = useState<File | null>(null);
+	const [editReceiptRemove, setEditReceiptRemove] = useState(false);
 	const [editSaving, setEditSaving] = useState(false);
 	const [editError, setEditError] = useState<string | null>(null);
 
@@ -125,12 +127,16 @@ export function ExpensePanel({
 			note: expense.description ?? "",
 			date: expense.incurred_at,
 		});
+		setEditReceiptFile(null);
+		setEditReceiptRemove(false);
 		setEditError(null);
 		setDeletingId(null);
 	}
 
 	function cancelEdit() {
 		setEditingId(null);
+		setEditReceiptFile(null);
+		setEditReceiptRemove(false);
 		setEditError(null);
 	}
 
@@ -144,6 +150,29 @@ export function ExpensePanel({
 		setEditError(null);
 		try {
 			const supabase = createClient();
+			const currentExpense = expenses.find((e) => e.id === expenseId);
+
+			// Resolve receipt_url change: undefined = keep, null = remove, string = new url
+			let receipt_url: string | null | undefined;
+
+			if (editReceiptFile) {
+				if (currentExpense?.receipt_url) {
+					const oldPath = extractStoragePath(currentExpense.receipt_url);
+					if (oldPath) await supabase.storage.from("receipts").remove([oldPath]);
+				}
+				const resized = await resizeImage(editReceiptFile);
+				const path = `${jobId}/${Date.now()}.webp`;
+				const { error: uploadErr } = await supabase.storage.from("receipts").upload(path, resized);
+				if (!uploadErr) {
+					const { data: urlData } = supabase.storage.from("receipts").getPublicUrl(path);
+					receipt_url = urlData.publicUrl;
+				}
+			} else if (editReceiptRemove && currentExpense?.receipt_url) {
+				const oldPath = extractStoragePath(currentExpense.receipt_url);
+				if (oldPath) await supabase.storage.from("receipts").remove([oldPath]);
+				receipt_url = null;
+			}
+
 			const { data, error: updateErr } = await supabase
 				.from("expenses")
 				.update({
@@ -151,6 +180,7 @@ export function ExpensePanel({
 					category: editForm.category,
 					description: editForm.note.trim() || null,
 					incurred_at: editForm.date,
+					...(receipt_url !== undefined && { receipt_url }),
 				})
 				.eq("id", expenseId)
 				.select("id, category, description, amount, incurred_at, receipt_url")
@@ -160,6 +190,8 @@ export function ExpensePanel({
 
 			setExpenses((prev) => prev.map((e) => (e.id === expenseId ? (data as Expense) : e)));
 			setEditingId(null);
+			setEditReceiptFile(null);
+			setEditReceiptRemove(false);
 			startTransition(() => router.refresh());
 		} catch (err: unknown) {
 			setEditError(err instanceof Error ? err.message : "Error");
@@ -505,6 +537,72 @@ export function ExpensePanel({
 									/>
 								</Field>
 
+								{/* Receipt edit section */}
+								<div>
+									<label
+										htmlFor="edit-receipt-upload"
+										className="block text-sm font-medium mb-1 text-ink"
+									>
+										{tExpense("receipt")}{" "}
+										<span className="text-ink-faint font-normal">
+											{tCommonHints("optionalParen")}
+										</span>
+									</label>
+
+									{/* Existing receipt — show when not removing and no new file selected */}
+									{e.receipt_url && !editReceiptRemove && !editReceiptFile && (
+										<div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-subtle">
+											<a
+												href={e.receipt_url}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-sm text-primary-text underline flex-1 truncate"
+											>
+												{tExpense("viewReceipt")}
+											</a>
+											<button
+												type="button"
+												onClick={() => setEditReceiptRemove(true)}
+												className="text-xs text-danger hover:underline shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+											>
+												{tCommonButtons("remove")}
+											</button>
+										</div>
+									)}
+
+									{/* Marked for removal — show undo option */}
+									{e.receipt_url && editReceiptRemove && !editReceiptFile && (
+										<div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-subtle">
+											<span className="text-sm text-ink-faint line-through flex-1">
+												{tExpense("receiptMarkedForRemoval")}
+											</span>
+											<button
+												type="button"
+												onClick={() => setEditReceiptRemove(false)}
+												className="text-xs text-primary-text hover:underline shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+											>
+												{tCommonButtons("cancel")}
+											</button>
+										</div>
+									)}
+
+									{/* File input — for adding or replacing */}
+									<input
+										id="edit-receipt-upload"
+										type="file"
+										accept="image/*"
+										onChange={(ev) => {
+											const file = ev.target.files?.[0] ?? null;
+											setEditReceiptFile(file);
+											if (file) setEditReceiptRemove(false);
+										}}
+										className="block text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary-subtle file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-text hover:file:opacity-80"
+									/>
+									{editReceiptFile && (
+										<p className="text-xs text-ink-faint mt-1">{editReceiptFile.name}</p>
+									)}
+								</div>
+
 								<div className="flex gap-2 pt-1">
 									<Button
 										type="button"
@@ -617,6 +715,12 @@ export function ExpensePanel({
 
 function todayISO() {
 	return new Date().toISOString().slice(0, 10);
+}
+
+function extractStoragePath(url: string): string | null {
+	const marker = "/receipts/";
+	const idx = url.indexOf(marker);
+	return idx !== -1 ? url.slice(idx + marker.length) : null;
 }
 
 function PencilIcon() {
