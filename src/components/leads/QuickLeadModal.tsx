@@ -205,15 +205,17 @@ export function QuickLeadModal() {
 
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 						<Field label={t("pickup")} htmlFor="ql_pickup">
-							<Input
+							<Textarea
 								id="ql_pickup"
+								rows={3}
 								value={form.pickup_address}
 								onChange={(e) => set("pickup_address", e.target.value)}
 							/>
 						</Field>
 						<Field label={t("destination")} htmlFor="ql_dest">
-							<Input
+							<Textarea
 								id="ql_dest"
+								rows={3}
 								value={form.destination_address}
 								onChange={(e) => set("destination_address", e.target.value)}
 							/>

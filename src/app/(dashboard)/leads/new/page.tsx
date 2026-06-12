@@ -177,20 +177,20 @@ export default function NewLeadPage() {
 
 				{/* Addresses */}
 				<Field label={t("pickup")} htmlFor="pickup_address">
-					<Input
+					<Textarea
 						id="pickup_address"
 						name="pickup_address"
-						type="text"
+						rows={3}
 						value={form.pickup_address}
 						onChange={handleChange}
 					/>
 				</Field>
 
 				<Field label={t("destination")} htmlFor="destination_address">
-					<Input
+					<Textarea
 						id="destination_address"
 						name="destination_address"
-						type="text"
+						rows={3}
 						value={form.destination_address}
 						onChange={handleChange}
 					/>
