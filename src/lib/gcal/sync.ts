@@ -50,7 +50,15 @@ async function getAccessToken(): Promise<string> {
 			grant_type: "refresh_token",
 		}),
 	});
-	if (!res.ok) throw new Error(`Token refresh failed: ${res.status}`);
+	if (!res.ok) {
+		const body = (await res.json().catch(() => ({}))) as {
+			error?: string;
+			error_description?: string;
+		};
+		throw new Error(
+			`Token refresh failed: ${res.status}${body.error ? ` (${body.error}: ${body.error_description ?? ""})` : ""}`,
+		);
+	}
 	const json = (await res.json()) as { access_token: string };
 	return json.access_token;
 }
