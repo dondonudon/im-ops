@@ -20,7 +20,7 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "IM Ops",
+	title: "Indo Mover",
 	description: "Operational platform for moving and logistics coordination",
 	manifest: "/manifest.json",
 	icons: {
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 	},
 	appleWebApp: {
 		capable: true,
-		title: "IM Ops",
+		title: "Indo Mover",
 		statusBarStyle: "default",
 	},
 };

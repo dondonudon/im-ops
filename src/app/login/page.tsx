@@ -23,7 +23,7 @@ export default function LoginPage() {
 			<div className="w-full max-w-sm space-y-8">
 				{/* Logo / brand */}
 				<div className="text-center">
-					<h1 className="text-3xl font-bold text-ink">IM Ops</h1>
+					<h1 className="text-3xl font-bold text-ink">Indo Mover</h1>
 					<p className="mt-2 text-sm text-ink-muted">Internal operations platform</p>
 				</div>
 

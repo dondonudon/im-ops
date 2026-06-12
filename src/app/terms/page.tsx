@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: "Terms of Service — IM Ops",
+	title: "Terms of Service — Indo Mover",
 };
 
 export default function TermsPage() {
@@ -9,7 +9,7 @@ export default function TermsPage() {
 		<main className="min-h-screen bg-background px-4 py-12">
 			<div className="mx-auto max-w-2xl space-y-8">
 				<div>
-					<h1 className="text-3xl font-bold text-ink">Terms of Service</h1>
+					<h1 className="text-3xl font-bold text-ink">Indo Mover — Terms of Service</h1>
 					<p className="mt-2 text-sm text-ink-muted">Last updated: June 2026</p>
 				</div>
 
