@@ -161,7 +161,9 @@ export function InvoicePDF({ invoice, customer, lead, company, template }: Invoi
 					{company.logo ? <Image src={company.logo} style={styles.logo} /> : null}
 					<Text style={styles.tagline}>{company.tagline}</Text>
 					<Text style={styles.headerAddress}>
-						{company.address}, Telp {company.phone}
+						{[company.address, company.phone ? `Telp ${company.phone}` : ""]
+							.filter(Boolean)
+							.join(", ")}
 					</Text>
 				</View>
 				<View style={styles.divider} />

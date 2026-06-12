@@ -90,7 +90,7 @@ const CATEGORY_KEY_MAP: Record<string, string> = {
  * - text: everything else
  */
 function inferInputType(key: string, value: string): "textarea" | "number" | "text" {
-	if (value.includes("\n") || /_terms$|_note$|_tagline$/.test(key)) {
+	if (value.includes("\n") || /_terms$|_note$|_tagline$|_services$/.test(key)) {
 		return "textarea";
 	}
 	if (/_rate|_pct$|_days$|_fee$|_per_|_buffer_pct$|_target|_profit$|_increment$/.test(key)) {
