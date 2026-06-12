@@ -402,7 +402,6 @@ export function ExpensePanel({
 										id="exp-receipt"
 										type="file"
 										accept="image/*"
-										capture="environment"
 										onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
 										className="block text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary-subtle file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-text hover:file:opacity-80"
 									/>
