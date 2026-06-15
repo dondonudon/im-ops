@@ -28,7 +28,7 @@ export function Stat({
 }) {
 	const inner = (
 		<>
-			<div className="flex items-center gap-2.5 mb-3">
+			<div className="flex items-center gap-2 mb-3 min-w-0">
 				<span
 					className={cn(
 						"flex h-8 w-8 items-center justify-center rounded-lg shrink-0",
@@ -37,14 +37,19 @@ export function Stat({
 				>
 					{icon}
 				</span>
-				<p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{label}</p>
+				<p className="text-xs font-semibold uppercase tracking-wide text-ink-muted truncate">
+					{label}
+				</p>
 			</div>
-			<p className="text-3xl font-bold leading-none text-ink tabular-nums">{value}</p>
+			<p className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold leading-tight text-ink tabular-nums">
+				{value}
+			</p>
 			{sub && <p className="text-xs text-ink-muted mt-1.5">{sub}</p>}
 		</>
 	);
 
-	const cls = "bg-surface border border-line rounded-xl shadow-token p-4 transition-all";
+	const cls =
+		"bg-surface border border-line rounded-xl shadow-token p-4 transition-all overflow-hidden";
 
 	return href ? (
 		<Link
