@@ -64,6 +64,16 @@ export default function LoginPage() {
 					</Button>
 				</div>
 			</div>
+
+			<p className="text-center text-xs text-ink-muted">
+				<a href="/privacy" className="hover:underline">
+					Privacy Policy
+				</a>
+				{" · "}
+				<a href="/terms" className="hover:underline">
+					Terms of Service
+				</a>
+			</p>
 		</main>
 	);
 }
