@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { Button } from "@/components/ui";
 
 import { createClient } from "@/lib/supabase/client";
@@ -63,17 +64,17 @@ export default function LoginPage() {
 						Sign in with Google
 					</Button>
 				</div>
-			</div>
 
-			<p className="text-center text-xs text-ink-muted">
-				<a href="/privacy" className="hover:underline">
-					Privacy Policy
-				</a>
-				{" · "}
-				<a href="/terms" className="hover:underline">
-					Terms of Service
-				</a>
-			</p>
+				<p className="text-center text-xs text-ink-muted">
+					<Link href="/privacy" className="hover:underline">
+						Privacy Policy
+					</Link>
+					{" · "}
+					<Link href="/terms" className="hover:underline">
+						Terms of Service
+					</Link>
+				</p>
+			</div>
 		</main>
 	);
 }
