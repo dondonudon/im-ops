@@ -431,6 +431,7 @@
 				"customer": "Pelanggan",
 				"total": "Total",
 				"paid": "Dibayar",
+				"balance": "Sisa",
 				"dueDate": "Jatuh tempo",
 				"status": "Status"
 			},

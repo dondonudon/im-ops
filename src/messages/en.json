@@ -431,6 +431,7 @@
 				"customer": "Customer",
 				"total": "Total",
 				"paid": "Paid",
+				"balance": "Balance",
 				"dueDate": "Due date",
 				"status": "Status"
 			},

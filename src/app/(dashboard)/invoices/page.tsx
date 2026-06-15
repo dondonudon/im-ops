@@ -168,7 +168,7 @@ export default async function InvoicesPage({
 									</p>
 								</div>
 								<div>
-									<p className="text-xs text-ink-faint">{t("columns.paid")}</p>
+									<p className="text-xs text-ink-faint">{t("columns.balance")}</p>
 									<Money
 										value={balance}
 										tone={balance > 0 ? "danger" : "positive"}
