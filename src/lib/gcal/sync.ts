@@ -172,6 +172,17 @@ export async function patchCalendarEvent(
 			};
 		}
 
+		if (res.status === 403) {
+			// Service account can't access an event created by a different principal
+			// (e.g., events created under the old OAuth refresh-token approach).
+			// Treat as notFound so the caller clears the stale id and creates fresh.
+			return {
+				ok: false,
+				notFound: true,
+				error: `GCal event ${eventId} not accessible by service account (403).`,
+			};
+		}
+
 		if (!res.ok) {
 			const text = await res.text();
 			console.error(`[gcal] patchCalendarEvent error ${res.status}:`, text);
