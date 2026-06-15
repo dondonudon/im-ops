@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ObfuscatedEmail } from "@/components/ui";
 
 export const metadata: Metadata = {
 	title: "Terms of Service — Indo Mover",
@@ -79,12 +80,11 @@ export default function TermsPage() {
 						<h2 className="font-semibold text-base">7. Contact</h2>
 						<p>
 							Questions about these terms can be directed to the platform administrator at{" "}
-							<a
-								href="mailto:alvianto.prasetyoeko@gmail.com"
+							<ObfuscatedEmail
+								user="alvianto.prasetyoeko"
+								domain="gmail.com"
 								className="underline text-ink-muted hover:text-ink"
-							>
-								alvianto.prasetyoeko@gmail.com
-							</a>
+							/>
 							.
 						</p>
 					</section>

@@ -5,6 +5,7 @@ export { EmptyState } from "./EmptyState";
 export { Field, FormError, Input, Select, Textarea } from "./Form";
 export { Money } from "./Money";
 export { MonthPicker } from "./MonthPicker";
+export { ObfuscatedEmail } from "./ObfuscatedEmail";
 export { PageHeader } from "./PageHeader";
 export { Pagination } from "./Pagination";
 export { RouteLine } from "./RouteLine";

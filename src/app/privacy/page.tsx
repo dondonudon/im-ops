@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ObfuscatedEmail } from "@/components/ui";
 
 export const metadata: Metadata = {
 	title: "Privacy Policy — Indo Mover",
@@ -83,12 +84,11 @@ export default function PrivacyPage() {
 						<h2 className="font-semibold text-base">Contact</h2>
 						<p>
 							For any questions about this policy, contact the platform administrator at{" "}
-							<a
-								href="mailto:alvianto.prasetyoeko@gmail.com"
+							<ObfuscatedEmail
+								user="alvianto.prasetyoeko"
+								domain="gmail.com"
 								className="underline text-ink-muted hover:text-ink"
-							>
-								alvianto.prasetyoeko@gmail.com
-							</a>
+							/>
 							.
 						</p>
 					</section>
