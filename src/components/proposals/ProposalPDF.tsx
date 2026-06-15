@@ -182,7 +182,7 @@ export function ProposalPDF({
 
 				{/* Paragraph 1 */}
 				<Text style={styles.para}>
-					{"      "}Bersama ini kami sampaikan surat penawaran pindah dari{" "}
+					{"            "}Bersama ini kami sampaikan surat penawaran pindah dari{" "}
 					<Text style={{ fontFamily: "Helvetica-Bold" }}>{company.name.toUpperCase()}</Text>
 					{
 						", sebuah perusahaan pindah rumah dan kantor yang sudah berpengalaman menangani pindah barang untuk rute seluruh Indonesia."
@@ -191,8 +191,8 @@ export function ProposalPDF({
 
 				{/* Paragraph 2 — route + price */}
 				<Text style={styles.para}>
-					{"      "}Berkaitan dengan hal tersebut di atas maka dengan ini kami memberikan proposal
-					jasa pindah
+					{"            "}Berkaitan dengan hal tersebut di atas maka dengan ini kami memberikan
+					proposal jasa pindah
 					{hasRoute ? (
 						<>
 							{pickup ? (
@@ -227,7 +227,7 @@ export function ProposalPDF({
 				{effectiveServices.length > 0 && (
 					<>
 						<Text style={[styles.para, { marginBottom: 4 }]}>
-							{"      "}Dengan biaya tersebut, sudah termasuk :
+							{"            "}Dengan biaya tersebut, sudah termasuk :
 						</Text>
 						<View style={styles.listContainer}>
 							{effectiveServices.map((svc) => (
@@ -240,27 +240,19 @@ export function ProposalPDF({
 					</>
 				)}
 
-				{/* Per-proposal: DP note */}
-				{customFields.dp_note ? (
-					<Text style={styles.para}>
-						{"      "}
-						{customFields.dp_note}
-					</Text>
-				) : null}
-
 				{/* Per-proposal: custom conditions */}
 				{customFields.custom_conditions ? (
 					<Text style={styles.para}>
-						{"      "}
+						{"            "}
 						{customFields.custom_conditions}
 					</Text>
 				) : null}
 
 				{/* Closing */}
 				<Text style={styles.para}>
-					{"      "}Untuk pembayaran harap dibayarkan lunas ketika barang sudah siap berangkat.
-					Demikian penawaran jasa pindah tersebut kami sampaikan, atas perhatian dan kerjasamanya
-					terima kasih.
+					{"            "}Untuk pembayaran, DP sebesar 30% dibayarkan di muka dan dilunasi setelah
+					seluruh barang selesai diturunkan di tempat tujuan. Demikian penawaran jasa pindah
+					tersebut kami sampaikan, atas perhatian dan kerjasamanya terima kasih.
 				</Text>
 
 				{/* Signature */}

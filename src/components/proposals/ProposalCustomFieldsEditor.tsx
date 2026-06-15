@@ -27,7 +27,6 @@ export function ProposalCustomFieldsEditor({
 		setSaved(false);
 		const cleaned: ProposalCustomFields = {};
 		if (fields.price_suffix?.trim()) cleaned.price_suffix = fields.price_suffix.trim();
-		if (fields.dp_note?.trim()) cleaned.dp_note = fields.dp_note.trim();
 		if (fields.custom_conditions?.trim())
 			cleaned.custom_conditions = fields.custom_conditions.trim();
 		if (fields.override_services?.trim())
@@ -57,17 +56,6 @@ export function ProposalCustomFieldsEditor({
 						value={fields.price_suffix ?? ""}
 						onChange={(e) => set("price_suffix", e.target.value)}
 						placeholder="/ trip"
-					/>
-				</Field>
-
-				<Field
-					label="Ketentuan Pembayaran (DP)"
-					hint="Paragraf tambahan di bawah daftar layanan, contoh: Minimum DP 50% sebelum hari H"
-				>
-					<Input
-						value={fields.dp_note ?? ""}
-						onChange={(e) => set("dp_note", e.target.value)}
-						placeholder="Minimum DP 50% sebelum hari H"
 					/>
 				</Field>
 
