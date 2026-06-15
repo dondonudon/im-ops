@@ -84,10 +84,10 @@ export default function PrivacyPage() {
 						<p>
 							For any questions about this policy, contact the platform administrator at{" "}
 							<a
-								href="mailto:prasetyo.alvianto@accenture.com"
+								href="mailto:alvianto.prasetyoeko@gmail.com"
 								className="underline text-ink-muted hover:text-ink"
 							>
-								prasetyo.alvianto@accenture.com
+								alvianto.prasetyoeko@gmail.com
 							</a>
 							.
 						</p>

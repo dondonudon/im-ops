@@ -80,10 +80,10 @@ export default function TermsPage() {
 						<p>
 							Questions about these terms can be directed to the platform administrator at{" "}
 							<a
-								href="mailto:prasetyo.alvianto@accenture.com"
+								href="mailto:alvianto.prasetyoeko@gmail.com"
 								className="underline text-ink-muted hover:text-ink"
 							>
-								prasetyo.alvianto@accenture.com
+								alvianto.prasetyoeko@gmail.com
 							</a>
 							.
 						</p>
