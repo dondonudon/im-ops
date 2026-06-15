@@ -678,8 +678,11 @@
 			"editTitle": "Edit Prospek",
 			"newTitle": "Prospek Baru",
 			"nameRequired": "Nama wajib diisi.",
-			"addDetails": "Tambah detail",
-			"linkExisting": "Tautkan ke pelanggan yang ada"
+			"searchPlaceholder": "Cari berdasarkan nama atau telepon…",
+			"createNamed": "Pelanggan baru: \"{name}\"",
+			"createNewCustomer": "Pelanggan baru",
+			"changeCustomer": "Ganti",
+			"searchInstead": "Cari pelanggan"
 		},
 		"customer": {
 			"fullName": "Nama lengkap",

@@ -48,6 +48,11 @@ export function toRomanMonth(month: number): string {
 	return ROMAN_MONTHS[month - 1];
 }
 
+/** Capitalize the first letter after every word boundary (for name inputs). */
+export function capitalizeWords(value: string): string {
+	return value.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+}
+
 /** Truncate text with ellipsis. */
 export function truncate(str: string, maxLen: number): string {
 	return str.length <= maxLen ? str : `${str.slice(0, maxLen - 1)}…`;

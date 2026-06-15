@@ -678,8 +678,11 @@
 			"editTitle": "Edit Lead",
 			"newTitle": "New Lead",
 			"nameRequired": "Name is required.",
-			"addDetails": "Add details",
-			"linkExisting": "Link to an existing customer"
+			"searchPlaceholder": "Search by name or phone…",
+			"createNamed": "New customer: \"{name}\"",
+			"createNewCustomer": "New customer",
+			"changeCustomer": "Change",
+			"searchInstead": "Search instead"
 		},
 		"customer": {
 			"fullName": "Full name",

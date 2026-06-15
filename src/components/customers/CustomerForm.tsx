@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button, Field, FormError, Input, Select, Textarea } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { capitalizeWords } from "@/lib/utils";
 
 /**
  * Create / edit customer form.
@@ -100,7 +101,7 @@ export function CustomerForm({
 					type="text"
 					required
 					value={form.name}
-					onChange={handleChange}
+					onChange={(e) => setForm((prev) => ({ ...prev, name: capitalizeWords(e.target.value) }))}
 					autoComplete="name"
 				/>
 			</Field>
