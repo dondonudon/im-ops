@@ -34,8 +34,8 @@ Built around workflows, not modules. **Current UI/UX + design system: `imops_red
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key
 
    Optional (Google Calendar push sync):
-   - `GCAL_CLIENT_ID`, `GCAL_CLIENT_SECRET`, `GCAL_REFRESH_TOKEN`
-   - Plus `gcal_calendar_id` in the `system_settings` table
+   - `GCAL_SERVICE_ACCOUNT_KEY` — full contents of the service account JSON key file (single line)
+   - Plus `gcal_calendar_id` in the `system_settings` table; the calendar must be shared with the service account email
 
 3. Apply the database migrations in order via the Supabase SQL Editor
 
@@ -184,7 +184,7 @@ The full action map (every button, what it requires, what it writes) lives in `i
 
 ## Integrations
 
-- **Google Calendar** — one-way push for surveys + jobs (color-coded). OAuth via refresh token stored as env vars. Editing or deleting in GCal does not sync back; IM Ops is the operational truth.
+- **Google Calendar** — one-way push for surveys + jobs (color-coded). Auth via a service account key (`GCAL_SERVICE_ACCOUNT_KEY`) — no token expiry. Editing or deleting in GCal does not sync back; IM Ops is the operational truth.
 - **WhatsApp** — deeplinks only (`wa.me/…?text=…`). No WhatsApp Business API. The operator taps a button, the OS opens WhatsApp with a pre-filled message, and the operator sends it from their own account.
 - **PDF** — `@react-pdf/renderer` for both proposals and invoices. Generated client-side, uploaded to Supabase Storage, URL persisted on the record.
 - **Storage buckets** — `lead-photos`, `survey-media`, `proposals`, `invoices` (all behind RLS; see migration 002).

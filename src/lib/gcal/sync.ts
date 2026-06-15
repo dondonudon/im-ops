@@ -1,15 +1,17 @@
 /**
  * Google Calendar integration helper.
  *
- * Uses a service-account-style refresh-token flow (3-legged OAuth).
+ * Uses a service account key (GCAL_SERVICE_ACCOUNT_KEY) to obtain short-lived
+ * access tokens automatically — no refresh token, no expiry problem.
  * Env vars required:
- *   GCAL_CLIENT_ID, GCAL_CLIENT_SECRET, GCAL_REFRESH_TOKEN
+ *   GCAL_SERVICE_ACCOUNT_KEY  (full JSON key file content as a string)
  *
  * Never throws — all errors are returned as `{ ok: false, error }`.
  * Calendar sync is treated as best-effort; never block core operations on it.
  */
 
-const GCAL_TOKEN_URL = "https://oauth2.googleapis.com/token";
+import { GoogleAuth } from "google-auth-library";
+
 const GCAL_EVENTS_BASE = "https://www.googleapis.com/calendar/v3/calendars";
 
 export type GCalEventInput = {
@@ -35,32 +37,20 @@ export type GCalResult =
 	| { ok: false; error: string; notFound?: boolean };
 
 function isConfigured(): boolean {
-	return Boolean(process.env.GCAL_CLIENT_ID && process.env.GCAL_REFRESH_TOKEN);
+	return Boolean(process.env.GCAL_SERVICE_ACCOUNT_KEY);
 }
 
-/** Obtain a short-lived access token using the stored refresh token. */
+/** Obtain a short-lived access token using the service account key. */
 async function getAccessToken(): Promise<string> {
-	const res = await fetch(GCAL_TOKEN_URL, {
-		method: "POST",
-		headers: { "Content-Type": "application/x-www-form-urlencoded" },
-		body: new URLSearchParams({
-			client_id: process.env.GCAL_CLIENT_ID ?? "",
-			client_secret: process.env.GCAL_CLIENT_SECRET ?? "",
-			refresh_token: process.env.GCAL_REFRESH_TOKEN ?? "",
-			grant_type: "refresh_token",
-		}),
+	const key = JSON.parse(process.env.GCAL_SERVICE_ACCOUNT_KEY ?? "{}");
+	const auth = new GoogleAuth({
+		credentials: key,
+		scopes: ["https://www.googleapis.com/auth/calendar.events"],
 	});
-	if (!res.ok) {
-		const body = (await res.json().catch(() => ({}))) as {
-			error?: string;
-			error_description?: string;
-		};
-		throw new Error(
-			`Token refresh failed: ${res.status}${body.error ? ` (${body.error}: ${body.error_description ?? ""})` : ""}`,
-		);
-	}
-	const json = (await res.json()) as { access_token: string };
-	return json.access_token;
+	const client = await auth.getClient();
+	const token = await client.getAccessToken();
+	if (!token.token) throw new Error("Failed to obtain service account access token.");
+	return token.token;
 }
 
 function buildEventBody(input: GCalEventInput): Record<string, unknown> | string {
