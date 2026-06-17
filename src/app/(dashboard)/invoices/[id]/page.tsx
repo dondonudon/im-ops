@@ -22,7 +22,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         *,
         jobs(
           id, job_number, move_date,
-          proposals(leads(id, pickup_address, destination_address, customers(id, name, phone, email, type, company_name, address))),
+          proposals(leads(id, pickup_address, destination_address, destination_address_2, customers(id, name, phone, email, type, company_name, address))),
           payments(id, payment_type, method, amount, paid_at, notes)
         )
       `)
@@ -72,6 +72,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 				id: string;
 				pickup_address: string | null;
 				destination_address: string | null;
+				destination_address_2: string | null;
 				customers: {
 					id: string;
 					name: string;
@@ -139,6 +140,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 								lead: {
 									pickup_address: lead?.pickup_address ?? null,
 									destination_address: lead?.destination_address ?? null,
+									destination_address_2: lead?.destination_address_2 ?? null,
 								},
 								company: pdfCompany,
 								template: pdfTemplate,

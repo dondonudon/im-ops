@@ -36,12 +36,14 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 	const [form, setForm] = useState({
 		pickup_address: "",
 		destination_address: "",
+		destination_address_2: "",
 		preferred_date: "",
 		lead_type: "whatsapp",
 		origin_channel: "whatsapp",
 		notes: "",
 	});
 	const [customerName, setCustomerName] = useState("");
+	const [showDestination2, setShowDestination2] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -61,14 +63,17 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 				}
 				const c = data.customers as { name: string } | null;
 				setCustomerName(c?.name ?? "");
+				const dest2 = data.destination_address_2 ?? "";
 				setForm({
 					pickup_address: data.pickup_address ?? "",
 					destination_address: data.destination_address ?? "",
+					destination_address_2: dest2,
 					preferred_date: data.preferred_date ?? "",
 					lead_type: data.lead_type ?? "whatsapp",
 					origin_channel: data.origin_channel ?? "whatsapp",
 					notes: data.notes ?? "",
 				});
+				if (dest2) setShowDestination2(true);
 				setLoading(false);
 			});
 	}, [id]);
@@ -90,6 +95,7 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 				.update({
 					pickup_address: form.pickup_address.trim() || null,
 					destination_address: form.destination_address.trim() || null,
+					destination_address_2: form.destination_address_2.trim() || null,
 					preferred_date: form.preferred_date || null,
 					lead_type: form.lead_type as (typeof LEAD_TYPES)[number],
 					origin_channel: form.origin_channel as (typeof CHANNELS)[number],
@@ -155,6 +161,36 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 							onChange={handleChange}
 						/>
 					</Field>
+
+					{showDestination2 ? (
+						<Field label={t("destination2")} htmlFor="destination_address_2">
+							<Input
+								id="destination_address_2"
+								name="destination_address_2"
+								type="text"
+								value={form.destination_address_2}
+								onChange={handleChange}
+							/>
+							<button
+								type="button"
+								onClick={() => {
+									setShowDestination2(false);
+									setForm((prev) => ({ ...prev, destination_address_2: "" }));
+								}}
+								className="mt-1 text-xs text-ink-faint hover:text-danger transition-colors"
+							>
+								{t("removeDestination2")}
+							</button>
+						</Field>
+					) : (
+						<button
+							type="button"
+							onClick={() => setShowDestination2(true)}
+							className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+						>
+							+ {t("addDestination2")}
+						</button>
+					)}
 
 					{/* Preferred date */}
 					<Field label={t("preferredDate")} htmlFor="preferred_date">

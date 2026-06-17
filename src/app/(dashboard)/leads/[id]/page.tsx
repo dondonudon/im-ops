@@ -26,7 +26,11 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
 	const [{ data: lead }, { data: photos }, { data: survey }, { data: proposals }, { data: job }] =
 		await Promise.all([
-			supabase.from("leads").select("*, customers(id, name, phone)").eq("id", id).single(),
+			supabase
+				.from("leads")
+				.select("*, destination_address_2, customers(id, name, phone)")
+				.eq("id", id)
+				.single(),
 			supabase
 				.from("lead_photos")
 				.select("id, storage_path, caption, uploaded_at")
@@ -129,6 +133,12 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 									<p className="text-ink-muted">{t("destination")}</p>
 									<p className="font-medium mt-0.5 text-ink">{lead.destination_address ?? "—"}</p>
 								</div>
+								{lead.destination_address_2 && (
+									<div>
+										<p className="text-ink-muted">{t("destination2")}</p>
+										<p className="font-medium mt-0.5 text-ink">{lead.destination_address_2}</p>
+									</div>
+								)}
 								<div>
 									<p className="text-ink-muted">{t("leadType")}</p>
 									<p className="font-medium mt-0.5 text-ink">

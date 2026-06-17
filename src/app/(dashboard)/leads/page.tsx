@@ -42,7 +42,7 @@ export default async function LeadsPage({
 
 	let query = supabase.from("leads").select(
 		`
-      id, status, pickup_address, destination_address, preferred_date, created_at,
+      id, status, pickup_address, destination_address, destination_address_2, preferred_date, created_at,
       customers(id, name, phone)
     `,
 		{ count: "exact" },
@@ -51,7 +51,9 @@ export default async function LeadsPage({
 	if (status) query = query.filter("status", "eq", status);
 	if (q) {
 		const safe = sanitizeSearch(q);
-		query = query.or(`pickup_address.ilike.%${safe}%,destination_address.ilike.%${safe}%`);
+		query = query.or(
+			`pickup_address.ilike.%${safe}%,destination_address.ilike.%${safe}%,destination_address_2.ilike.%${safe}%`,
+		);
 	}
 
 	const { data: leads, count } = await query
@@ -109,6 +111,7 @@ export default async function LeadsPage({
 								<p className="font-semibold text-ink truncate">{customer?.name ?? "—"}</p>
 								<RouteLine
 									from={lead.pickup_address}
+									via={(lead as { destination_address_2?: string | null }).destination_address_2}
 									to={lead.destination_address}
 									className="mt-1.5"
 								/>

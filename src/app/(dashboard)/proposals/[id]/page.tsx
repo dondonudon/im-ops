@@ -32,7 +32,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 			.select(`
         *,
         leads(
-          id, pickup_address, destination_address, preferred_date,
+          id, pickup_address, destination_address, destination_address_2, preferred_date,
           customers(id, name, phone, email, type, company_name, address)
         )
       `)
@@ -73,6 +73,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 		id: string;
 		pickup_address: string | null;
 		destination_address: string | null;
+		destination_address_2: string | null;
 		preferred_date: string | null;
 		customers: {
 			id: string;
@@ -154,6 +155,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 									lead: {
 										pickup_address: lead.pickup_address,
 										destination_address: lead.destination_address,
+										destination_address_2: lead.destination_address_2,
 										preferred_date: lead.preferred_date,
 									},
 									outputs: estimationOutputs,
@@ -181,6 +183,12 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 								<p className="text-ink-muted">{tJob("destination")}</p>
 								<p className="font-medium mt-0.5 text-ink">{lead.destination_address ?? "—"}</p>
 							</div>
+							{lead.destination_address_2 && (
+								<div>
+									<p className="text-ink-muted">{tJob("destination2")}</p>
+									<p className="font-medium mt-0.5 text-ink">{lead.destination_address_2}</p>
+								</div>
+							)}
 							{lead.preferred_date && (
 								<div>
 									<p className="text-ink-muted">{t("preferredDate")}</p>

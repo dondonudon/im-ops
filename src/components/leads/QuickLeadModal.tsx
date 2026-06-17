@@ -16,6 +16,7 @@ const EMPTY = {
 	phone: "",
 	pickup_address: "",
 	destination_address: "",
+	destination_address_2: "",
 	preferred_date: "",
 	lead_type: "whatsapp",
 	origin_channel: "whatsapp",
@@ -35,6 +36,7 @@ export function QuickLeadModal() {
 
 	const [open, setOpen] = useState(false);
 	const [form, setForm] = useState(EMPTY);
+	const [showDestination2, setShowDestination2] = useState(false);
 	const [customers, setCustomers] = useState<Customer[]>([]);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -59,6 +61,7 @@ export function QuickLeadModal() {
 	useEffect(() => {
 		function onOpen() {
 			setForm(EMPTY);
+			setShowDestination2(false);
 			setQuery("");
 			setComboOpen(false);
 			setSelectedCustomer(null);
@@ -169,6 +172,7 @@ export function QuickLeadModal() {
 					customer_id: customerId,
 					pickup_address: form.pickup_address.trim() || null,
 					destination_address: form.destination_address.trim() || null,
+					destination_address_2: form.destination_address_2.trim() || null,
 					preferred_date: form.preferred_date || null,
 					lead_type: form.lead_type as "whatsapp" | "onsite" | "returning" | "corporate",
 					origin_channel: form.origin_channel as "whatsapp" | "call" | "referral" | "walkin",
@@ -364,6 +368,35 @@ export function QuickLeadModal() {
 							/>
 						</Field>
 					</div>
+
+					{showDestination2 ? (
+						<Field label={t("destination2")} htmlFor="ql_dest2">
+							<Textarea
+								id="ql_dest2"
+								rows={3}
+								value={form.destination_address_2}
+								onChange={(e) => set("destination_address_2", e.target.value)}
+							/>
+							<button
+								type="button"
+								onClick={() => {
+									setShowDestination2(false);
+									set("destination_address_2", "");
+								}}
+								className="mt-1 text-xs text-ink-faint hover:text-danger transition-colors"
+							>
+								{t("removeDestination2")}
+							</button>
+						</Field>
+					) : (
+						<button
+							type="button"
+							onClick={() => setShowDestination2(true)}
+							className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+						>
+							+ {t("addDestination2")}
+						</button>
+					)}
 
 					{/* ── Date + Type + Channel ── */}
 					<Field label={t("preferredDate")} htmlFor="ql_date">

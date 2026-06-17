@@ -35,6 +35,7 @@ type LeadRow = {
 	status: string;
 	pickup_address: string | null;
 	destination_address: string | null;
+	destination_address_2: string | null;
 	preferred_date: string | null;
 	created_at: string;
 	customers: { name: string; type: string } | null;
@@ -62,7 +63,7 @@ export default async function PipelinePage() {
 		supabase
 			.from("leads")
 			.select(
-				"id, status, pickup_address, destination_address, preferred_date, created_at, customers(name, type), proposals(final_price, status)",
+				"id, status, pickup_address, destination_address, destination_address_2, preferred_date, created_at, customers(name, type), proposals(final_price, status)",
 			)
 			.neq("status", "closed_lost")
 			.order("created_at", { ascending: false })
@@ -88,6 +89,7 @@ export default async function PipelinePage() {
 			customerName: lead.customers?.name ?? "—",
 			pickup: lead.pickup_address,
 			destination: lead.destination_address,
+			destination2: lead.destination_address_2,
 			dateLabel: formatDate(lead.preferred_date ?? lead.created_at),
 			value: dealValue(lead.proposals),
 		};

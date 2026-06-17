@@ -48,6 +48,7 @@ type TodayJob = {
 		leads: {
 			pickup_address: string | null;
 			destination_address: string | null;
+			destination_address_2: string | null;
 			customers: { name: string } | null;
 		} | null;
 	} | null;
@@ -85,7 +86,7 @@ export default async function TodayPage() {
 		supabase
 			.from("jobs")
 			.select(
-				"id, job_number, status, move_date, proposals(leads(pickup_address, destination_address, customers(name)))",
+				"id, job_number, status, move_date, proposals(leads(pickup_address, destination_address, destination_address_2, customers(name)))",
 			)
 			.eq("move_date", today)
 			.order("status"),
@@ -224,7 +225,11 @@ export default async function TodayPage() {
 									<p className="text-sm font-semibold text-ink truncate mb-2">
 										{lead?.customers?.name ?? "—"}
 									</p>
-									<RouteLine from={lead?.pickup_address} to={lead?.destination_address} />
+									<RouteLine
+										from={lead?.pickup_address}
+										via={lead?.destination_address_2}
+										to={lead?.destination_address}
+									/>
 								</Link>
 							);
 						})}

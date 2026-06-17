@@ -560,6 +560,7 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 		id: string;
 		pickup_address: string | null;
 		destination_address: string | null;
+		destination_address_2: string | null;
 		customers: { name: string } | null;
 	};
 	type JobRow = {
@@ -616,15 +617,17 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 
 		supabase
 			.from("leads")
-			.select("id, pickup_address, destination_address, customers(name)")
+			.select("id, pickup_address, destination_address, destination_address_2, customers(name)")
 			.or(
-				`pickup_address.ilike.${pattern},destination_address.ilike.${pattern},notes.ilike.${pattern}`,
+				`pickup_address.ilike.${pattern},destination_address.ilike.${pattern},destination_address_2.ilike.${pattern},notes.ilike.${pattern}`,
 			)
 			.limit(PER_GROUP_LIMIT)
 			.abortSignal(signal),
 		supabase
 			.from("leads")
-			.select("id, pickup_address, destination_address, customers!inner(name)")
+			.select(
+				"id, pickup_address, destination_address, destination_address_2, customers!inner(name)",
+			)
 			.ilike("customers.name", pattern)
 			.limit(PER_GROUP_LIMIT)
 			.abortSignal(signal),

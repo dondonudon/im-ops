@@ -119,6 +119,7 @@ export interface InvoicePDFProps {
 	lead: {
 		pickup_address: string | null;
 		destination_address: string | null;
+		destination_address_2: string | null;
 	};
 	company: {
 		name: string;
@@ -145,7 +146,7 @@ export function InvoicePDF({ invoice, customer, lead, company, template }: Invoi
 	const description =
 		invoice.notes?.trim() ||
 		(lead.pickup_address && lead.destination_address
-			? `Pindah barang dari ${lead.pickup_address} ke ${lead.destination_address}`
+			? `Pindah barang dari ${lead.pickup_address} ke ${lead.destination_address}${lead.destination_address_2 ? `, lalu ke ${lead.destination_address_2}` : ""}`
 			: lead.pickup_address
 				? `Pindah barang dari ${lead.pickup_address}`
 				: "Jasa pindah barang");

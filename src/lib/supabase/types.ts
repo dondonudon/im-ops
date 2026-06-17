@@ -47,6 +47,7 @@ export type Database = {
 					customer_id: string;
 					pickup_address: string | null;
 					destination_address: string | null;
+					destination_address_2: string | null;
 					preferred_date: string | null;
 					lead_type: "whatsapp" | "onsite" | "returning" | "corporate" | null;
 					origin_channel: "whatsapp" | "call" | "referral" | "walkin" | null;
@@ -67,6 +68,7 @@ export type Database = {
 					customer_id: string;
 					pickup_address?: string | null;
 					destination_address?: string | null;
+					destination_address_2?: string | null;
 					preferred_date?: string | null;
 					lead_type?: "whatsapp" | "onsite" | "returning" | "corporate" | null;
 					origin_channel?: "whatsapp" | "call" | "referral" | "walkin" | null;
@@ -87,6 +89,7 @@ export type Database = {
 					customer_id?: string;
 					pickup_address?: string | null;
 					destination_address?: string | null;
+					destination_address_2?: string | null;
 					preferred_date?: string | null;
 					lead_type?: "whatsapp" | "onsite" | "returning" | "corporate" | null;
 					origin_channel?: "whatsapp" | "call" | "referral" | "walkin" | null;

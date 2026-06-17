@@ -95,6 +95,7 @@ export interface ProposalPDFProps {
 	lead: {
 		pickup_address: string | null;
 		destination_address: string | null;
+		destination_address_2: string | null;
 		preferred_date: string | null;
 	};
 	outputs: Record<string, number>;
@@ -127,6 +128,7 @@ export function ProposalPDF({
 
 	const pickup = lead.pickup_address;
 	const destination = lead.destination_address;
+	const destination2 = lead.destination_address_2;
 	const hasRoute = Boolean(pickup || destination);
 
 	const effectiveServices = customFields.override_services
@@ -205,6 +207,12 @@ export function ProposalPDF({
 								<>
 									{" "}
 									ke <Text style={{ fontFamily: "Helvetica-Bold" }}>{destination}</Text>
+								</>
+							) : null}
+							{destination2 ? (
+								<>
+									{", lalu ke "}
+									<Text style={{ fontFamily: "Helvetica-Bold" }}>{destination2}</Text>
 								</>
 							) : null}
 						</>

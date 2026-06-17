@@ -26,7 +26,7 @@ export function LeadDuplicateButton({ leadId }: { leadId: string }) {
 			const { data: source, error: fetchErr } = await supabase
 				.from("leads")
 				.select(
-					"customer_id, pickup_address, destination_address, preferred_date, lead_type, origin_channel, notes",
+					"customer_id, pickup_address, destination_address, destination_address_2, preferred_date, lead_type, origin_channel, notes",
 				)
 				.eq("id", leadId)
 				.single();
@@ -42,6 +42,7 @@ export function LeadDuplicateButton({ leadId }: { leadId: string }) {
 					customer_id: source.customer_id!,
 					pickup_address: source.pickup_address,
 					destination_address: source.destination_address,
+					destination_address_2: source.destination_address_2,
 					preferred_date: source.preferred_date,
 					lead_type: source.lead_type,
 					origin_channel: source.origin_channel,

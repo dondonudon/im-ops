@@ -26,6 +26,7 @@ export default function NewLeadPage() {
 		customer_id: preselectedCustomerId ?? "",
 		pickup_address: "",
 		destination_address: "",
+		destination_address_2: "",
 		preferred_date: "",
 		lead_type: "whatsapp",
 		origin_channel: "whatsapp",
@@ -35,6 +36,7 @@ export default function NewLeadPage() {
 		new_customer_phone: "",
 	});
 	const [createNewCustomer, setCreateNewCustomer] = useState(!preselectedCustomerId);
+	const [showDestination2, setShowDestination2] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -85,6 +87,7 @@ export default function NewLeadPage() {
 					customer_id: customerId,
 					pickup_address: form.pickup_address.trim() || null,
 					destination_address: form.destination_address.trim() || null,
+					destination_address_2: form.destination_address_2.trim() || null,
 					preferred_date: form.preferred_date || null,
 					lead_type: form.lead_type as "whatsapp" | "onsite" | "returning" | "corporate",
 					origin_channel: form.origin_channel as "whatsapp" | "call" | "referral" | "walkin",
@@ -195,6 +198,36 @@ export default function NewLeadPage() {
 						onChange={handleChange}
 					/>
 				</Field>
+
+				{showDestination2 ? (
+					<Field label={t("destination2")} htmlFor="destination_address_2">
+						<Textarea
+							id="destination_address_2"
+							name="destination_address_2"
+							rows={3}
+							value={form.destination_address_2}
+							onChange={handleChange}
+						/>
+						<button
+							type="button"
+							onClick={() => {
+								setShowDestination2(false);
+								setForm((prev) => ({ ...prev, destination_address_2: "" }));
+							}}
+							className="mt-1 text-xs text-ink-faint hover:text-danger transition-colors"
+						>
+							{t("removeDestination2")}
+						</button>
+					</Field>
+				) : (
+					<button
+						type="button"
+						onClick={() => setShowDestination2(true)}
+						className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+					>
+						+ {t("addDestination2")}
+					</button>
+				)}
 
 				<Field label={t("preferredDate")} htmlFor="preferred_date">
 					<Input

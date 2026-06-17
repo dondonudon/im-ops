@@ -46,10 +46,12 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 		notes: "",
 		pickup_address: "",
 		destination_address: "",
+		destination_address_2: "",
 	});
 	const [jobNumber, setJobNumber] = useState("");
 	const [customerName, setCustomerName] = useState("");
 	const [leadId, setLeadId] = useState<string | null>(null);
+	const [showDestination2, setShowDestination2] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -59,7 +61,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 		supabase
 			.from("jobs")
 			.select(
-				"job_number, status, move_date, move_time, move_end_date, move_end_time, revenue, notes, proposals(leads(id, pickup_address, destination_address, customers(name)))",
+				"job_number, status, move_date, move_time, move_end_date, move_end_time, revenue, notes, proposals(leads(id, pickup_address, destination_address, destination_address_2, customers(name)))",
 			)
 			.eq("id", id)
 			.single()
@@ -75,6 +77,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 							id: string;
 							pickup_address: string | null;
 							destination_address: string | null;
+							destination_address_2: string | null;
 							customers: { name: string } | null;
 						} | null;
 					} | null
@@ -82,6 +85,8 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 				setJobNumber(data.job_number ?? "");
 				setCustomerName(lead?.customers?.name ?? "");
 				setLeadId(lead?.id ?? null);
+				const dest2 = lead?.destination_address_2 ?? "";
+				if (dest2) setShowDestination2(true);
 				setForm({
 					status: (data.status ?? "scheduled") as JobStatus,
 					move_date: data.move_date ?? "",
@@ -95,6 +100,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 					notes: data.notes ?? "",
 					pickup_address: lead?.pickup_address ?? "",
 					destination_address: lead?.destination_address ?? "",
+					destination_address_2: dest2,
 				});
 				setLoading(false);
 			});
@@ -135,6 +141,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 							.update({
 								pickup_address: form.pickup_address.trim() || null,
 								destination_address: form.destination_address.trim() || null,
+								destination_address_2: form.destination_address_2.trim() || null,
 							})
 							.eq("id", leadId)
 					: Promise.resolve({ error: null }),
@@ -307,6 +314,36 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 								placeholder="—"
 							/>
 						</Field>
+
+						{showDestination2 ? (
+							<Field label={tCustomer("destination2")} htmlFor="destination_address_2">
+								<Input
+									id="destination_address_2"
+									name="destination_address_2"
+									value={form.destination_address_2}
+									onChange={handleChange}
+									placeholder="—"
+								/>
+								<button
+									type="button"
+									onClick={() => {
+										setShowDestination2(false);
+										setForm((prev) => ({ ...prev, destination_address_2: "" }));
+									}}
+									className="mt-1 text-xs text-ink-faint hover:text-danger transition-colors"
+								>
+									{tCustomer("removeDestination2")}
+								</button>
+							</Field>
+						) : (
+							<button
+								type="button"
+								onClick={() => setShowDestination2(true)}
+								className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+							>
+								+ {tCustomer("addDestination2")}
+							</button>
+						)}
 					</fieldset>
 
 					{/* Revenue */}

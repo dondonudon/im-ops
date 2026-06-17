@@ -41,7 +41,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         proposals(
           id, proposal_number, final_price,
           leads(
-            pickup_address, destination_address,
+            pickup_address, destination_address, destination_address_2,
             customers(id, name, phone)
           )
         )
@@ -108,6 +108,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		leads: {
 			pickup_address: string | null;
 			destination_address: string | null;
+			destination_address_2: string | null;
 			customers: { id: string; name: string; phone: string | null } | null;
 		} | null;
 	} | null;
@@ -183,6 +184,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 								<p className="text-ink-muted">{t("destination")}</p>
 								<p className="font-medium mt-0.5">{proposal.leads.destination_address ?? "—"}</p>
 							</div>
+							{proposal.leads.destination_address_2 && (
+								<div>
+									<p className="text-ink-muted">{t("destination2")}</p>
+									<p className="font-medium mt-0.5">{proposal.leads.destination_address_2}</p>
+								</div>
+							)}
 							<div>
 								<p className="text-ink-muted">{t("revenue")}</p>
 								<p className="font-bold text-lg text-primary-text mt-0.5">

@@ -131,7 +131,7 @@ export async function syncJobToCalendar(jobId: string): Promise<ActionResult> {
 	const { data: job } = await supabase
 		.from("jobs")
 		.select(
-			"id, job_number, move_date, move_time, move_end_date, move_end_time, revenue, gcal_event_id, proposals(proposal_number, leads(pickup_address, destination_address, customers(name)))",
+			"id, job_number, move_date, move_time, move_end_date, move_end_time, revenue, gcal_event_id, proposals(proposal_number, leads(pickup_address, destination_address, destination_address_2, customers(name)))",
 		)
 		.eq("id", jobId)
 		.single();
@@ -146,6 +146,7 @@ export async function syncJobToCalendar(jobId: string): Promise<ActionResult> {
 		leads: {
 			pickup_address: string | null;
 			destination_address: string | null;
+			destination_address_2: string | null;
 			customers: { name: string } | null;
 		} | null;
 	} | null;
@@ -156,9 +157,10 @@ export async function syncJobToCalendar(jobId: string): Promise<ActionResult> {
 	const endDate = job.move_end_date ?? job.move_date;
 	const endTime = job.move_end_time ?? (job.move_time ? addHoursToHHMM(job.move_time, 8) : "18:00");
 
+	const dest2 = lead?.destination_address_2;
 	const eventInput: GCalEventInput = {
 		calendarId,
-		summary: `[JOB] ${customerName} — ${lead?.pickup_address ?? ""} → ${lead?.destination_address ?? ""}`,
+		summary: `[JOB] ${customerName} — ${lead?.pickup_address ?? ""} → ${lead?.destination_address ?? ""}${dest2 ? ` → ${dest2}` : ""}`,
 		description: `Job: ${job.job_number}\nProposal: ${proposal?.proposal_number ?? ""}\nRevenue: ${job.revenue}`,
 		startDateTime: buildJakartaDateTime(job.move_date, startTime),
 		endDateTime: buildJakartaDateTime(endDate, endTime),

@@ -19,7 +19,7 @@ export default async function SurveyDetailPage({ params }: { params: Promise<{ i
 		supabase
 			.from("surveys")
 			.select(
-				"id, lead_id, scheduled_at, conducted_at, access_notes, special_items, notes, surveyor_id, gcal_event_id, leads(id, pickup_address, destination_address, customers(name))",
+				"id, lead_id, scheduled_at, conducted_at, access_notes, special_items, notes, surveyor_id, gcal_event_id, leads(id, pickup_address, destination_address, destination_address_2, customers(name))",
 			)
 			.eq("id", id)
 			.single(),
@@ -36,6 +36,7 @@ export default async function SurveyDetailPage({ params }: { params: Promise<{ i
 		id: string;
 		pickup_address: string | null;
 		destination_address: string | null;
+		destination_address_2: string | null;
 		customers: { name: string } | null;
 	} | null;
 
@@ -108,6 +109,19 @@ export default async function SurveyDetailPage({ params }: { params: Promise<{ i
 							<div>
 								<dt className="text-xs text-ink-faint leading-none mb-0.5">Destination</dt>
 								<dd className="font-medium">{lead.destination_address}</dd>
+							</div>
+						</div>
+					)}
+					{lead?.destination_address_2 && (
+						<div className="flex items-start gap-2 text-ink-muted">
+							<ClipboardList
+								size={15}
+								className="text-ink-faint shrink-0 mt-0.5"
+								aria-hidden="true"
+							/>
+							<div>
+								<dt className="text-xs text-ink-faint leading-none mb-0.5">Second destination</dt>
+								<dd className="font-medium">{lead.destination_address_2}</dd>
 							</div>
 						</div>
 					)}
