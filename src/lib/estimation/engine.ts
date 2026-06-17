@@ -1,7 +1,7 @@
 // MarginCalc pricing logic ported from https://github.com/dondonudon/MarginCalc
 // Engine version must be bumped when pricing logic changes.
 
-export const ENGINE_VERSION = "2.5.0";
+export const ENGINE_VERSION = "2.5.1";
 
 export type VehicleType = "pickup" | "box_truck";
 
@@ -119,7 +119,7 @@ export function calculate(
 	const manpowerCost = oot
 		? stayCrewCount * inputs.crew_day_rate +
 			travelCrewCount * travelCostPerCrew * days +
-			spotHireCount * spotHireCost * days
+			spotHireCount * spotHireCost
 		: inputs.crew_count * inputs.crew_day_rate;
 	const foodCost = oot
 		? stayCrewCount * inputs.food_per_crew +
