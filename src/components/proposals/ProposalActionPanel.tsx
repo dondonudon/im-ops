@@ -557,9 +557,9 @@ function ConvertToJobModal({
 
 			await supabase.from("leads").update({ status: "converted" }).eq("id", leadId);
 
-			// Best-effort calendar push — never block job creation on it.
+			// Best-effort calendar push — await so navigation doesn't cancel the in-flight action.
 			if (newJob?.id) {
-				void syncJobToCalendar(newJob.id).catch(() => {});
+				await syncJobToCalendar(newJob.id).catch(() => {});
 			}
 
 			router.push(`/jobs/${newJob.id}`);
