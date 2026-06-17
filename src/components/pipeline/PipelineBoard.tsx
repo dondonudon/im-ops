@@ -1,6 +1,6 @@
 "use client";
 
-import { GripVertical } from "lucide-react";
+import { GripVertical, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
@@ -58,6 +58,7 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 	const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null);
 	const [pending, setPending] = useState<Set<string>>(new Set());
 	const [notice, setNotice] = useState<string | null>(null);
+	const [navigatingId, setNavigatingId] = useState<string | null>(null);
 
 	// Latest-value refs so the window-level pointer handlers never go stale.
 	const columnsRef = useRef(columns);
@@ -203,7 +204,10 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 			} else if (!p.fromHandle) {
 				// Tap (no drag) on the card body → open the lead.
 				const dist = Math.hypot(e.clientX - p.x, e.clientY - p.y);
-				if (dist < THRESHOLD) routerRef.current.push(`/leads/${p.id}`);
+				if (dist < THRESHOLD) {
+					setNavigatingId(p.id);
+					routerRef.current.push(`/leads/${p.id}`);
+				}
 			}
 		}
 
@@ -293,6 +297,7 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 									items.map((card) => {
 										const isPending = pending.has(card.id);
 										const isDragging = dragId === card.id;
+										const isNavigating = navigatingId === card.id;
 										return (
 											// biome-ignore lint/a11y/useSemanticElements: contains a nested button (drag handle) — HTML forbids interactive content inside button
 											<div
@@ -300,6 +305,7 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 												onPointerDown={(e) => startPress(e, card, false)}
 												onKeyDown={(e) => {
 													if (e.key === "Enter") {
+														setNavigatingId(card.id);
 														router.push(`/leads/${card.id}`);
 													} else if (e.key === "ArrowRight") {
 														e.preventDefault();
@@ -319,8 +325,18 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 													"md:cursor-grab md:active:cursor-grabbing",
 													isDragging && "opacity-40",
 													isPending && "opacity-60 pointer-events-none",
+													isNavigating && "pointer-events-none",
 												)}
 											>
+												{isNavigating && (
+													<div className="absolute inset-0 rounded-lg bg-surface/70 flex items-center justify-center z-10">
+														<Loader2
+															size={18}
+															className="animate-spin text-primary"
+															aria-hidden="true"
+														/>
+													</div>
+												)}
 												{/* Drag handle — the reliable grab target on touch */}
 												<button
 													type="button"
