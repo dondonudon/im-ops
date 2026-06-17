@@ -15,9 +15,10 @@ export function useNavFeedback() {
 	const pathname = usePathname();
 	const [clicked, setClicked] = useState<string | null>(null);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: pathname is the trigger; setClicked is a stable React setter
 	useEffect(() => {
 		setClicked(null);
-	}, []);
+	}, [pathname]);
 
 	// Safety: never leave a phantom spinner if a navigation is cancelled.
 	useEffect(() => {
