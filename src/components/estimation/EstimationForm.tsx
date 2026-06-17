@@ -53,13 +53,18 @@ export function EstimationForm({
 		toll_estimate: 0,
 		other_cost: 0,
 		is_out_of_town: false,
+		days: 1,
 		meals_count: 3,
+		travel_crew_count: 0,
+		travel_cost_per_crew: 250_000,
+		spot_hire_count: 0,
+		spot_hire_cost: 100_000,
 	};
 
 	const [inputs, setInputs] = useState<EstimationInputs>(() => {
 		if (!existing?.inputs) return defaultInputs;
 		const saved = existing.inputs;
-		// Back-fill new fields for estimations saved before engine 2.2.0
+		// Back-fill new fields for estimations saved before engine 2.5.0
 		return {
 			...saved,
 			vehicle_cost:
@@ -68,6 +73,11 @@ export function EstimationForm({
 			crew_day_rate: saved.crew_day_rate ?? settings.crew_day_rate,
 			food_per_crew: saved.food_per_crew ?? settings.food_per_crew,
 			packing_cost: saved.packing_cost ?? 0,
+			days: saved.days ?? 1,
+			travel_crew_count: saved.travel_crew_count ?? 0,
+			travel_cost_per_crew: saved.travel_cost_per_crew ?? 250_000,
+			spot_hire_count: saved.spot_hire_count ?? 0,
+			spot_hire_cost: saved.spot_hire_cost ?? 100_000,
 		};
 	});
 
@@ -232,19 +242,61 @@ export function EstimationForm({
 						className="h-4 w-4 rounded border-line-strong text-primary focus:ring-[var(--ring)]"
 					/>
 					<label htmlFor="is_out_of_town" className="text-sm text-ink-muted">
-						{t("outOfTown")} {t("outOfTownHint", { meals: inputs.meals_count })}
+						{t("outOfTown")}
 					</label>
 				</div>
 
 				{inputs.is_out_of_town && (
-					<Field label={t("mealsCount")} htmlFor="meals_count">
-						<NumericInput
-							id="meals_count"
-							value={inputs.meals_count}
-							onChange={(v) => setInput("meals_count", v ?? 0)}
-							className="w-32 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-						/>
-					</Field>
+					<>
+						<Field label={t("days")} htmlFor="days">
+							<NumericInput
+								id="days"
+								value={inputs.days}
+								onChange={(v) => setInput("days", v ?? 1)}
+								className="w-32 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+							/>
+						</Field>
+						<Field label={t("travelCrewCount")} htmlFor="travel_crew_count">
+							<NumericInput
+								id="travel_crew_count"
+								value={inputs.travel_crew_count}
+								onChange={(v) => setInput("travel_crew_count", v ?? 0)}
+								className="w-32 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+							/>
+						</Field>
+						<Field label={`${t("travelCostPerCrew")} (IDR)`} htmlFor="travel_cost_per_crew">
+							<NumericInput
+								id="travel_cost_per_crew"
+								value={inputs.travel_cost_per_crew}
+								onChange={(v) => setInput("travel_cost_per_crew", v)}
+								className="w-full max-w-xs rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+							/>
+						</Field>
+						<Field label={t("mealsCount")} htmlFor="meals_count">
+							<NumericInput
+								id="meals_count"
+								value={inputs.meals_count}
+								onChange={(v) => setInput("meals_count", v ?? 0)}
+								className="w-32 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+							/>
+						</Field>
+						<Field label={t("spotHireCount")} htmlFor="spot_hire_count">
+							<NumericInput
+								id="spot_hire_count"
+								value={inputs.spot_hire_count}
+								onChange={(v) => setInput("spot_hire_count", v ?? 0)}
+								className="w-32 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+							/>
+						</Field>
+						<Field label={`${t("spotHireCost")} (IDR)`} htmlFor="spot_hire_cost">
+							<NumericInput
+								id="spot_hire_cost"
+								value={inputs.spot_hire_cost}
+								onChange={(v) => setInput("spot_hire_cost", v)}
+								className="w-full max-w-xs rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+							/>
+						</Field>
+					</>
 				)}
 
 				{/* Packing materials */}

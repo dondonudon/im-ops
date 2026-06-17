@@ -1,7 +1,7 @@
 // MarginCalc pricing logic ported from https://github.com/dondonudon/MarginCalc
 // Engine version must be bumped when pricing logic changes.
 
-export const ENGINE_VERSION = "2.4.0";
+export const ENGINE_VERSION = "2.5.0";
 
 export type VehicleType = "pickup" | "box_truck";
 
@@ -37,7 +37,12 @@ export interface EstimationInputs {
 	toll_estimate: number;
 	other_cost: number;
 	is_out_of_town: boolean;
-	meals_count: number; // default 3 for out-of-town, 1 in-town
+	days: number; // number of job days; default 1
+	meals_count: number; // meals per day per traveling crew; default 3
+	travel_crew_count: number; // origin crew that travel with the truck; default 0
+	travel_cost_per_crew: number; // day rate for traveling crew; default 250_000
+	spot_hire_count: number; // local helpers hired at destination; default 0
+	spot_hire_cost: number; // day rate per spot hire; no food included; default 100_000
 }
 
 export interface EstimationSettings {
@@ -100,11 +105,28 @@ export function calculate(
 ): EstimationOutputs {
 	const vehicleCost = inputs.vehicle_cost;
 
-	// Out-of-town: +1 crew for destination unloading; meals multiply
-	const effectiveCrew = inputs.is_out_of_town ? inputs.crew_count + 1 : inputs.crew_count;
-	const mealsCount = inputs.is_out_of_town ? inputs.meals_count : 1;
-	const manpowerCost = effectiveCrew * inputs.crew_day_rate;
-	const foodCost = effectiveCrew * inputs.food_per_crew * mealsCount;
+	// Out-of-town: crew splits into stay crew (origin, 1 day) and travel crew (multi-day,
+	// higher rate). Spot hire are destination-only workers with no food allowance.
+	const oot = inputs.is_out_of_town;
+	const days = oot ? inputs.days : 1;
+	const mealsPerDay = oot ? inputs.meals_count : 1;
+	const travelCrewCount = oot ? inputs.travel_crew_count : 0;
+	const travelCostPerCrew = oot ? inputs.travel_cost_per_crew : 0;
+	const spotHireCount = oot ? inputs.spot_hire_count : 0;
+	const spotHireCost = oot ? inputs.spot_hire_cost : 0;
+
+	const stayCrewCount = inputs.crew_count - travelCrewCount;
+	const manpowerCost = oot
+		? stayCrewCount * inputs.crew_day_rate +
+			travelCrewCount * travelCostPerCrew * days +
+			spotHireCount * spotHireCost * days
+		: inputs.crew_count * inputs.crew_day_rate;
+	const foodCost = oot
+		? stayCrewCount * inputs.food_per_crew +
+			travelCrewCount * inputs.food_per_crew * mealsPerDay * days
+		: inputs.crew_count * inputs.food_per_crew;
+
+	const effectiveCrew = inputs.crew_count + spotHireCount;
 
 	const jobCost =
 		vehicleCost +
