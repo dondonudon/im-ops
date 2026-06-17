@@ -887,7 +887,8 @@
 			"recordPayment": "+ Record Payment",
 			"history": "History",
 			"noPayments": "No payments yet.",
-			"via": "via {method}"
+			"via": "via {method}",
+			"printReceipt": "Print Receipt"
 		},
 		"photos": {
 			"title": "Photos",

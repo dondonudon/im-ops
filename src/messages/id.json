@@ -887,7 +887,8 @@
 			"recordPayment": "+ Catat Pembayaran",
 			"history": "Riwayat",
 			"noPayments": "Belum ada pembayaran.",
-			"via": "via {method}"
+			"via": "via {method}",
+			"printReceipt": "Cetak Kwitansi"
 		},
 		"photos": {
 			"title": "Foto",

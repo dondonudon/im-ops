@@ -5,8 +5,10 @@ import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { NumericInput } from "@/components/shared/NumericInput";
 import { Button, Card, Field, FormError, Input, Money, Select } from "@/components/ui";
+import type { CompanySettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/client";
 import { formatDate, formatRupiah } from "@/lib/utils";
+import { PaymentReceiptDownloadButton } from "./PaymentReceiptDownloadButton";
 
 type Payment = {
 	id: string;
@@ -33,11 +35,21 @@ export function PaymentsPanel({
 	totalAmount,
 	payments: initial,
 	invoiceStatus,
+	jobNumber,
+	customerName,
+	invoiceNumber,
+	company,
+	receiptTemplate,
 }: {
 	jobId: string;
 	totalAmount: number;
 	payments: Payment[];
 	invoiceStatus: string | null;
+	jobNumber: string;
+	customerName: string;
+	invoiceNumber?: string | null;
+	company: CompanySettings;
+	receiptTemplate: { signatureName: string; signatureRole: string };
 }) {
 	const router = useRouter();
 	const tPanel = useTranslations("panels.payments");
@@ -225,9 +237,9 @@ export function PaymentsPanel({
 				{payments.length === 0 && (
 					<p className="px-4 py-4 text-sm text-center text-ink-faint">{tPanel("noPayments")}</p>
 				)}
-				{payments.map((p) => (
-					<div key={p.id} className="flex items-center justify-between px-4 py-3 text-sm">
-						<div>
+				{payments.map((p, idx) => (
+					<div key={p.id} className="flex items-center gap-3 px-4 py-3 text-sm">
+						<div className="flex-1">
 							<span className="font-medium text-ink">{tPaymentType(p.payment_type)}</span>
 							<span className="text-xs text-ink-faint ml-2">
 								{tPanel("via", {
@@ -241,6 +253,17 @@ export function PaymentsPanel({
 							value={p.amount}
 							tone={p.payment_type === "refund" ? "danger" : "positive"}
 							className="font-medium"
+						/>
+						<PaymentReceiptDownloadButton
+							receiptProps={{
+								payment: p,
+								receiptNumber: idx + 1,
+								jobNumber,
+								customerName,
+								invoiceNumber,
+								company,
+								template: receiptTemplate,
+							}}
 						/>
 					</div>
 				))}

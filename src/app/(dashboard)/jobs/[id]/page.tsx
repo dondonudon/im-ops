@@ -10,6 +10,7 @@ import { TimelineLogEventButton } from "@/components/jobs/TimelineLogEventButton
 import { BackLink } from "@/components/shared/BackLink";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
+import { buildCompanySettings, buildInvoiceTemplateSettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatJobSchedule, formatRupiah } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		{ data: invoice },
 		{ data: payments },
 		{ data: jobMedia },
+		{ data: settingsRows },
 	] = await Promise.all([
 		supabase
 			.from("jobs")
@@ -77,9 +79,27 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 			.select("id, media_type, storage_path, file_name, caption, uploaded_at")
 			.eq("job_id", id)
 			.order("uploaded_at"),
+		supabase
+			.from("system_settings")
+			.select("key, value")
+			.in("key", [
+				"company_name",
+				"company_tagline",
+				"company_logo_url",
+				"company_address",
+				"company_phone",
+				"company_website",
+				"company_city",
+				"invoice_signature_name",
+				"invoice_signature_role",
+			]),
 	]);
 
 	if (!job) notFound();
+
+	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
+	const pdfCompany = buildCompanySettings(settingsMap);
+	const pdfTemplate = buildInvoiceTemplateSettings(settingsMap);
 
 	const proposal = job.proposals as {
 		id: string;
@@ -396,6 +416,14 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							totalAmount={invoice?.total_amount ?? job.revenue ?? 0}
 							payments={payments ?? []}
 							invoiceStatus={invoice?.status ?? null}
+							jobNumber={job.job_number}
+							customerName={customer?.name ?? ""}
+							invoiceNumber={invoice?.invoice_number ?? null}
+							company={pdfCompany}
+							receiptTemplate={{
+								signatureName: pdfTemplate.signatureName,
+								signatureRole: pdfTemplate.signatureRole,
+							}}
 						/>
 					</Card>
 				</div>

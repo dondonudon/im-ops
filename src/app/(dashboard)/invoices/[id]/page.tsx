@@ -207,6 +207,14 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 						totalAmount={invoice.total_amount}
 						payments={payments ?? []}
 						invoiceStatus={invoice.status}
+						jobNumber={job?.job_number ?? ""}
+						customerName={customer?.name ?? ""}
+						invoiceNumber={invoice.invoice_number}
+						company={pdfCompany}
+						receiptTemplate={{
+							signatureName: pdfTemplate.signatureName,
+							signatureRole: pdfTemplate.signatureRole,
+						}}
 					/>
 				</div>
 			</div>
