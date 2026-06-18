@@ -154,7 +154,11 @@ export function CustomerForm({
 					name="address"
 					rows={3}
 					value={form.address}
-					onChange={handleChange}
+					onChange={(e) => {
+						e.target.value = e.target.value.toUpperCase();
+						handleChange(e);
+					}}
+					className="uppercase"
 				/>
 			</Field>
 

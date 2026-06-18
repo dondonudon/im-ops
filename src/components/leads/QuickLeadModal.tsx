@@ -356,7 +356,8 @@ export function QuickLeadModal() {
 								id="ql_pickup"
 								rows={3}
 								value={form.pickup_address}
-								onChange={(e) => set("pickup_address", e.target.value)}
+								onChange={(e) => set("pickup_address", e.target.value.toUpperCase())}
+								className="uppercase"
 							/>
 						</Field>
 						<Field label={t("destination")} htmlFor="ql_dest">
@@ -364,7 +365,8 @@ export function QuickLeadModal() {
 								id="ql_dest"
 								rows={3}
 								value={form.destination_address}
-								onChange={(e) => set("destination_address", e.target.value)}
+								onChange={(e) => set("destination_address", e.target.value.toUpperCase())}
+								className="uppercase"
 							/>
 						</Field>
 					</div>
@@ -375,7 +377,8 @@ export function QuickLeadModal() {
 								id="ql_dest2"
 								rows={3}
 								value={form.destination_address_2}
-								onChange={(e) => set("destination_address_2", e.target.value)}
+								onChange={(e) => set("destination_address_2", e.target.value.toUpperCase())}
+								className="uppercase"
 							/>
 							<button
 								type="button"

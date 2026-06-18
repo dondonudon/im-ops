@@ -185,7 +185,11 @@ export default function NewLeadPage() {
 						name="pickup_address"
 						rows={3}
 						value={form.pickup_address}
-						onChange={handleChange}
+						onChange={(e) => {
+							e.target.value = e.target.value.toUpperCase();
+							handleChange(e);
+						}}
+						className="uppercase"
 					/>
 				</Field>
 
@@ -195,7 +199,11 @@ export default function NewLeadPage() {
 						name="destination_address"
 						rows={3}
 						value={form.destination_address}
-						onChange={handleChange}
+						onChange={(e) => {
+							e.target.value = e.target.value.toUpperCase();
+							handleChange(e);
+						}}
+						className="uppercase"
 					/>
 				</Field>
 
@@ -206,7 +214,11 @@ export default function NewLeadPage() {
 							name="destination_address_2"
 							rows={3}
 							value={form.destination_address_2}
-							onChange={handleChange}
+							onChange={(e) => {
+								e.target.value = e.target.value.toUpperCase();
+								handleChange(e);
+							}}
+							className="uppercase"
 						/>
 						<button
 							type="button"

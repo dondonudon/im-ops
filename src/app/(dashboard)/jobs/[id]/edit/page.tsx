@@ -301,8 +301,12 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 								id="pickup_address"
 								name="pickup_address"
 								value={form.pickup_address}
-								onChange={handleChange}
+								onChange={(e) => {
+									e.target.value = e.target.value.toUpperCase();
+									handleChange(e);
+								}}
 								placeholder="—"
+								className="uppercase"
 							/>
 						</Field>
 						<Field label={tCustomer("destination")} htmlFor="destination_address">
@@ -310,8 +314,12 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 								id="destination_address"
 								name="destination_address"
 								value={form.destination_address}
-								onChange={handleChange}
+								onChange={(e) => {
+									e.target.value = e.target.value.toUpperCase();
+									handleChange(e);
+								}}
 								placeholder="—"
+								className="uppercase"
 							/>
 						</Field>
 
@@ -321,8 +329,12 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 									id="destination_address_2"
 									name="destination_address_2"
 									value={form.destination_address_2}
-									onChange={handleChange}
+									onChange={(e) => {
+										e.target.value = e.target.value.toUpperCase();
+										handleChange(e);
+									}}
 									placeholder="—"
+									className="uppercase"
 								/>
 								<button
 									type="button"

@@ -147,7 +147,11 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 							name="pickup_address"
 							type="text"
 							value={form.pickup_address}
-							onChange={handleChange}
+							onChange={(e) => {
+								e.target.value = e.target.value.toUpperCase();
+								handleChange(e);
+							}}
+							className="uppercase"
 						/>
 					</Field>
 
@@ -158,7 +162,11 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 							name="destination_address"
 							type="text"
 							value={form.destination_address}
-							onChange={handleChange}
+							onChange={(e) => {
+								e.target.value = e.target.value.toUpperCase();
+								handleChange(e);
+							}}
+							className="uppercase"
 						/>
 					</Field>
 
@@ -169,7 +177,11 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 								name="destination_address_2"
 								type="text"
 								value={form.destination_address_2}
-								onChange={handleChange}
+								onChange={(e) => {
+									e.target.value = e.target.value.toUpperCase();
+									handleChange(e);
+								}}
+								className="uppercase"
 							/>
 							<button
 								type="button"
