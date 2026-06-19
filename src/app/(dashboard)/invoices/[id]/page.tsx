@@ -22,7 +22,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         *,
         jobs(
           id, job_number, move_date,
-          proposals(leads(id, pickup_address, destination_address, destination_address_2, customers(id, name, phone, email, type, company_name, address))),
+          proposals(leads(id, pickup_address, destination_address, destination_address_2, customers(id, prefix, name, phone, email, type, company_name, address))),
           payments(id, payment_type, method, amount, paid_at, notes)
         )
       `)
@@ -75,6 +75,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 				destination_address_2: string | null;
 				customers: {
 					id: string;
+					prefix: string | null;
 					name: string;
 					phone: string | null;
 					email: string | null;
@@ -108,7 +109,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 				}
 				subtitle={
 					<>
-						{customer?.name ?? "—"}
+						{customer ? (customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name) : "—"}
 						{invoice.due_date && ` · ${t("due", { date: formatDate(invoice.due_date) })}`}
 						{job && (
 							<>
@@ -132,6 +133,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 									created_at: invoice.created_at,
 								},
 								customer: {
+									prefix: customer.prefix,
 									name: customer.name,
 									type: customer.type,
 									company_name: customer.company_name,
@@ -157,7 +159,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 							<>
 								<div className="flex gap-4">
 									<span className="w-32 text-ink-muted">{t("customer")}</span>
-									<span className="font-medium text-ink">{customer.name}</span>
+									<span className="font-medium text-ink">{customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name}</span>
 								</div>
 								{customer.phone && (
 									<div className="flex gap-4">
@@ -210,7 +212,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 						payments={payments ?? []}
 						invoiceStatus={invoice.status}
 						jobNumber={job?.job_number ?? ""}
-						customerName={customer?.name ?? ""}
+						customerName={customer ? (customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name) : ""}
 						invoiceNumber={invoice.invoice_number}
 						company={pdfCompany}
 						receiptTemplate={{

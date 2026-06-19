@@ -111,6 +111,7 @@ export interface InvoicePDFProps {
 		created_at: string;
 	};
 	customer: {
+		prefix: string | null;
 		name: string;
 		type: "individual" | "corporate";
 		company_name: string | null;
@@ -181,7 +182,7 @@ export function InvoicePDF({ invoice, customer, lead, company, template }: Invoi
 				{/* Recipient */}
 				<View style={styles.recipient}>
 					<Text style={styles.recipientLabel}>Kepada Yth,</Text>
-					<Text style={styles.recipientName}>{customer.name}</Text>
+					<Text style={styles.recipientName}>{customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name}</Text>
 					{customer.type === "corporate" && customer.company_name ? (
 						<Text style={styles.recipientName}>{customer.company_name}</Text>
 					) : null}

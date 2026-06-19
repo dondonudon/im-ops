@@ -361,6 +361,7 @@
 		},
 		"jobs": {
 			"title": "Jobs",
+			"searchPlaceholder": "Search job no. or customer…",
 			"filterAll": "All statuses",
 			"columns": {
 				"jobNumber": "Job No.",
@@ -370,11 +371,13 @@
 				"status": "Status"
 			},
 			"empty": "No jobs.",
+			"emptyFiltered": "No jobs match your search.",
 			"viewList": "List",
 			"viewBoard": "Board"
 		},
 		"proposals": {
 			"title": "Proposals",
+			"searchPlaceholder": "Search proposal no. or customer…",
 			"filterAll": "All statuses",
 			"columns": {
 				"proposalNumber": "Proposal No.",
@@ -383,7 +386,8 @@
 				"status": "Status",
 				"created": "Created"
 			},
-			"empty": "No proposals."
+			"empty": "No proposals.",
+			"emptyFiltered": "No proposals match your search."
 		},
 		"customers": {
 			"title": "Customers",
@@ -700,6 +704,8 @@
 			"searchInstead": "Search instead"
 		},
 		"customer": {
+			"prefix": "Prefix",
+			"prefixNone": "— None —",
 			"fullName": "Full name",
 			"phone": "Phone",
 			"phonePlaceholder": "e.g. 08123456789",

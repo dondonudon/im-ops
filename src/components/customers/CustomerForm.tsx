@@ -11,11 +11,15 @@ import { capitalizeWords, mapDbError } from "@/lib/utils";
  * Create / edit customer form.
  * @param customer - if provided, renders in edit mode with pre-filled values.
  */
+const PREFIX_OPTIONS = ["Mr", "Ms", "Mrs", "Tn", "Ny", "Nn"] as const;
+type Prefix = (typeof PREFIX_OPTIONS)[number];
+
 export function CustomerForm({
 	customer,
 }: {
 	customer?: {
 		id: string;
+		prefix: Prefix | null;
 		name: string;
 		phone: string | null;
 		email: string | null;
@@ -33,6 +37,7 @@ export function CustomerForm({
 	const isEdit = Boolean(customer);
 
 	const [form, setForm] = useState({
+		prefix: customer?.prefix ?? "",
 		name: customer?.name ?? "",
 		phone: customer?.phone ?? "",
 		email: customer?.email ?? "",
@@ -58,6 +63,7 @@ export function CustomerForm({
 		try {
 			const supabase = createClient();
 			const payload = {
+				prefix: (form.prefix as Prefix) || null,
 				name: form.name.trim(),
 				phone: form.phone.trim() || null,
 				email: form.email.trim() || null,
@@ -93,6 +99,17 @@ export function CustomerForm({
 	return (
 		<form onSubmit={handleSubmit} className="space-y-5 max-w-lg" noValidate>
 			{error && <FormError>{error}</FormError>}
+
+			<Field label={t("prefix")} htmlFor="prefix">
+				<Select id="prefix" name="prefix" value={form.prefix} onChange={handleChange}>
+					<option value="">{t("prefixNone")}</option>
+					{PREFIX_OPTIONS.map((p) => (
+						<option key={p} value={p}>
+							{p}
+						</option>
+					))}
+				</Select>
+			</Field>
 
 			<Field label={t("fullName")} htmlFor="name" required>
 				<Input

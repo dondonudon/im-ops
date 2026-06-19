@@ -33,7 +33,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
         *,
         leads(
           id, pickup_address, destination_address, destination_address_2, preferred_date,
-          customers(id, name, phone, email, type, company_name, address)
+          customers(id, prefix, name, phone, email, type, company_name, address)
         )
       `)
 			.eq("id", id)
@@ -77,6 +77,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 		preferred_date: string | null;
 		customers: {
 			id: string;
+			prefix: string | null;
 			name: string;
 			phone: string | null;
 			email: string | null;
@@ -89,6 +90,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 	const customer =
 		(lead?.customers as {
 			id: string;
+			prefix: string | null;
 			name: string;
 			phone: string | null;
 			email: string | null;
@@ -113,7 +115,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 				}
 				subtitle={
 					<>
-						{customer?.name ?? "—"} · {t("created", { date: formatDate(proposal.created_at) })}
+						{customer ? (customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name) : "—"} · {t("created", { date: formatDate(proposal.created_at) })}
 						{proposal.approved_at &&
 							` · ${t("approved", { date: formatDate(proposal.approved_at) })}`}
 					</>
@@ -145,6 +147,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 										approved_at: proposal.approved_at,
 									},
 									customer: {
+										prefix: customer.prefix,
 										name: customer.name,
 										phone: customer.phone,
 										email: customer.email,

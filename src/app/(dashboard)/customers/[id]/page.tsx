@@ -41,7 +41,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 		<div className="space-y-8">
 			<BackLink href="/customers" label={t("backToList")} />
 			<PageHeader
-				title={customer.name}
+				title={customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name}
 				subtitle={tType(customer.type as never)}
 				actions={
 					<Link href={`/customers/${id}/edit`} className={buttonStyles({ variant: "secondary" })}>

@@ -361,6 +361,7 @@
 		},
 		"jobs": {
 			"title": "Pekerjaan",
+			"searchPlaceholder": "Cari no. pekerjaan atau pelanggan…",
 			"filterAll": "Semua status",
 			"columns": {
 				"jobNumber": "No. Pekerjaan",
@@ -370,11 +371,13 @@
 				"status": "Status"
 			},
 			"empty": "Belum ada pekerjaan.",
+			"emptyFiltered": "Tidak ada pekerjaan yang cocok dengan pencarian.",
 			"viewList": "Daftar",
 			"viewBoard": "Papan"
 		},
 		"proposals": {
 			"title": "Proposal",
+			"searchPlaceholder": "Cari no. proposal atau pelanggan…",
 			"filterAll": "Semua status",
 			"columns": {
 				"proposalNumber": "No. Proposal",
@@ -383,7 +386,8 @@
 				"status": "Status",
 				"created": "Dibuat"
 			},
-			"empty": "Belum ada proposal."
+			"empty": "Belum ada proposal.",
+			"emptyFiltered": "Tidak ada proposal yang cocok dengan pencarian."
 		},
 		"customers": {
 			"title": "Pelanggan",
@@ -700,6 +704,8 @@
 			"searchInstead": "Cari pelanggan"
 		},
 		"customer": {
+			"prefix": "Sebutan",
+			"prefixNone": "— Tidak ada —",
 			"fullName": "Nama lengkap",
 			"phone": "Telepon",
 			"phonePlaceholder": "cth. 08123456789",

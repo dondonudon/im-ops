@@ -34,7 +34,7 @@ export default async function CustomersPage({
 
 	let query = supabase
 		.from("customers")
-		.select("id, name, phone, email, type, company_name, created_at", { count: "exact" });
+		.select("id, prefix, name, phone, email, type, company_name, created_at", { count: "exact" });
 
 	if (q) {
 		const safe = sanitizeSearch(q);
@@ -81,7 +81,7 @@ export default async function CustomersPage({
 										href={`/customers/${c.id}`}
 										className="text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 									>
-										{c.name}
+										{c.prefix ? `${c.prefix} ${c.name}` : c.name}
 									</Link>
 									{c.company_name && (
 										<span className="ml-1 text-xs text-ink-faint">({c.company_name})</span>
@@ -117,7 +117,7 @@ export default async function CustomersPage({
 					>
 						<div className="flex items-start justify-between gap-3">
 							<div className="min-w-0">
-								<p className="font-semibold text-ink truncate">{c.name}</p>
+								<p className="font-semibold text-ink truncate">{c.prefix ? `${c.prefix} ${c.name}` : c.name}</p>
 								{c.company_name && (
 									<p className="text-xs text-ink-faint mt-0.5 truncate">{c.company_name}</p>
 								)}

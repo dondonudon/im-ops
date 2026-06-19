@@ -8,6 +8,7 @@ export type Database = {
 			customers: {
 				Row: {
 					id: string;
+					prefix: "Mr" | "Ms" | "Mrs" | "Tn" | "Ny" | "Nn" | null;
 					name: string;
 					phone: string | null;
 					email: string | null;
@@ -19,6 +20,7 @@ export type Database = {
 				};
 				Insert: {
 					id?: string;
+					prefix?: "Mr" | "Ms" | "Mrs" | "Tn" | "Ny" | "Nn" | null;
 					name: string;
 					phone?: string | null;
 					email?: string | null;
@@ -30,6 +32,7 @@ export type Database = {
 				};
 				Update: {
 					id?: string;
+					prefix?: "Mr" | "Ms" | "Mrs" | "Tn" | "Ny" | "Nn" | null;
 					name?: string;
 					phone?: string | null;
 					email?: string | null;

@@ -28,7 +28,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 		await Promise.all([
 			supabase
 				.from("leads")
-				.select("*, destination_address_2, customers(id, name, phone)")
+				.select("*, destination_address_2, customers(id, prefix, name, phone)")
 				.eq("id", id)
 				.single(),
 			supabase
@@ -59,6 +59,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
 	const customer = lead.customers as {
 		id: string;
+		prefix: string | null;
 		name: string;
 		phone: string | null;
 	} | null;
@@ -70,7 +71,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 			<PageHeader
 				title={
 					<span className="flex items-center gap-3">
-						{customer?.name ?? "—"}
+						{customer ? (customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name) : "—"}
 						<Badge tone={toneFor("lead", lead.status)} dot>
 							{tStatus(lead.status as never)}
 						</Badge>
