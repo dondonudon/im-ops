@@ -13,10 +13,9 @@ import {
 	THead,
 	TR,
 } from "@/components/ui";
+import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { formatRupiah, sanitizeSearch } from "@/lib/utils";
-
-const PAGE_SIZE = 25;
 
 export default async function CrewPage({
 	searchParams,

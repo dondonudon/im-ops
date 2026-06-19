@@ -11,6 +11,7 @@ import {
 	Select,
 	toneFor,
 } from "@/components/ui";
+import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, sanitizeSearch } from "@/lib/utils";
 
@@ -24,8 +25,6 @@ const STATUS_VALUES = [
 	"converted",
 	"closed_lost",
 ] as const;
-
-const PAGE_SIZE = 25;
 
 export default async function LeadsPage({
 	searchParams,

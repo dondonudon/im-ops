@@ -13,10 +13,9 @@ import {
 	THead,
 	TR,
 } from "@/components/ui";
+import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, sanitizeSearch } from "@/lib/utils";
-
-const PAGE_SIZE = 25;
 
 /**
  * Customer list page — desktop table + mobile card list, both on the UI kit.

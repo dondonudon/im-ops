@@ -16,6 +16,7 @@ import {
 	TR,
 	toneFor,
 } from "@/components/ui";
+import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { cn, formatJobSchedule, formatRupiah } from "@/lib/utils";
 
@@ -39,7 +40,6 @@ function customerOf(job: JobRow) {
 	return job.proposals?.leads?.customers?.name ?? "—";
 }
 
-const PAGE_SIZE = 25;
 const BOARD_COLS_SELECT = `id, job_number, status, move_date, move_time, move_end_date, revenue, proposals(leads(customers(name)))`;
 const BOARD_PER_COL = 50;
 

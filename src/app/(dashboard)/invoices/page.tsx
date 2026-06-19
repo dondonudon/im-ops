@@ -15,10 +15,9 @@ import {
 	TR,
 	toneFor,
 } from "@/components/ui";
+import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatRupiah } from "@/lib/utils";
-
-const PAGE_SIZE = 25;
 
 const STATUS_OPTS = ["", "sent", "partially_paid", "paid", "overdue", "cancelled"] as const;
 
