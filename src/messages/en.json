@@ -564,7 +564,16 @@
 			"manageInvoice": "Manage Invoice →",
 			"assignResources": "Assign Resources",
 			"expense": "+ Expense",
-			"backToList": "Jobs"
+			"backToList": "Jobs",
+			"estimationComparison": "Estimation vs Actual",
+			"estimatedCost": "Estimated cost",
+			"actualExpenses": "Actual expenses",
+			"variance": "Variance",
+			"viewEstimation": "View estimation →",
+			"noEstimation": "No estimation for this proposal yet.",
+			"createEstimation": "Create Estimation →",
+			"underBudget": "Under budget",
+			"overBudget": "Over budget"
 		},
 		"jobsTimeline": {
 			"backToJob": "Back to job",

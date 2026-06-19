@@ -1,6 +1,7 @@
 import { Columns3, List } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/shared/PendingLink";
 import {
 	Badge,
 	EmptyState,
@@ -138,10 +139,11 @@ export default async function JobsPage({
 										<p className="px-2 py-6 text-center text-xs text-ink-faint">—</p>
 									) : (
 										items.map((job) => (
-											<Link
+											<PendingLink
 												key={job.id}
 												href={`/jobs/${job.id}`}
 												className="block rounded-lg bg-surface border border-line shadow-token-sm p-3 transition-all hover:border-line-strong hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+												spinnerPosition="left"
 											>
 												<div className="flex items-center justify-between gap-2 mb-1">
 													<span className="font-mono text-xs font-bold text-ink">
@@ -161,7 +163,7 @@ export default async function JobsPage({
 														? formatJobSchedule(job.move_date, job.move_time, job.move_end_date)
 														: "—"}
 												</p>
-											</Link>
+											</PendingLink>
 										))
 									)}
 								</div>
@@ -185,12 +187,12 @@ export default async function JobsPage({
 								{jobs.map((job) => (
 									<TR key={job.id}>
 										<TD>
-											<Link
+											<PendingLink
 												href={`/jobs/${job.id}`}
 												className="font-mono text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 											>
 												{job.job_number}
-											</Link>
+											</PendingLink>
 										</TD>
 										<TD>{customerOf(job)}</TD>
 										<TD className="text-ink-muted">
@@ -220,7 +222,7 @@ export default async function JobsPage({
 					{/* Mobile cards */}
 					<div className="md:hidden space-y-3">
 						{jobs.map((job) => (
-							<Link
+							<PendingLink
 								key={job.id}
 								href={`/jobs/${job.id}`}
 								className="block bg-surface rounded-xl border border-line p-4 shadow-token active:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
@@ -250,7 +252,7 @@ export default async function JobsPage({
 										</p>
 									</div>
 								</div>
-							</Link>
+							</PendingLink>
 						))}
 						{jobs.length === 0 && (
 							<p className="py-10 text-center text-sm text-ink-faint">{t("empty")}</p>

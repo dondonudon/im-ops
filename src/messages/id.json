@@ -564,7 +564,16 @@
 			"manageInvoice": "Kelola Faktur →",
 			"assignResources": "Tugaskan Sumber Daya",
 			"expense": "+ Pengeluaran",
-			"backToList": "Pekerjaan"
+			"backToList": "Pekerjaan",
+			"estimationComparison": "Estimasi vs Aktual",
+			"estimatedCost": "Biaya estimasi",
+			"actualExpenses": "Pengeluaran aktual",
+			"variance": "Selisih",
+			"viewEstimation": "Lihat estimasi →",
+			"noEstimation": "Belum ada estimasi untuk proposal ini.",
+			"createEstimation": "Buat Estimasi →",
+			"underBudget": "Di bawah anggaran",
+			"overBudget": "Melebihi anggaran"
 		},
 		"jobsTimeline": {
 			"backToJob": "Kembali ke pekerjaan",

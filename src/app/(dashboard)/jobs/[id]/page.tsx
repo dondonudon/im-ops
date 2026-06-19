@@ -24,8 +24,28 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 	const tAssign = await getTranslations("panels.assignments");
 	const tPay = await getTranslations("panels.payments");
 
+	// Fetch job first to get proposal_id, then fetch all dependent data in parallel.
+	const { data: job } = await supabase
+		.from("jobs")
+		.select(`
+      *,
+      proposals(
+        id, proposal_number, final_price,
+        leads(
+          pickup_address, destination_address, destination_address_2,
+          customers(id, name, phone)
+        )
+      )
+    `)
+		.eq("id", id)
+		.single();
+
+	if (!job) notFound();
+
+	const proposalId = (job.proposals as { id: string } | null)?.id ?? null;
+
 	const [
-		{ data: job },
+		{ data: estimation },
 		{ data: assignments },
 		{ data: expenses },
 		{ data: timeline },
@@ -34,20 +54,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		{ data: jobMedia },
 		{ data: settingsRows },
 	] = await Promise.all([
-		supabase
-			.from("jobs")
-			.select(`
-        *,
-        proposals(
-          id, proposal_number, final_price,
-          leads(
-            pickup_address, destination_address, destination_address_2,
-            customers(id, name, phone)
-          )
-        )
-      `)
-			.eq("id", id)
-			.single(),
+		proposalId
+			? supabase
+					.from("estimations")
+					.select("id, outputs, inputs")
+					.eq("proposal_id", proposalId)
+					.maybeSingle()
+			: Promise.resolve({ data: null, error: null }),
 		supabase
 			.from("job_assignments")
 			.select(
@@ -95,8 +108,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 			]),
 	]);
 
-	if (!job) notFound();
-
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const pdfCompany = buildCompanySettings(settingsMap);
 	const pdfTemplate = buildInvoiceTemplateSettings(settingsMap);
@@ -112,6 +123,8 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 			customers: { id: string; name: string; phone: string | null } | null;
 		} | null;
 	} | null;
+
+	const estimationOutputs = (estimation?.outputs ?? {}) as Record<string, number>;
 
 	const customer = proposal?.leads?.customers ?? null;
 	const totalExpenses = (expenses ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
@@ -375,6 +388,67 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 						>
 							{t("logExpense")}
 						</Link>
+					</Card>
+
+					{/* Estimation vs Actual */}
+					<Card className="p-5 space-y-3">
+						<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
+							{t("estimationComparison")}
+						</h2>
+						{estimation && proposal ? (
+							<>
+								<div className="text-xs text-ink-muted space-y-1">
+									<div className="flex justify-between">
+										<span>{t("estimatedCost")}</span>
+										<span className="tabular-nums">
+											{formatRupiah(estimationOutputs.job_cost ?? 0)}
+										</span>
+									</div>
+									<div className="flex justify-between">
+										<span>{t("actualExpenses")}</span>
+										<span className="tabular-nums">{formatRupiah(totalExpenses)}</span>
+									</div>
+									<div className="flex justify-between font-medium border-t border-line pt-1 mt-1">
+										<span>{t("variance")}</span>
+										{(() => {
+											const variance = totalExpenses - (estimationOutputs.job_cost ?? 0);
+											return (
+												<span
+													className={`tabular-nums ${variance > 0 ? "text-danger" : "text-success"}`}
+												>
+													{variance > 0 ? "+" : ""}
+													{formatRupiah(variance)}
+												</span>
+											);
+										})()}
+									</div>
+								</div>
+								<Link
+									href={`/estimations/new?proposal_id=${proposal.id}`}
+									className={buttonStyles({
+										variant: "secondary",
+										size: "md",
+										className: "w-full",
+									})}
+								>
+									{t("viewEstimation")}
+								</Link>
+							</>
+						) : proposal ? (
+							<>
+								<p className="text-sm text-ink-faint">{t("noEstimation")}</p>
+								<Link
+									href={`/estimations/new?proposal_id=${proposal.id}`}
+									className={buttonStyles({
+										variant: "secondary",
+										size: "md",
+										className: "w-full",
+									})}
+								>
+									{t("createEstimation")}
+								</Link>
+							</>
+						) : null}
 					</Card>
 
 					{/* Invoice */}
