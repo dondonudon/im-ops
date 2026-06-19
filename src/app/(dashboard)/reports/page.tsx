@@ -165,9 +165,15 @@ export default async function ReportsPage({
 						className: "text-ink",
 					},
 				].map((kpi) => (
-					<Card key={kpi.label} className="p-5">
-						<p className="text-xs text-ink-muted uppercase tracking-wide mb-1">{kpi.label}</p>
-						<p className={`text-2xl font-bold tabular-nums ${kpi.className}`}>{kpi.value}</p>
+					<Card key={kpi.label} className="p-5 overflow-hidden">
+						<p className="text-xs text-ink-muted uppercase tracking-wide mb-1 truncate">
+							{kpi.label}
+						</p>
+						<p
+							className={`text-lg sm:text-xl lg:text-2xl font-bold tabular-nums leading-tight ${kpi.className}`}
+						>
+							{kpi.value}
+						</p>
 					</Card>
 				))}
 			</section>
