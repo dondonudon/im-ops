@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { FilterForm } from "@/components/shared/FilterForm";
 import {
 	Badge,
 	EmptyState,
@@ -77,7 +78,7 @@ export default async function ProposalsPage({
 			<PageHeader title={t("title")} />
 
 			<search>
-				<form method="GET">
+				<FilterForm>
 					<div className="flex gap-2 flex-wrap">
 						<Input
 							type="search"
@@ -100,7 +101,7 @@ export default async function ProposalsPage({
 							))}
 						</Select>
 					</div>
-				</form>
+				</FilterForm>
 			</search>
 
 			{/* Desktop table */}

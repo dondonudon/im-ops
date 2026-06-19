@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { FilterForm } from "@/components/shared/FilterForm";
 import {
 	Badge,
 	Button,
@@ -65,7 +66,7 @@ export default async function LeadsPage({
 
 			{/* Filters */}
 			<search>
-				<form method="GET" className="flex flex-wrap gap-2">
+				<FilterForm className="flex flex-wrap gap-2">
 					<Input
 						type="search"
 						name="q"
@@ -89,7 +90,7 @@ export default async function LeadsPage({
 					<Button type="submit" variant="secondary">
 						{tCommon("filter")}
 					</Button>
-				</form>
+				</FilterForm>
 			</search>
 
 			{/* List */}

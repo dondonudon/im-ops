@@ -1,6 +1,7 @@
 import { Columns3, List } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { FilterForm } from "@/components/shared/FilterForm";
 import { PendingLink } from "@/components/shared/PendingLink";
 import {
 	Badge,
@@ -124,7 +125,7 @@ export default async function JobsPage({
 
 			{view === "list" && (
 				<search>
-					<form method="GET">
+					<FilterForm>
 						<input type="hidden" name="view" value="list" />
 						<div className="flex gap-2 flex-wrap">
 							<Input
@@ -148,7 +149,7 @@ export default async function JobsPage({
 								))}
 							</Select>
 						</div>
-					</form>
+					</FilterForm>
 				</search>
 			)}
 

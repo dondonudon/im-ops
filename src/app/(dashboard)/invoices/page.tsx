@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { FilterForm } from "@/components/shared/FilterForm";
 import {
 	Badge,
 	EmptyState,
@@ -56,7 +57,7 @@ export default async function InvoicesPage({
 			<PageHeader title={t("title")} />
 
 			<search>
-				<form method="GET">
+				<FilterForm>
 					<Select
 						name="status"
 						defaultValue={status ?? ""}
@@ -69,7 +70,7 @@ export default async function InvoicesPage({
 							</option>
 						))}
 					</Select>
-				</form>
+				</FilterForm>
 			</search>
 
 			{/* Desktop table */}
