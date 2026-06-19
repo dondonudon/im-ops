@@ -5,6 +5,7 @@ import { PendingLink } from "@/components/shared/PendingLink";
 import {
 	Badge,
 	EmptyState,
+	Input,
 	PageHeader,
 	Pagination,
 	Select,
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui";
 import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
-import { cn, formatJobSchedule, formatRupiah } from "@/lib/utils";
+import { cn, formatJobSchedule, formatRupiah, sanitizeSearch } from "@/lib/utils";
 
 const STATUS_OPTS = ["", "scheduled", "in_progress", "completed", "cancelled"] as const;
 
@@ -46,9 +47,9 @@ const BOARD_PER_COL = 50;
 export default async function JobsPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ status?: string; view?: string; page?: string }>;
+	searchParams: Promise<{ status?: string; view?: string; page?: string; q?: string }>;
 }) {
-	const { status, view: rawView, page: rawPage } = await searchParams;
+	const { status, view: rawView, page: rawPage, q } = await searchParams;
 	const view = rawView === "board" ? "board" : "list";
 	const supabase = await createClient();
 	const t = await getTranslations("pages.jobs");
@@ -80,6 +81,34 @@ export default async function JobsPage({
 			.select(BOARD_COLS_SELECT, { count: "exact" })
 			.order("move_date", { ascending: false });
 		if (status) query = query.filter("status", "eq", status);
+		if (q) {
+			const safe = sanitizeSearch(q);
+			// Resolve customer name → leads → proposals to support OR with job_number
+			const { data: matchedCustomers } = await supabase
+				.from("customers")
+				.select("id")
+				.ilike("name", `%${safe}%`);
+			const proposalIds: string[] = [];
+			if (matchedCustomers?.length) {
+				const { data: matchedLeads } = await supabase
+					.from("leads")
+					.select("id")
+					.in("customer_id", matchedCustomers.map((c) => c.id));
+				const leadIds = matchedLeads?.map((l) => l.id) ?? [];
+				if (leadIds.length) {
+					const { data: matchedProposals } = await supabase
+						.from("proposals")
+						.select("id")
+						.in("lead_id", leadIds);
+					proposalIds.push(...(matchedProposals?.map((p) => p.id) ?? []));
+				}
+			}
+			if (proposalIds.length) {
+				query = query.or(`job_number.ilike.%${safe}%,proposal_id.in.(${proposalIds.join(",")})`);
+			} else {
+				query = query.ilike("job_number", `%${safe}%`);
+			}
+		}
 		query = query.range(from, from + PAGE_SIZE - 1);
 		const result = await query;
 		jobs = (result.data ?? []) as JobRow[];
@@ -94,18 +123,28 @@ export default async function JobsPage({
 				<search>
 					<form method="GET">
 						<input type="hidden" name="view" value="list" />
-						<Select
-							name="status"
-							defaultValue={status ?? ""}
-							aria-label={t("columns.status")}
-							className="w-auto"
-						>
-							{STATUS_OPTS.map((s) => (
-								<option key={s} value={s}>
-									{s === "" ? t("filterAll") : tStatus(s as never)}
-								</option>
-							))}
-						</Select>
+						<div className="flex gap-2 flex-wrap">
+							<Input
+								type="search"
+								name="q"
+								defaultValue={q}
+								placeholder={t("searchPlaceholder")}
+								aria-label={t("searchPlaceholder")}
+								className="max-w-sm"
+							/>
+							<Select
+								name="status"
+								defaultValue={status ?? ""}
+								aria-label={t("columns.status")}
+								className="w-auto"
+							>
+								{STATUS_OPTS.map((s) => (
+									<option key={s} value={s}>
+										{s === "" ? t("filterAll") : tStatus(s as never)}
+									</option>
+								))}
+							</Select>
+						</div>
 					</form>
 				</search>
 			)}
@@ -211,7 +250,7 @@ export default async function JobsPage({
 								{jobs.length === 0 && (
 									<TR>
 										<TD colSpan={5}>
-											<EmptyState title={t("empty")} />
+											<EmptyState title={(q || status) ? t("emptyFiltered") : t("empty")} />
 										</TD>
 									</TR>
 								)}
@@ -255,7 +294,7 @@ export default async function JobsPage({
 							</PendingLink>
 						))}
 						{jobs.length === 0 && (
-							<p className="py-10 text-center text-sm text-ink-faint">{t("empty")}</p>
+							<EmptyState title={(q || status) ? t("emptyFiltered") : t("empty")} className="py-10" />
 						)}
 					</div>
 

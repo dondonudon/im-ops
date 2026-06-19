@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import {
 	Badge,
 	EmptyState,
+	Input,
 	Money,
 	PageHeader,
 	Pagination,
@@ -17,16 +18,16 @@ import {
 } from "@/components/ui";
 import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
-import { formatDate } from "@/lib/utils";
+import { formatDate, sanitizeSearch } from "@/lib/utils";
 
 const STATUS_OPTS = ["", "draft", "sent", "negotiating", "approved", "lost", "expired"] as const;
 
 export default async function ProposalsPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ status?: string; page?: string }>;
+	searchParams: Promise<{ status?: string; page?: string; q?: string }>;
 }) {
-	const { status, page: rawPage } = await searchParams;
+	const { status, page: rawPage, q } = await searchParams;
 	const page = Math.max(1, Number(rawPage) || 1);
 	const from = (page - 1) * PAGE_SIZE;
 	const supabase = await createClient();
@@ -42,6 +43,27 @@ export default async function ProposalsPage({
 	);
 
 	if (status) query = query.filter("status", "eq", status);
+	if (q) {
+		const safe = sanitizeSearch(q);
+		// Resolve customer name → leads to support OR with proposal_number
+		const { data: matchedCustomers } = await supabase
+			.from("customers")
+			.select("id")
+			.ilike("name", `%${safe}%`);
+		const leadIds: string[] = [];
+		if (matchedCustomers?.length) {
+			const { data: matchedLeads } = await supabase
+				.from("leads")
+				.select("id")
+				.in("customer_id", matchedCustomers.map((c) => c.id));
+			leadIds.push(...(matchedLeads?.map((l) => l.id) ?? []));
+		}
+		if (leadIds.length) {
+			query = query.or(`proposal_number.ilike.%${safe}%,lead_id.in.(${leadIds.join(",")})`);
+		} else {
+			query = query.ilike("proposal_number", `%${safe}%`);
+		}
+	}
 
 	const { data: proposals, count } = await query
 		.order("created_at", { ascending: false })
@@ -53,18 +75,28 @@ export default async function ProposalsPage({
 
 			<search>
 				<form method="GET">
-					<Select
-						name="status"
-						defaultValue={status ?? ""}
-						aria-label={t("columns.status")}
-						className="w-auto"
-					>
-						{STATUS_OPTS.map((s) => (
-							<option key={s} value={s}>
-								{s === "" ? t("filterAll") : tStatus(s as never)}
-							</option>
-						))}
-					</Select>
+					<div className="flex gap-2 flex-wrap">
+						<Input
+							type="search"
+							name="q"
+							defaultValue={q}
+							placeholder={t("searchPlaceholder")}
+							aria-label={t("searchPlaceholder")}
+							className="max-w-sm"
+						/>
+						<Select
+							name="status"
+							defaultValue={status ?? ""}
+							aria-label={t("columns.status")}
+							className="w-auto"
+						>
+							{STATUS_OPTS.map((s) => (
+								<option key={s} value={s}>
+									{s === "" ? t("filterAll") : tStatus(s as never)}
+								</option>
+							))}
+						</Select>
+					</div>
 				</form>
 			</search>
 
@@ -112,7 +144,7 @@ export default async function ProposalsPage({
 						{(proposals ?? []).length === 0 && (
 							<TR>
 								<td colSpan={5}>
-									<EmptyState title={t("empty")} />
+									<EmptyState title={(q || status) ? t("emptyFiltered") : t("empty")} />
 								</td>
 							</TR>
 						)}
@@ -154,7 +186,7 @@ export default async function ProposalsPage({
 						</Link>
 					);
 				})}
-				{(proposals ?? []).length === 0 && <EmptyState title={t("empty")} className="py-10" />}
+				{(proposals ?? []).length === 0 && <EmptyState title={(q || status) ? t("emptyFiltered") : t("empty")} className="py-10" />}
 			</div>
 
 			<Pagination page={page} pageSize={PAGE_SIZE} total={count ?? 0} />
