@@ -548,8 +548,7 @@ function Agenda({ viewDate, entries }: AgendaProps) {
  * Multi-day events render on every spanned day with a day-N/M suffix.
  */
 export function MobileCalendarView({ events }: { events: CalendarEvent[] }) {
-	const today = new Date();
-	const todayStr = toDateStr(today);
+	const todayStr = useMemo(() => toDateStr(new Date()), []);
 
 	const [view, setView] = useState<View>("month");
 	const [viewDate, setViewDate] = useState(todayStr);

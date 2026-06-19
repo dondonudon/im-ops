@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button, Field, FormError, Input, Textarea } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { mapDbError } from "@/lib/utils";
 
 type FleetRow = {
 	id: string;
@@ -98,7 +99,7 @@ export function FleetForm({ fleet }: { fleet?: FleetRow }) {
 		if (isEdit && fleet) {
 			const { error: err } = await supabase.from("fleet").update(payload).eq("id", fleet.id);
 			if (err) {
-				setError(err.message);
+				setError(mapDbError(err));
 				setSaving(false);
 				return;
 			}
@@ -110,7 +111,7 @@ export function FleetForm({ fleet }: { fleet?: FleetRow }) {
 				.select("id")
 				.single();
 			if (err || !data) {
-				setError(err?.message ?? "Error");
+				setError(mapDbError(err));
 				setSaving(false);
 				return;
 			}

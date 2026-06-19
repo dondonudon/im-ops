@@ -133,6 +133,15 @@ export function sanitizeSearch(input: string): string {
 		.trim();
 }
 
+/** Map a Supabase/Postgres error to a safe user-facing message. */
+export function mapDbError(err: unknown): string {
+	if (err && typeof err === "object" && "code" in err) {
+		const { code } = err as { code: string };
+		if (code === "23505") return "A record with this value already exists.";
+	}
+	return "An unexpected error occurred. Please try again.";
+}
+
 /** Build a WhatsApp deeplink URL with pre-filled text. */
 export function buildWhatsAppLink(phone: string, message: string): string {
 	// Strip non-numeric chars, ensure leading country code

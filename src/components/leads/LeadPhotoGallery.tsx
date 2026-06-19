@@ -3,7 +3,7 @@ import { Upload, X, ZoomIn } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { type LightboxPhoto, PhotoLightbox } from "@/components/shared/PhotoLightbox";
 import { buttonStyles, Card } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
@@ -41,17 +41,26 @@ export function LeadPhotoGallery({
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const supabase = useMemo(() => createClient(), []);
+	const [photoUrls, setPhotoUrls] = useState<Map<string, string>>(new Map());
 
-	const photoUrls = useMemo(
-		() =>
-			new Map(
-				photos.map((p) => [
-					p.storage_path,
-					supabase.storage.from("lead-photos").getPublicUrl(p.storage_path).data.publicUrl,
-				]),
-			),
-		[photos, supabase],
-	);
+	useEffect(() => {
+		let cancelled = false;
+		async function refreshUrls() {
+			const entries = await Promise.all(
+				photos.map(async (p) => {
+					const { data } = await supabase.storage
+						.from("lead-photos")
+						.createSignedUrl(p.storage_path, 3600);
+					return [p.storage_path, data?.signedUrl ?? ""] as const;
+				}),
+			);
+			if (!cancelled) setPhotoUrls(new Map(entries));
+		}
+		refreshUrls();
+		return () => {
+			cancelled = true;
+		};
+	}, [photos, supabase]);
 
 	async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const files = Array.from(e.target.files ?? []);
@@ -59,11 +68,17 @@ export function LeadPhotoGallery({
 		setError(null);
 		setUploading(true);
 
+		const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+
 		try {
 			for (const file of files) {
 				// Validate file type
 				if (!file.type.startsWith("image/")) {
 					setError(tErrors("notAnImage", { name: file.name }));
+					continue;
+				}
+				if (file.size > MAX_IMAGE_BYTES) {
+					setError(tErrors("uploadFailed"));
 					continue;
 				}
 
@@ -156,34 +171,44 @@ export function LeadPhotoGallery({
 									key={photo.id}
 									className="relative group rounded-lg overflow-hidden aspect-square bg-subtle"
 								>
-									<Image
-										src={photoUrls.get(photo.storage_path) ?? ""}
-										alt={photo.caption ?? t("fallbackAlt")}
-										fill
-										priority={actualIndex === 0}
-										className="object-cover transition-transform duration-200 group-hover:scale-105"
-										sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-									/>
-									<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-									<button
-										type="button"
-										onClick={() => setLightboxIndex(actualIndex)}
-										className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
-										aria-label={t("viewPhoto", {
-											n: actualIndex + 1,
-											total: photos.length,
-										})}
-									>
-										<ZoomIn size={22} className="text-white drop-shadow-lg" aria-hidden="true" />
-									</button>
-									<button
-										type="button"
-										onClick={() => handleDelete(photo)}
-										className="absolute top-1.5 right-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-opacity z-10"
-										aria-label={t("deletePhoto")}
-									>
-										<X size={12} aria-hidden="true" />
-									</button>
+									{photoUrls.get(photo.storage_path) ? (
+										<>
+											<Image
+												src={photoUrls.get(photo.storage_path) as string}
+												alt={photo.caption ?? t("fallbackAlt")}
+												fill
+												priority={actualIndex === 0}
+												className="object-cover transition-transform duration-200 group-hover:scale-105"
+												sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+											/>
+											<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+											<button
+												type="button"
+												onClick={() => setLightboxIndex(actualIndex)}
+												className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+												aria-label={t("viewPhoto", {
+													n: actualIndex + 1,
+													total: photos.length,
+												})}
+											>
+												<ZoomIn
+													size={22}
+													className="text-white drop-shadow-lg"
+													aria-hidden="true"
+												/>
+											</button>
+											<button
+												type="button"
+												onClick={() => handleDelete(photo)}
+												className="absolute top-1.5 right-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-opacity z-10"
+												aria-label={t("deletePhoto")}
+											>
+												<X size={12} aria-hidden="true" />
+											</button>
+										</>
+									) : (
+										<div className="absolute inset-0 animate-pulse bg-subtle" />
+									)}
 								</li>
 							);
 						})}

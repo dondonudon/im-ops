@@ -50,6 +50,6 @@ export async function GET(request: Request) {
 		}
 	}
 
-	// Auth failed — redirect back to login with error hint
-	return NextResponse.redirect(`${origin}/login?error=auth_failed`);
+	// Auth failed — redirect back to login (no error detail in URL to avoid leaking to history/logs)
+	return NextResponse.redirect(`${origin}/login`);
 }

@@ -16,6 +16,8 @@ export async function setLocale(next: Locale): Promise<void> {
 		path: "/",
 		maxAge: 60 * 60 * 24 * 365, // 1y
 		sameSite: "lax",
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production",
 	});
 	revalidatePath("/", "layout");
 }

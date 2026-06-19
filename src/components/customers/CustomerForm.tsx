@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button, Field, FormError, Input, Select, Textarea } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
-import { capitalizeWords } from "@/lib/utils";
+import { capitalizeWords, mapDbError } from "@/lib/utils";
 
 /**
  * Create / edit customer form.
@@ -84,7 +84,7 @@ export function CustomerForm({
 				router.push(`/customers/${data.id}`);
 			}
 		} catch (err: unknown) {
-			setError(err instanceof Error ? err.message : "An error occurred. Please try again.");
+			setError(mapDbError(err));
 		} finally {
 			setSaving(false);
 		}

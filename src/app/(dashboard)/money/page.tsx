@@ -74,7 +74,8 @@ export default async function MoneyPage({
 			.from("invoices")
 			.select("id, invoice_number, total_amount, paid_amount, due_date, status")
 			.neq("status", "paid")
-			.neq("status", "cancelled"),
+			.neq("status", "cancelled")
+			.limit(200),
 		// Actual cash received: payments made in this month
 		supabase.from("payments").select("amount").gte("paid_at", monthStart).lt("paid_at", monthEnd),
 		supabase
@@ -90,7 +91,7 @@ export default async function MoneyPage({
 			.lt("paid_at", monthEnd)
 			.order("paid_at", { ascending: false })
 			.limit(8),
-		supabase.from("invoices").select("status, total_amount").neq("status", "cancelled"),
+		supabase.from("invoices").select("status, total_amount").neq("status", "cancelled").limit(200),
 	]);
 
 	const invRows = (outstandingData ?? []) as InvRow[];

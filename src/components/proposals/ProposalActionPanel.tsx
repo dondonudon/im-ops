@@ -9,7 +9,7 @@ import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { Button, buttonStyles, Card, Field, FormError, Input, Select } from "@/components/ui";
 import { syncJobToCalendar } from "@/lib/gcal/actions";
 import { createClient } from "@/lib/supabase/client";
-import { formatRupiah } from "@/lib/utils";
+import { formatRupiah, mapDbError } from "@/lib/utils";
 
 type Proposal = {
 	id: string;
@@ -83,7 +83,7 @@ export function ProposalActionPanel({
 				}),
 			]);
 			if (updateRes.error || revRes.error) {
-				setError(updateRes.error?.message ?? revRes.error?.message ?? "Error");
+				setError(mapDbError(updateRes.error ?? revRes.error));
 				return;
 			}
 			await supabase.from("leads").update({ status: "proposal_sent" }).eq("id", proposal.lead_id);
@@ -130,7 +130,7 @@ export function ProposalActionPanel({
 
 	// ── WhatsApp message templates ──────────────────────────────────
 	const waMessage = customer?.phone
-		? `Halo ${customer.name}, berikut proposal pindahan dari IM Moving:%0A%0ANo. Proposal: ${proposal.id}%0ATotal: Rp ${proposal.final_price?.toLocaleString("id-ID") ?? "?"}%0A%0ASilakan dicek dan konfirmasi. Terima kasih.`
+		? `Halo ${customer.name}, berikut proposal pindahan dari IM Moving:\n\nNo. Proposal: ${proposal.id}\nTotal: Rp ${proposal.final_price?.toLocaleString("id-ID") ?? "?"}\n\nSilakan dicek dan konfirmasi. Terima kasih.`
 		: "";
 
 	return (
@@ -335,7 +335,7 @@ function CounterOfferModal({
 			]);
 			onDone();
 		} catch (err: unknown) {
-			setError(err instanceof Error ? err.message : "Error");
+			setError(mapDbError(err));
 		} finally {
 			setSaving(false);
 		}
@@ -564,7 +564,7 @@ function ConvertToJobModal({
 
 			router.push(`/jobs/${newJob.id}`);
 		} catch (err: unknown) {
-			setError(err instanceof Error ? err.message : "Error");
+			setError(mapDbError(err));
 			setSaving(false);
 		}
 	}

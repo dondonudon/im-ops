@@ -42,7 +42,13 @@ function isConfigured(): boolean {
 
 /** Obtain a short-lived access token using the service account key. */
 async function getAccessToken(): Promise<string> {
-	const key = JSON.parse(process.env.GCAL_SERVICE_ACCOUNT_KEY ?? "{}");
+	let key: Record<string, string>;
+	try {
+		key = JSON.parse(process.env.GCAL_SERVICE_ACCOUNT_KEY ?? "{}") as Record<string, string>;
+		if (!key.client_email || !key.private_key) throw new Error("incomplete");
+	} catch {
+		throw new Error("GCal service account key is missing or malformed.");
+	}
 	const auth = new GoogleAuth({
 		credentials: key,
 		scopes: ["https://www.googleapis.com/auth/calendar.events"],

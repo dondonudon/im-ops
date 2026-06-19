@@ -62,13 +62,18 @@ export function queuedCount(): number {
 	return read().length;
 }
 
+const MAX_QUEUE_SIZE = 500;
+
 export function enqueueExpense(expense: Omit<QueuedExpense, "id" | "queued_at">): QueuedExpense {
 	const entry: QueuedExpense = {
 		...expense,
 		id: crypto.randomUUID(),
 		queued_at: Date.now(),
 	};
-	write([...read(), entry]);
+	const current = read();
+	const next = [...current, entry];
+	// Drop oldest entries when the cap is exceeded to prevent unbounded localStorage growth.
+	write(next.length > MAX_QUEUE_SIZE ? next.slice(next.length - MAX_QUEUE_SIZE) : next);
 	notify();
 	return entry;
 }

@@ -29,17 +29,12 @@ export async function advanceLead(leadId: string, toStage: Stage): Promise<Advan
 	} = await supabase.auth.getUser();
 	if (!user) return { ok: false, reason: "error" };
 
-	const { data: lead, error: leadErr } = await supabase
-		.from("leads")
-		.select("id, status")
-		.eq("id", leadId)
-		.single();
+	const [{ data: lead, error: leadErr }, { data: proposalsData }] = await Promise.all([
+		supabase.from("leads").select("id, status").eq("id", leadId).single(),
+		supabase.from("proposals").select("id, status").eq("lead_id", leadId),
+	]);
 	if (leadErr || !lead) return { ok: false, reason: "error" };
 
-	const { data: proposalsData } = await supabase
-		.from("proposals")
-		.select("id, status")
-		.eq("lead_id", leadId);
 	const proposals = proposalsData ?? [];
 	const proposalIds = proposals.map((p) => p.id);
 	const hasNonTerminalProposal = proposals.some((p) =>

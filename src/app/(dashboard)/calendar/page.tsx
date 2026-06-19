@@ -8,6 +8,14 @@ export default async function CalendarPage() {
 	const supabase = await createClient();
 	const t = await getTranslations("pages.calendar");
 
+	const now = new Date();
+	const windowStart = new Date(now);
+	windowStart.setFullYear(windowStart.getFullYear() - 1);
+	const windowEnd = new Date(now);
+	windowEnd.setMonth(windowEnd.getMonth() + 6);
+	const startDate = windowStart.toISOString().slice(0, 10);
+	const endDate = windowEnd.toISOString().slice(0, 10);
+
 	const [{ data: jobs }, { data: surveys }] = await Promise.all([
 		supabase
 			.from("jobs")
@@ -16,6 +24,8 @@ export default async function CalendarPage() {
 				proposals(leads(customers(name), pickup_address, destination_address))
 			`)
 			.not("move_date", "is", null)
+			.gte("move_date", startDate)
+			.lte("move_date", endDate)
 			.order("move_date"),
 		supabase
 			.from("surveys")
@@ -24,6 +34,8 @@ export default async function CalendarPage() {
 				leads(id, customers(name))
 			`)
 			.not("scheduled_at", "is", null)
+			.gte("scheduled_at", `${startDate}T00:00:00`)
+			.lte("scheduled_at", `${endDate}T23:59:59`)
 			.order("scheduled_at"),
 	]);
 

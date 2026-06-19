@@ -90,7 +90,7 @@ export default async function ReportsPage({
 					.select("job_number, revenue, actual_spend, current_profit")
 					.in("job_id", monthJobIds)
 					.order("current_profit", { ascending: false })
-					.limit(20)
+					.limit(10)
 			: { data: [] };
 
 	const expenseByCategory: Record<string, number> = {};

@@ -3,8 +3,8 @@
 import { FileText, Loader2, Trash2, Upload, ZoomIn } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useRef, useState } from "react";
-import { type LightboxPhoto, PhotoLightbox } from "@/components/shared/PhotoLightbox";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { PhotoLightbox } from "@/components/shared/PhotoLightbox";
 import { Card } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { resizeImage } from "@/lib/utils";
@@ -32,10 +32,35 @@ export function JobMediaPanel({
 	const [error, setError] = useState<string | null>(null);
 	const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 	const [showAll, setShowAll] = useState(false);
+	const [signedUrls, setSignedUrls] = useState<Map<string, string>>(new Map());
 	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	const supabase = useMemo(() => createClient(), []);
+
+	useEffect(() => {
+		let cancelled = false;
+		async function refreshUrls() {
+			const entries = await Promise.all(
+				media.map(async (m) => {
+					const { data } = await supabase.storage
+						.from("job-media")
+						.createSignedUrl(m.storage_path, 3600);
+					return [m.storage_path, data?.signedUrl ?? ""] as const;
+				}),
+			);
+			if (!cancelled) setSignedUrls(new Map(entries));
+		}
+		refreshUrls();
+		return () => {
+			cancelled = true;
+		};
+	}, [media, supabase]);
 
 	const photos = media.filter((m) => m.media_type === "photo");
 	const pdfs = media.filter((m) => m.media_type === "pdf");
+
+	const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+	const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
 	async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const files = Array.from(e.target.files ?? []);
@@ -44,12 +69,19 @@ export function JobMediaPanel({
 		setUploading(true);
 
 		try {
-			const supabase = createClient();
 			for (const file of files) {
 				const isPdf = file.type === "application/pdf";
 				const isImage = file.type.startsWith("image/");
 				if (!isPdf && !isImage) {
 					setError(t("unsupportedFile", { name: file.name }));
+					continue;
+				}
+				if (isPdf && file.size > MAX_PDF_BYTES) {
+					setError(tErrors("uploadFailed"));
+					continue;
+				}
+				if (isImage && file.size > MAX_IMAGE_BYTES) {
+					setError(tErrors("uploadFailed"));
 					continue;
 				}
 
@@ -102,7 +134,6 @@ export function JobMediaPanel({
 	}
 
 	async function removeMedia(id: string, storagePath: string) {
-		const supabase = createClient();
 		await supabase.storage.from("job-media").remove([storagePath]);
 		await supabase.from("job_media").delete().eq("id", id);
 		setMedia((prev) => prev.filter((m) => m.id !== id));
@@ -156,22 +187,23 @@ export function JobMediaPanel({
 						>
 							{visiblePhotos.map((m) => {
 								const photoIndex = photos.indexOf(m);
-								const supabase = createClient();
-								const { data: urlData } = supabase.storage
-									.from("job-media")
-									.getPublicUrl(m.storage_path);
+								const url = signedUrls.get(m.storage_path);
 								return (
 									<li
 										key={m.id}
 										className="relative group rounded-xl overflow-hidden aspect-square bg-subtle"
 									>
-										<Image
-											src={urlData.publicUrl}
-											alt={m.caption ?? t("photoAlt")}
-											fill
-											sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-											className="object-cover transition-transform duration-200 group-hover:scale-105"
-										/>
+										{url ? (
+											<Image
+												src={url}
+												alt={m.caption ?? t("photoAlt")}
+												fill
+												sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+												className="object-cover transition-transform duration-200 group-hover:scale-105"
+											/>
+										) : (
+											<div className="absolute inset-0 animate-pulse bg-subtle" />
+										)}
 										<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
 										<button
 											type="button"
@@ -209,17 +241,14 @@ export function JobMediaPanel({
 					{pdfs.length > 0 && (
 						<ul className="space-y-1.5" aria-label={t("documents")}>
 							{pdfs.map((m) => {
-								const supabase = createClient();
-								const { data: urlData } = supabase.storage
-									.from("job-media")
-									.getPublicUrl(m.storage_path);
+								const url = signedUrls.get(m.storage_path);
 								return (
 									<li
 										key={m.id}
 										className="flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-sm"
 									>
 										<a
-											href={urlData.publicUrl}
+											href={url}
 											target="_blank"
 											rel="noopener noreferrer"
 											className="flex items-center gap-2 text-primary-text hover:underline min-w-0"
@@ -243,24 +272,21 @@ export function JobMediaPanel({
 				</>
 			)}
 
-			{lightboxIndex !== null &&
-				(() => {
-					const supabase = createClient();
-					const lightboxPhotos: LightboxPhoto[] = photos.map((m) => ({
-						src: supabase.storage.from("job-media").getPublicUrl(m.storage_path).data.publicUrl,
-						alt: m.caption ?? t("photoAlt"),
-						caption: m.caption,
-					}));
-					return (
-						<PhotoLightbox
-							photos={lightboxPhotos}
-							index={lightboxIndex}
-							onClose={() => setLightboxIndex(null)}
-							onPrev={() => setLightboxIndex((i) => Math.max(0, (i ?? 0) - 1))}
-							onNext={() => setLightboxIndex((i) => Math.min(photos.length - 1, (i ?? 0) + 1))}
-						/>
-					);
-				})()}
+			{lightboxIndex !== null && (
+				<PhotoLightbox
+					photos={photos
+						.map((m) => ({
+							src: signedUrls.get(m.storage_path) ?? "",
+							alt: m.caption ?? t("photoAlt"),
+							caption: m.caption,
+						}))
+						.filter((p) => p.src !== "")}
+					index={lightboxIndex}
+					onClose={() => setLightboxIndex(null)}
+					onPrev={() => setLightboxIndex((i) => Math.max(0, (i ?? 0) - 1))}
+					onNext={() => setLightboxIndex((i) => Math.min(photos.length - 1, (i ?? 0) + 1))}
+				/>
+			)}
 		</Card>
 	);
 }

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { NumericInput } from "@/components/shared/NumericInput";
 import { Button, Field, FormError, Input, Select, Textarea } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { mapDbError } from "@/lib/utils";
 
 type CrewRow = {
 	id: string;
@@ -92,7 +93,7 @@ export function CrewForm({ member }: { member?: CrewRow }) {
 		if (isEdit && member) {
 			const { error: err } = await supabase.from("crew").update(payload).eq("id", member.id);
 			if (err) {
-				setError(err.message);
+				setError(mapDbError(err));
 				setSaving(false);
 				return;
 			}
@@ -104,7 +105,7 @@ export function CrewForm({ member }: { member?: CrewRow }) {
 				.select("id")
 				.single();
 			if (err || !data) {
-				setError(err?.message ?? "Error");
+				setError(mapDbError(err));
 				setSaving(false);
 				return;
 			}

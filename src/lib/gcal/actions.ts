@@ -82,6 +82,10 @@ function addHoursToHHMM(time: string, hours: number): string {
  */
 export async function syncSurveyToCalendar(surveyId: string): Promise<ActionResult> {
 	const supabase = await createClient();
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+	if (!user) return { ok: false, error: "Unauthorized" };
 
 	const { data: survey } = await supabase
 		.from("surveys")
@@ -127,6 +131,10 @@ export async function syncSurveyToCalendar(surveyId: string): Promise<ActionResu
  */
 export async function syncJobToCalendar(jobId: string): Promise<ActionResult> {
 	const supabase = await createClient();
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+	if (!user) return { ok: false, error: "Unauthorized" };
 
 	const { data: job } = await supabase
 		.from("jobs")
@@ -209,6 +217,10 @@ async function upsertEvent(
  */
 export async function removeJobCalendarEvent(jobId: string): Promise<GCalResult> {
 	const supabase = await createClient();
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+	if (!user) return { ok: false, error: "Unauthorized" };
 	const calendarId = await getCalendarId();
 	if (!calendarId) return { ok: false, error: "Google Calendar not configured." };
 
@@ -225,6 +237,23 @@ export async function removeJobCalendarEvent(jobId: string): Promise<GCalResult>
 		await supabase.from("jobs").update({ gcal_event_id: null }).eq("id", jobId);
 	}
 	return result;
+}
+
+async function syncChunked<T>(
+	items: T[],
+	fn: (item: T) => Promise<{ ok: boolean }>,
+	chunkSize = 5,
+): Promise<{ ok: number; failed: number }> {
+	const results = { ok: 0, failed: 0 };
+	for (let i = 0; i < items.length; i += chunkSize) {
+		const chunk = items.slice(i, i + chunkSize);
+		const chunkResults = await Promise.all(chunk.map(fn));
+		for (const r of chunkResults) {
+			if (r.ok) results.ok += 1;
+			else results.failed += 1;
+		}
+	}
+	return results;
 }
 
 /**
@@ -244,6 +273,10 @@ export async function syncAllToCalendar(): Promise<{
 	cutoffISO: string;
 }> {
 	const supabase = await createClient();
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+	if (!user) throw new Error("Unauthorized");
 	const cutoff = new Date();
 	cutoff.setDate(cutoff.getDate() - 30);
 	const cutoffISO = cutoff.toISOString().slice(0, 10);
@@ -255,19 +288,8 @@ export async function syncAllToCalendar(): Promise<{
 		supabase.from("surveys").select("id").gte("scheduled_at", `${cutoffISO}T00:00:00+00:00`),
 	]);
 
-	const jobResults = { ok: 0, failed: 0 };
-	for (const j of jobs ?? []) {
-		const r = await syncJobToCalendar(j.id);
-		if (r.ok) jobResults.ok += 1;
-		else jobResults.failed += 1;
-	}
-
-	const surveyResults = { ok: 0, failed: 0 };
-	for (const s of surveys ?? []) {
-		const r = await syncSurveyToCalendar(s.id);
-		if (r.ok) surveyResults.ok += 1;
-		else surveyResults.failed += 1;
-	}
+	const jobResults = await syncChunked(jobs ?? [], (j) => syncJobToCalendar(j.id));
+	const surveyResults = await syncChunked(surveys ?? [], (s) => syncSurveyToCalendar(s.id));
 
 	return { jobs: jobResults, surveys: surveyResults, cutoffISO };
 }

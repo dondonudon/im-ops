@@ -32,6 +32,36 @@ export async function middleware(request: NextRequest) {
 		data: { user },
 	} = await supabase.auth.getUser();
 
+	// Apply security headers to every response, including public routes
+	supabaseResponse.headers.set("X-Frame-Options", "DENY");
+	supabaseResponse.headers.set("X-Content-Type-Options", "nosniff");
+	supabaseResponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+	// 'unsafe-eval' is required by Next.js React Fast Refresh in development only.
+	const scriptSrc =
+		process.env.NODE_ENV === "production"
+			? "script-src 'self' 'unsafe-inline'"
+			: "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+	supabaseResponse.headers.set(
+		"Content-Security-Policy",
+		[
+			"default-src 'self'",
+			scriptSrc,
+			"style-src 'self' 'unsafe-inline'",
+			"img-src 'self' *.supabase.co data: blob:",
+			"connect-src 'self' *.supabase.co",
+			"font-src 'self'",
+			"frame-src 'none'",
+			"object-src 'none'",
+			"base-uri 'self'",
+		].join("; "),
+	);
+	if (process.env.NODE_ENV === "production") {
+		supabaseResponse.headers.set(
+			"Strict-Transport-Security",
+			"max-age=31536000; includeSubDomains",
+		);
+	}
+
 	const { pathname } = request.nextUrl;
 
 	// Allow public routes
@@ -50,16 +80,6 @@ export async function middleware(request: NextRequest) {
 		const url = request.nextUrl.clone();
 		url.pathname = "/login";
 		return NextResponse.redirect(url);
-	}
-
-	supabaseResponse.headers.set("X-Frame-Options", "DENY");
-	supabaseResponse.headers.set("X-Content-Type-Options", "nosniff");
-	supabaseResponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-	if (process.env.NODE_ENV === "production") {
-		supabaseResponse.headers.set(
-			"Strict-Transport-Security",
-			"max-age=31536000; includeSubDomains",
-		);
 	}
 
 	return supabaseResponse;

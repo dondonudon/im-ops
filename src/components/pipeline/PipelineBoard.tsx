@@ -156,36 +156,19 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 		performDrop(id, STAGE_ORDER[next]);
 	}
 
-	// Window-level pointer engine — attached once.
+	// Passive listener: drag initiation + pointer up/cancel.
+	// Registered as passive so it never blocks scroll on touch devices.
 	useEffect(() => {
 		function onMove(e: PointerEvent) {
 			const p = pressRef.current;
-			if (!p) return;
+			if (!p || p.started) return; // active drag handled by the non-passive effect below
 			const dist = Math.hypot(e.clientX - p.x, e.clientY - p.y);
-
-			if (!p.started) {
-				const canDrag = p.fromHandle || p.pointerType === "mouse" || p.pointerType === "pen";
-				if (canDrag && dist > THRESHOLD) {
-					activateDrag();
-				} else if (!p.fromHandle && p.pointerType === "touch") {
-					// Touch on the card body = scroll/tap, never a drag.
-					pressRef.current = null;
-					return;
-				} else {
-					return;
-				}
-				if (!pressRef.current?.started) return;
-			}
-
-			// dragging
-			e.preventDefault();
-			setGhost({ x: e.clientX, y: e.clientY });
-			setOverStage(stageAtPoint(e.clientX, e.clientY));
-
-			const board = boardRef.current;
-			if (board) {
-				const r = board.getBoundingClientRect();
-				autoDirRef.current = e.clientX > r.right - EDGE ? 1 : e.clientX < r.left + EDGE ? -1 : 0;
+			const canDrag = p.fromHandle || p.pointerType === "mouse" || p.pointerType === "pen";
+			if (canDrag && dist > THRESHOLD) {
+				activateDrag();
+			} else if (!p.fromHandle && p.pointerType === "touch") {
+				// Touch on the card body = scroll/tap, never a drag.
+				pressRef.current = null;
 			}
 		}
 
@@ -212,7 +195,7 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 			}
 		}
 
-		window.addEventListener("pointermove", onMove, { passive: false });
+		window.addEventListener("pointermove", onMove, { passive: true });
 		window.addEventListener("pointerup", onUp);
 		window.addEventListener("pointercancel", onUp);
 		return () => {
@@ -221,6 +204,26 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 			window.removeEventListener("pointercancel", onUp);
 		};
 	}, [stageAtPoint, performDrop, activateDrag]);
+
+	// Non-passive listener: ghost position + scroll prevention — only active while dragging.
+	// Registered only when dragId is set so touch scroll is never blocked at rest.
+	useEffect(() => {
+		if (!dragId) return;
+		function onMove(e: PointerEvent) {
+			const p = pressRef.current;
+			if (!p?.started) return;
+			e.preventDefault();
+			setGhost({ x: e.clientX, y: e.clientY });
+			setOverStage(stageAtPoint(e.clientX, e.clientY));
+			const board = boardRef.current;
+			if (board) {
+				const r = board.getBoundingClientRect();
+				autoDirRef.current = e.clientX > r.right - EDGE ? 1 : e.clientX < r.left + EDGE ? -1 : 0;
+			}
+		}
+		window.addEventListener("pointermove", onMove, { passive: false });
+		return () => window.removeEventListener("pointermove", onMove);
+	}, [dragId, stageAtPoint]);
 
 	// Auto-scroll the board horizontally while dragging near an edge.
 	useEffect(() => {
