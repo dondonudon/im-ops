@@ -240,16 +240,18 @@ function MonthGrid({ viewDate, todayStr, entriesByDate, onSelect }: MonthGridPro
 					const lanes = assignBandLanes(bands);
 					const numBandRows = bands.length ? Math.max(...lanes) + 1 : 0;
 					const bandAreaPx = numBandRows * BAND_LANE_PX;
+					let emptyCellCount = 0;
 
 					return (
 						<div key={weekKey} className="relative">
 							{/* ── Day cells ── */}
 							<div className="grid grid-cols-7 gap-1">
-								{[...week.entries()].map(([colIdx, day]) => {
+								{week.map((day) => {
 									if (!day) {
+										emptyCellCount += 1;
 										return (
 											<div
-												key={`s-${weekKey}-${colIdx}`}
+												key={`s-${weekKey}-empty-${emptyCellCount}`}
 												className="min-h-[52px] md:min-h-[72px]"
 											/>
 										);
