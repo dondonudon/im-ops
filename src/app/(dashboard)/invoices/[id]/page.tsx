@@ -7,7 +7,7 @@ import { BackLink } from "@/components/shared/BackLink";
 import { Badge, Card, Money, PageHeader, toneFor } from "@/components/ui";
 import { buildCompanySettings, buildInvoiceTemplateSettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
-import { formatDate } from "@/lib/utils";
+import { formatCustomerName, formatDate } from "@/lib/utils";
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
@@ -109,11 +109,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 				}
 				subtitle={
 					<>
-						{customer
-							? customer.prefix
-								? `${customer.prefix} ${customer.name}`
-								: customer.name
-							: "—"}
+						{customer ? formatCustomerName(customer.prefix, customer.name) : "—"}
 						{invoice.due_date && ` · ${t("due", { date: formatDate(invoice.due_date) })}`}
 						{job && (
 							<>
@@ -164,7 +160,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 								<div className="flex gap-4">
 									<span className="w-32 text-ink-muted">{t("customer")}</span>
 									<span className="font-medium text-ink">
-										{customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name}
+										{formatCustomerName(customer.prefix, customer.name)}
 									</span>
 								</div>
 								{customer.phone && (
@@ -218,13 +214,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 						payments={payments ?? []}
 						invoiceStatus={invoice.status}
 						jobNumber={job?.job_number ?? ""}
-						customerName={
-							customer
-								? customer.prefix
-									? `${customer.prefix} ${customer.name}`
-									: customer.name
-								: ""
-						}
+						customerName={customer ? formatCustomerName(customer.prefix, customer.name) : ""}
 						invoiceNumber={invoice.invoice_number}
 						company={pdfCompany}
 						receiptTemplate={{

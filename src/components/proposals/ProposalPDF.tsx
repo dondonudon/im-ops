@@ -2,6 +2,7 @@
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { ProposalCustomFields } from "@/lib/proposalCustomFields";
 import {
+	formatCustomerName,
 	formatIndonesianDate,
 	formatRupiahLetter,
 	numberToIndonesianWords,
@@ -174,7 +175,7 @@ export function ProposalPDF({
 				<View style={styles.recipient}>
 					<Text style={styles.recipientLabel}>Kepada Yth,</Text>
 					<Text style={styles.recipientName}>
-						{customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name}
+						{formatCustomerName(customer.prefix, customer.name)}
 					</Text>
 					{customer.type === "corporate" && customer.company_name ? (
 						<Text style={styles.recipientName}>{customer.company_name}</Text>

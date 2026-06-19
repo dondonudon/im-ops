@@ -240,3 +240,7 @@ export function numberToIndonesianWords(n: number): string {
 		r = n % 1_000_000_000;
 	return `${below1000(b)} miliar${r ? ` ${numberToIndonesianWords(r)}` : ""}`;
 }
+
+export function formatCustomerName(prefix: string | null | undefined, name: string): string {
+	return prefix ? `${prefix}. ${name}` : name;
+}

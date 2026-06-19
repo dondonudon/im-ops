@@ -1,6 +1,6 @@
 "use client";
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
-import { formatIndonesianDate, formatRupiahLetter } from "@/lib/utils";
+import { formatCustomerName, formatIndonesianDate, formatRupiahLetter } from "@/lib/utils";
 
 Font.registerHyphenationCallback((word) => [word]);
 
@@ -183,7 +183,7 @@ export function InvoicePDF({ invoice, customer, lead, company, template }: Invoi
 				<View style={styles.recipient}>
 					<Text style={styles.recipientLabel}>Kepada Yth,</Text>
 					<Text style={styles.recipientName}>
-						{customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name}
+						{formatCustomerName(customer.prefix, customer.name)}
 					</Text>
 					{customer.type === "corporate" && customer.company_name ? (
 						<Text style={styles.recipientName}>{customer.company_name}</Text>

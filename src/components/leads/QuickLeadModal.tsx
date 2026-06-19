@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Field, FormError, Input, Select, Textarea } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
-import { capitalizeWords, cn } from "@/lib/utils";
+import { capitalizeWords, cn, formatCustomerName } from "@/lib/utils";
 
 type Customer = { id: string; prefix: string | null; name: string; phone: string | null };
 
@@ -247,9 +247,7 @@ export function QuickLeadModal() {
 							<div className="flex items-center gap-3 px-3 py-2 rounded-lg border border-line-strong bg-surface">
 								<div className="flex-1 min-w-0">
 									<p className="text-sm font-medium text-ink truncate">
-										{selectedCustomer.prefix
-											? `${selectedCustomer.prefix} ${selectedCustomer.name}`
-											: selectedCustomer.name}
+										{formatCustomerName(selectedCustomer.prefix, selectedCustomer.name)}
 									</p>
 									{selectedCustomer.phone && (
 										<p className="text-xs text-ink-faint">{selectedCustomer.phone}</p>
@@ -329,7 +327,7 @@ export function QuickLeadModal() {
 												className="w-full text-left px-3 py-2 text-sm hover:bg-subtle"
 											>
 												<span className="font-medium text-ink">
-													{c.prefix ? `${c.prefix} ${c.name}` : c.name}
+													{formatCustomerName(c.prefix, c.name)}
 												</span>
 												{c.phone && <span className="text-ink-faint ml-2">{c.phone}</span>}
 											</button>

@@ -11,7 +11,7 @@ import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/co
 import { buildCompanySettings, buildProposalTemplateSettings } from "@/lib/pdfSettings";
 import { parseCustomFields } from "@/lib/proposalCustomFields";
 import { createClient } from "@/lib/supabase/server";
-import { formatDate, formatRupiah } from "@/lib/utils";
+import { formatCustomerName, formatDate, formatRupiah } from "@/lib/utils";
 
 export default async function ProposalDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
@@ -115,12 +115,8 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 				}
 				subtitle={
 					<>
-						{customer
-							? customer.prefix
-								? `${customer.prefix} ${customer.name}`
-								: customer.name
-							: "—"}{" "}
-						· {t("created", { date: formatDate(proposal.created_at) })}
+						{customer ? formatCustomerName(customer.prefix, customer.name) : "—"} ·{" "}
+						{t("created", { date: formatDate(proposal.created_at) })}
 						{proposal.approved_at &&
 							` · ${t("approved", { date: formatDate(proposal.approved_at) })}`}
 					</>

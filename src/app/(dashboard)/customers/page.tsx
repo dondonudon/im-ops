@@ -15,7 +15,7 @@ import {
 } from "@/components/ui";
 import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
-import { formatDate, sanitizeSearch } from "@/lib/utils";
+import { formatCustomerName, formatDate, sanitizeSearch } from "@/lib/utils";
 
 /**
  * Customer list page — desktop table + mobile card list, both on the UI kit.
@@ -81,7 +81,7 @@ export default async function CustomersPage({
 										href={`/customers/${c.id}`}
 										className="text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 									>
-										{c.prefix ? `${c.prefix} ${c.name}` : c.name}
+										{formatCustomerName(c.prefix, c.name)}
 									</Link>
 									{c.company_name && (
 										<span className="ml-1 text-xs text-ink-faint">({c.company_name})</span>
@@ -118,7 +118,7 @@ export default async function CustomersPage({
 						<div className="flex items-start justify-between gap-3">
 							<div className="min-w-0">
 								<p className="font-semibold text-ink truncate">
-									{c.prefix ? `${c.prefix} ${c.name}` : c.name}
+									{formatCustomerName(c.prefix, c.name)}
 								</p>
 								{c.company_name && (
 									<p className="text-xs text-ink-faint mt-0.5 truncate">{c.company_name}</p>

@@ -5,7 +5,7 @@ import { BackLink } from "@/components/shared/BackLink";
 import { jobStatusVariant, leadStatusVariant, StatusChip } from "@/components/shared/StatusChip";
 import { buttonStyles, PageHeader } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
-import { formatDate, formatRupiah } from "@/lib/utils";
+import { formatCustomerName, formatDate, formatRupiah } from "@/lib/utils";
 
 /**
  * Customer detail page — history of leads, jobs, invoices.
@@ -41,7 +41,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 		<div className="space-y-8">
 			<BackLink href="/customers" label={t("backToList")} />
 			<PageHeader
-				title={customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name}
+				title={formatCustomerName(customer.prefix, customer.name)}
 				subtitle={tType(customer.type as never)}
 				actions={
 					<Link href={`/customers/${id}/edit`} className={buttonStyles({ variant: "secondary" })}>

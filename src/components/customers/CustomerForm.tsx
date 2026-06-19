@@ -105,7 +105,7 @@ export function CustomerForm({
 					<option value="">{t("prefixNone")}</option>
 					{PREFIX_OPTIONS.map((p) => (
 						<option key={p} value={p}>
-							{p}
+							{p}.
 						</option>
 					))}
 				</Select>

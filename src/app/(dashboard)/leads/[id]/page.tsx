@@ -9,7 +9,7 @@ import { LeadPhotoGallery } from "@/components/leads/LeadPhotoGallery";
 import { BackLink } from "@/components/shared/BackLink";
 import { Badge, buttonStyles, Card, PageHeader, toneFor } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
-import { formatDate } from "@/lib/utils";
+import { formatCustomerName, formatDate } from "@/lib/utils";
 
 /**
  * Lead detail page — shows lead info, photo gallery, and status-driven action panel.
@@ -71,11 +71,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 			<PageHeader
 				title={
 					<span className="flex items-center gap-3">
-						{customer
-							? customer.prefix
-								? `${customer.prefix} ${customer.name}`
-								: customer.name
-							: "—"}
+						{customer ? formatCustomerName(customer.prefix, customer.name) : "—"}
 						<Badge tone={toneFor("lead", lead.status)} dot>
 							{tStatus(lead.status as never)}
 						</Badge>
