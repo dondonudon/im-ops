@@ -13,7 +13,7 @@ export default async function CalendarPage() {
 			.from("jobs")
 			.select(`
 				id, job_number, status, move_date, move_time, move_end_date, move_end_time, gcal_event_id,
-				proposals(leads(customers(name)))
+				proposals(leads(customers(name), pickup_address, destination_address))
 			`)
 			.not("move_date", "is", null)
 			.order("move_date"),
@@ -30,9 +30,17 @@ export default async function CalendarPage() {
 	const events = [
 		...(jobs ?? []).map((j) => {
 			const proposal = j.proposals as {
-				leads: { customers: { name: string } | null } | null;
+				leads: {
+					customers: { name: string } | null;
+					pickup_address: string | null;
+					destination_address: string | null;
+				} | null;
 			} | null;
 			const customerName = proposal?.leads?.customers?.name ?? null;
+			const pickup = proposal?.leads?.pickup_address ?? null;
+			const destination = proposal?.leads?.destination_address ?? null;
+			const detail =
+				pickup && destination ? `${pickup} → ${destination}` : (pickup ?? destination ?? undefined);
 			const moveTime = j.move_time as string | null;
 			// "YYYY-MM-DDTHH:MM" so the agenda can extract the time; bare date for all-day.
 			const start = moveTime ? `${j.move_date}T${moveTime.slice(0, 5)}` : j.move_date!;
@@ -41,6 +49,7 @@ export default async function CalendarPage() {
 				kind: "job" as const,
 				title: customerName ?? j.job_number,
 				subtitle: j.job_number,
+				detail,
 				start,
 				endInclusive: (j.move_end_date as string | null) ?? j.move_date!,
 				color: jobStatusColor(j.status),

@@ -13,6 +13,8 @@ export type CalendarEvent = {
 	title: string;
 	/** Secondary line shown in the agenda (job number, "Survey", etc.). */
 	subtitle?: string;
+	/** Short route string shown inside multi-day bands, e.g. "Semarang Barat → Surabaya". */
+	detail?: string;
 	/** "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM" — used for date placement + time display. */
 	start: string;
 	/** Inclusive last day the event occupies (single-day events: same as start). */
@@ -31,6 +33,15 @@ type EventOnDay = {
 	event: CalendarEvent;
 	dayIndex: number; // 1-based
 	totalDays: number;
+};
+
+/** A multi-day event band within a single week row (for the overlay layer). */
+type SpanningBand = {
+	event: CalendarEvent;
+	startCol: number; // 0-based column where the band starts in this week row
+	colSpan: number; // how many columns the band spans in this week row
+	isEventStart: boolean; // true when this is the event's actual first day
+	isEventEnd: boolean; // true when this is the event's actual last day
 };
 
 type View = "month" | "week" | "day";
@@ -83,19 +94,74 @@ function eventTime(start: string): string | null {
 }
 
 // ---------------------------------------------------------------------------
+// Multi-day band helpers
+// ---------------------------------------------------------------------------
+
+function computeSpanningBands(
+	weekDates: (string | null)[],
+	entriesByDate: Map<string, EventOnDay[]>,
+): SpanningBand[] {
+	const seen = new Set<string>();
+	const result: SpanningBand[] = [];
+	for (let col = 0; col < 7; col++) {
+		const ds = weekDates[col];
+		if (!ds) continue;
+		for (const entry of entriesByDate.get(ds) ?? []) {
+			if (entry.totalDays <= 1 || seen.has(entry.event.id)) continue;
+			seen.add(entry.event.id);
+			let endCol = col;
+			for (let c = col + 1; c < 7; c++) {
+				const nextDs = weekDates[c];
+				if (
+					nextDs &&
+					(entriesByDate.get(nextDs) ?? []).some((e) => e.event.id === entry.event.id)
+				) {
+					endCol = c;
+				} else break;
+			}
+			result.push({
+				event: entry.event,
+				startCol: col,
+				colSpan: endCol - col + 1,
+				isEventStart: entry.dayIndex === 1,
+				isEventEnd: entry.dayIndex + (endCol - col) === entry.totalDays,
+			});
+		}
+	}
+	return result;
+}
+
+/** Assigns each band to the first available lane (row) so no two bands overlap. */
+function assignBandLanes(bands: SpanningBand[]): number[] {
+	const laneEndCols: number[] = [];
+	return bands.map((band) => {
+		let lane = laneEndCols.findIndex((end) => end < band.startCol);
+		if (lane === -1) {
+			lane = laneEndCols.length;
+			laneEndCols.push(band.startCol + band.colSpan - 1);
+		} else {
+			laneEndCols[lane] = band.startCol + band.colSpan - 1;
+		}
+		return lane;
+	});
+}
+
+// ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
 
+/**
+ * Single-day event chip. Multi-day events are handled by the band overlay in MonthGrid.
+ */
 function Chip({ entry, compact = false }: { entry: EventOnDay; compact?: boolean }) {
-	const { event, dayIndex, totalDays } = entry;
+	const { event } = entry;
 	const time = eventTime(event.start);
-	const showTime = dayIndex === 1 && time;
 	return (
 		<Link
 			href={event.url}
 			onClick={(e) => e.stopPropagation()}
 			className="group block w-full"
-			title={`${event.title}${totalDays > 1 ? ` (day ${dayIndex}/${totalDays})` : ""}${time ? ` · ${time}` : ""}`}
+			title={event.title}
 		>
 			<div
 				className={`flex items-center gap-1 ${compact ? "px-1 py-0.5" : "px-1.5 py-1"} rounded-md bg-surface hover:bg-subtle border border-line transition-colors`}
@@ -104,14 +170,9 @@ function Chip({ entry, compact = false }: { entry: EventOnDay; compact?: boolean
 				<span
 					className={`flex-1 min-w-0 truncate ${compact ? "text-[10px]" : "text-[11px]"} font-medium text-ink`}
 				>
-					{showTime && <span className="font-mono text-ink-muted mr-1">{time}</span>}
+					{time && <span className="font-mono text-ink-muted mr-1">{time}</span>}
 					{event.title}
 				</span>
-				{totalDays > 1 && (
-					<span className="shrink-0 text-[9px] font-mono text-ink-faint" aria-hidden="true">
-						{dayIndex}/{totalDays}
-					</span>
-				)}
 			</div>
 		</Link>
 	);
@@ -138,15 +199,23 @@ function MonthGrid({ viewDate, todayStr, entriesByDate, onSelect }: MonthGridPro
 	const rem = cells.length % 7;
 	if (rem !== 0) cells.push(...Array<null>(7 - rem).fill(null));
 
+	// Split into week rows of 7.
+	const weeks: (number | null)[][] = [];
+	for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+
 	const monthName = anchor.toLocaleString("en", { month: "long" });
 
 	function dayKey(day: number) {
 		return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 	}
 
-	// Per-cell chip cap depends on viewport — small screens show fewer.
 	const MAX_CHIPS_MOBILE = 2;
 	const MAX_CHIPS_DESKTOP = 3;
+	// Each band lane is h-5 (20 px) + 2 px gap below it.
+	const BAND_LANE_PX = 22;
+	// Day-number section height — the band overlay's `top` must equal this.
+	// Using h-7 (28 px) gives enough room for the day number + breathing space.
+	const DAY_NUM_H = "1.75rem"; // 28 px = h-7
 
 	return (
 		<div className="px-2 pt-3 pb-4">
@@ -162,73 +231,161 @@ function MonthGrid({ viewDate, todayStr, entriesByDate, onSelect }: MonthGridPro
 				))}
 			</div>
 
-			{/* Day cells */}
-			<div className="grid grid-cols-7 gap-1">
-				{cells.map((day, idx) => {
-					if (!day) {
-						// biome-ignore lint/suspicious/noArrayIndexKey: spacer cells have no identity
-						return <div key={`e-${idx}`} className="min-h-[64px] md:min-h-[96px]" />;
-					}
-					const key = dayKey(day);
-					const entries = entriesByDate.get(key) ?? [];
-					const isToday = key === todayStr;
-					const isSelected = key === viewDate;
-
-					const visibleMobile = entries.slice(0, MAX_CHIPS_MOBILE);
-					const overflowMobile = entries.length - visibleMobile.length;
-					const visibleDesktop = entries.slice(0, MAX_CHIPS_DESKTOP);
-					const overflowDesktop = entries.length - visibleDesktop.length;
+			{/* Week rows */}
+			<div className="flex flex-col gap-1">
+				{weeks.map((week) => {
+					const weekKey = `w-${week.find((d) => d !== null) ?? 0}`;
+					const weekDates = week.map((d) => (d ? dayKey(d) : null));
+					const bands = computeSpanningBands(weekDates, entriesByDate);
+					const lanes = assignBandLanes(bands);
+					const numBandRows = bands.length ? Math.max(...lanes) + 1 : 0;
+					const bandAreaPx = numBandRows * BAND_LANE_PX;
 
 					return (
-						<button
-							type="button"
-							key={key}
-							onClick={() => onSelect(key)}
-							aria-label={`${day} ${monthName}${entries.length ? `, ${entries.length} event${entries.length > 1 ? "s" : ""}` : ""}`}
-							aria-pressed={isSelected}
-							className={[
-								"flex flex-col items-stretch text-left rounded-lg md:rounded-xl p-1 md:p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] min-h-[64px] md:min-h-[96px]",
-								isSelected
-									? "bg-primary-subtle ring-1 ring-primary"
-									: isToday
-										? "bg-primary-subtle"
-										: "hover:bg-subtle",
-							].join(" ")}
-						>
-							<span
-								className={`text-xs md:text-sm font-semibold leading-none px-0.5 ${
-									isToday ? "text-primary-text" : "text-ink-muted"
-								}`}
-							>
-								{day}
-							</span>
+						<div key={weekKey} className="relative">
+							{/* ── Day cells ── */}
+							<div className="grid grid-cols-7 gap-1">
+								{[...week.entries()].map(([colIdx, day]) => {
+									if (!day) {
+										return (
+											<div
+												key={`s-${weekKey}-${colIdx}`}
+												className="min-h-[52px] md:min-h-[72px]"
+											/>
+										);
+									}
+									const key = dayKey(day);
+									const allEntries = entriesByDate.get(key) ?? [];
+									const singleEntries = allEntries.filter((e) => e.totalDays === 1);
+									const isToday = key === todayStr;
+									const isSelected = key === viewDate;
 
-							{/* Chips — different counts on mobile vs desktop via responsive visibility */}
-							{entries.length > 0 && (
-								<>
-									{/* Mobile view */}
-									<div className="md:hidden flex flex-col gap-0.5 mt-1">
-										{visibleMobile.map((entry) => (
-											<Chip key={`${entry.event.id}-m`} entry={entry} compact />
-										))}
-										{overflowMobile > 0 && (
-											<span className="text-[9px] text-ink-faint px-1">+{overflowMobile} more</span>
-										)}
-									</div>
-									{/* Desktop view */}
-									<div className="hidden md:flex flex-col gap-0.5 mt-1">
-										{visibleDesktop.map((entry) => (
-											<Chip key={`${entry.event.id}-d`} entry={entry} />
-										))}
-										{overflowDesktop > 0 && (
-											<span className="text-[10px] text-ink-faint px-1">
-												+{overflowDesktop} more
-											</span>
-										)}
-									</div>
-								</>
+									const visibleM = singleEntries.slice(0, MAX_CHIPS_MOBILE);
+									const overflowM = singleEntries.length - visibleM.length;
+									const visibleD = singleEntries.slice(0, MAX_CHIPS_DESKTOP);
+									const overflowD = singleEntries.length - visibleD.length;
+
+									return (
+										<button
+											type="button"
+											key={key}
+											onClick={() => onSelect(key)}
+											aria-label={`${day} ${monthName}${allEntries.length ? `, ${allEntries.length} event${allEntries.length > 1 ? "s" : ""}` : ""}`}
+											aria-pressed={isSelected}
+											className={[
+												"flex flex-col items-stretch text-left rounded-lg md:rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] min-h-[52px] md:min-h-[72px]",
+												isSelected
+													? "bg-primary-subtle ring-1 ring-primary"
+													: isToday
+														? "bg-primary-subtle"
+														: "hover:bg-subtle",
+											].join(" ")}
+										>
+											{/* Day number — same fixed height as DAY_NUM_H so the overlay aligns */}
+											<div
+												className="flex items-center px-1 md:px-1.5 shrink-0"
+												style={{ height: DAY_NUM_H }}
+											>
+												<span
+													className={`text-xs md:text-sm font-semibold leading-none ${
+														isToday ? "text-primary-text" : "text-ink-muted"
+													}`}
+												>
+													{day}
+												</span>
+											</div>
+
+											{/* Spacer — reserves room for the band overlay rows */}
+											{numBandRows > 0 && (
+												<div style={{ height: `${bandAreaPx}px` }} aria-hidden="true" />
+											)}
+
+											{/* Single-day chips */}
+											{singleEntries.length > 0 && (
+												<>
+													<div className="md:hidden flex flex-col gap-0.5 px-1 pb-1 mt-0.5">
+														{visibleM.map((entry) => (
+															<Chip key={`${entry.event.id}-m`} entry={entry} compact />
+														))}
+														{overflowM > 0 && (
+															<span className="text-[9px] text-ink-faint px-0.5">
+																+{overflowM} more
+															</span>
+														)}
+													</div>
+													<div className="hidden md:flex flex-col gap-0.5 px-1.5 pb-1.5 mt-0.5">
+														{visibleD.map((entry) => (
+															<Chip key={`${entry.event.id}-d`} entry={entry} />
+														))}
+														{overflowD > 0 && (
+															<span className="text-[10px] text-ink-faint px-0.5">
+																+{overflowD} more
+															</span>
+														)}
+													</div>
+												</>
+											)}
+										</button>
+									);
+								})}
+							</div>
+
+							{/* ── Multi-day band overlay ──
+								Positioned at the same top offset as DAY_NUM_H so bands sit
+								directly below the day numbers.  Uses the same grid definition
+								as the day cells, so column widths align automatically.       */}
+							{bands.length > 0 && (
+								<div
+									className="absolute inset-x-0 grid grid-cols-7 gap-x-1 pointer-events-none"
+									style={{ top: DAY_NUM_H }}
+								>
+									{bands.map((band, bi) => {
+										const lane = lanes[bi];
+										const time = band.isEventStart ? eventTime(band.event.start) : null;
+										const radius = [
+											band.isEventStart ? "4px" : "0",
+											band.isEventEnd ? "4px" : "0",
+											band.isEventEnd ? "4px" : "0",
+											band.isEventStart ? "4px" : "0",
+										].join(" ");
+										return (
+											<Link
+												key={band.event.id}
+												href={band.event.url}
+												onClick={(e) => e.stopPropagation()}
+												title={
+													band.event.detail
+														? `${band.event.title} — ${band.event.detail}`
+														: band.event.title
+												}
+												className="pointer-events-auto flex items-center min-w-0 h-5 px-1.5 text-[10px] md:text-[11px] font-medium text-ink hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] bg-surface border border-line"
+												style={{
+													gridColumn: `${band.startCol + 1} / span ${band.colSpan}`,
+													gridRow: lane + 1,
+													borderRadius: radius,
+													marginTop: lane > 0 ? "2px" : undefined,
+													borderLeft: band.isEventStart
+														? `3px solid ${band.event.color}`
+														: "1px solid var(--line)",
+												}}
+											>
+												{time && (
+													<span className="font-mono opacity-80 mr-1 hidden md:inline shrink-0">
+														{time}
+													</span>
+												)}
+												<span className="truncate">
+													{band.event.title}
+													{band.event.detail && (
+														<span className="opacity-70 ml-1">— {band.event.detail}</span>
+													)}
+												</span>
+											</Link>
+										);
+									})}
+								</div>
 							)}
-						</button>
+						</div>
 					);
 				})}
 			</div>
@@ -353,7 +510,7 @@ function Agenda({ viewDate, entries }: AgendaProps) {
 												</span>
 											)}
 										</p>
-										<p className="text-xs text-ink-muted mt-0.5 flex items-center gap-2">
+										<p className="text-xs text-ink-muted mt-0.5 flex items-center gap-2 flex-wrap">
 											{event.subtitle && <span>{event.subtitle}</span>}
 											{time && <span className="font-mono">· {time}</span>}
 											{event.status && event.kind === "job" && (
@@ -363,6 +520,9 @@ function Agenda({ viewDate, entries }: AgendaProps) {
 												<span className="text-warning-text">· not synced</span>
 											)}
 										</p>
+										{event.detail && (
+											<p className="text-xs text-ink-faint mt-0.5 truncate">{event.detail}</p>
+										)}
 									</div>
 									<span className="text-ink-faint text-sm" aria-hidden="true">
 										›
