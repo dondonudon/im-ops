@@ -72,13 +72,13 @@ export default async function ReportsPage({
 			.from("invoices")
 			.select("invoice_number, total_amount, paid_amount, due_date, status")
 			.in("status", ["sent", "partially_paid", "overdue"]),
-		// Proposals lost/expired this month (updated_at proxy for when status changed)
+		// Proposals lost/expired this month, filtered by closed_at
 		supabase
 			.from("proposals")
 			.select("closed_reason")
 			.in("status", ["lost", "expired"])
-			.gte("updated_at", monthStart)
-			.lt("updated_at", monthEnd),
+			.gte("closed_at", monthStart)
+			.lt("closed_at", monthEnd),
 	]);
 
 	// job_profit_summary has no date column — filter by the month's job IDs

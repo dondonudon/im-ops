@@ -279,6 +279,7 @@ export type Database = {
 					status: "draft" | "sent" | "negotiating" | "approved" | "lost" | "expired";
 					final_price: number | null;
 					closed_reason: string | null;
+					closed_at: string | null;
 					approved_at: string | null;
 					pdf_url: string | null;
 					custom_fields: Json | null;
@@ -293,6 +294,7 @@ export type Database = {
 					status?: "draft" | "sent" | "negotiating" | "approved" | "lost" | "expired";
 					final_price?: number | null;
 					closed_reason?: string | null;
+					closed_at?: string | null;
 					approved_at?: string | null;
 					pdf_url?: string | null;
 					custom_fields?: Json | null;
@@ -307,6 +309,7 @@ export type Database = {
 					status?: "draft" | "sent" | "negotiating" | "approved" | "lost" | "expired";
 					final_price?: number | null;
 					closed_reason?: string | null;
+					closed_at?: string | null;
 					approved_at?: string | null;
 					pdf_url?: string | null;
 					custom_fields?: Json | null;

@@ -437,7 +437,7 @@ function MarkLostModal({
 		await Promise.all([
 			supabase
 				.from("proposals")
-				.update({ status: "lost", closed_reason: fullReason })
+				.update({ status: "lost", closed_reason: fullReason, closed_at: new Date().toISOString() })
 				.eq("id", proposalId),
 			supabase.from("leads").update({ status: "closed_lost" }).eq("id", leadId),
 		]);
