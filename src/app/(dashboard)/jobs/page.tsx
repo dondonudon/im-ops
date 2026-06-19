@@ -93,7 +93,10 @@ export default async function JobsPage({
 				const { data: matchedLeads } = await supabase
 					.from("leads")
 					.select("id")
-					.in("customer_id", matchedCustomers.map((c) => c.id));
+					.in(
+						"customer_id",
+						matchedCustomers.map((c) => c.id),
+					);
 				const leadIds = matchedLeads?.map((l) => l.id) ?? [];
 				if (leadIds.length) {
 					const { data: matchedProposals } = await supabase
@@ -250,7 +253,7 @@ export default async function JobsPage({
 								{jobs.length === 0 && (
 									<TR>
 										<TD colSpan={5}>
-											<EmptyState title={(q || status) ? t("emptyFiltered") : t("empty")} />
+											<EmptyState title={q || status ? t("emptyFiltered") : t("empty")} />
 										</TD>
 									</TR>
 								)}
@@ -294,7 +297,7 @@ export default async function JobsPage({
 							</PendingLink>
 						))}
 						{jobs.length === 0 && (
-							<EmptyState title={(q || status) ? t("emptyFiltered") : t("empty")} className="py-10" />
+							<EmptyState title={q || status ? t("emptyFiltered") : t("empty")} className="py-10" />
 						)}
 					</div>
 

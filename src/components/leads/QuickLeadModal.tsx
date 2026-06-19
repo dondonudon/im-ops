@@ -246,7 +246,11 @@ export function QuickLeadModal() {
 						{selectedCustomer ? (
 							<div className="flex items-center gap-3 px-3 py-2 rounded-lg border border-line-strong bg-surface">
 								<div className="flex-1 min-w-0">
-									<p className="text-sm font-medium text-ink truncate">{selectedCustomer.prefix ? `${selectedCustomer.prefix} ${selectedCustomer.name}` : selectedCustomer.name}</p>
+									<p className="text-sm font-medium text-ink truncate">
+										{selectedCustomer.prefix
+											? `${selectedCustomer.prefix} ${selectedCustomer.name}`
+											: selectedCustomer.name}
+									</p>
 									{selectedCustomer.phone && (
 										<p className="text-xs text-ink-faint">{selectedCustomer.phone}</p>
 									)}
@@ -324,7 +328,9 @@ export function QuickLeadModal() {
 												onClick={() => selectExisting(c)}
 												className="w-full text-left px-3 py-2 text-sm hover:bg-subtle"
 											>
-												<span className="font-medium text-ink">{c.prefix ? `${c.prefix} ${c.name}` : c.name}</span>
+												<span className="font-medium text-ink">
+													{c.prefix ? `${c.prefix} ${c.name}` : c.name}
+												</span>
 												{c.phone && <span className="text-ink-faint ml-2">{c.phone}</span>}
 											</button>
 										))}

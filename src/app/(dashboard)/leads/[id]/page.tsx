@@ -71,7 +71,11 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 			<PageHeader
 				title={
 					<span className="flex items-center gap-3">
-						{customer ? (customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name) : "—"}
+						{customer
+							? customer.prefix
+								? `${customer.prefix} ${customer.name}`
+								: customer.name
+							: "—"}
 						<Badge tone={toneFor("lead", lead.status)} dot>
 							{tStatus(lead.status as never)}
 						</Badge>

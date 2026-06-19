@@ -55,7 +55,10 @@ export default async function ProposalsPage({
 			const { data: matchedLeads } = await supabase
 				.from("leads")
 				.select("id")
-				.in("customer_id", matchedCustomers.map((c) => c.id));
+				.in(
+					"customer_id",
+					matchedCustomers.map((c) => c.id),
+				);
 			leadIds.push(...(matchedLeads?.map((l) => l.id) ?? []));
 		}
 		if (leadIds.length) {
@@ -144,7 +147,7 @@ export default async function ProposalsPage({
 						{(proposals ?? []).length === 0 && (
 							<TR>
 								<td colSpan={5}>
-									<EmptyState title={(q || status) ? t("emptyFiltered") : t("empty")} />
+									<EmptyState title={q || status ? t("emptyFiltered") : t("empty")} />
 								</td>
 							</TR>
 						)}
@@ -186,7 +189,9 @@ export default async function ProposalsPage({
 						</Link>
 					);
 				})}
-				{(proposals ?? []).length === 0 && <EmptyState title={(q || status) ? t("emptyFiltered") : t("empty")} className="py-10" />}
+				{(proposals ?? []).length === 0 && (
+					<EmptyState title={q || status ? t("emptyFiltered") : t("empty")} className="py-10" />
+				)}
 			</div>
 
 			<Pagination page={page} pageSize={PAGE_SIZE} total={count ?? 0} />

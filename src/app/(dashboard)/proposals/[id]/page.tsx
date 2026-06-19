@@ -115,7 +115,12 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 				}
 				subtitle={
 					<>
-						{customer ? (customer.prefix ? `${customer.prefix} ${customer.name}` : customer.name) : "—"} · {t("created", { date: formatDate(proposal.created_at) })}
+						{customer
+							? customer.prefix
+								? `${customer.prefix} ${customer.name}`
+								: customer.name
+							: "—"}{" "}
+						· {t("created", { date: formatDate(proposal.created_at) })}
 						{proposal.approved_at &&
 							` · ${t("approved", { date: formatDate(proposal.approved_at) })}`}
 					</>

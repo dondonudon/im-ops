@@ -117,7 +117,9 @@ export default async function CustomersPage({
 					>
 						<div className="flex items-start justify-between gap-3">
 							<div className="min-w-0">
-								<p className="font-semibold text-ink truncate">{c.prefix ? `${c.prefix} ${c.name}` : c.name}</p>
+								<p className="font-semibold text-ink truncate">
+									{c.prefix ? `${c.prefix} ${c.name}` : c.name}
+								</p>
 								{c.company_name && (
 									<p className="text-xs text-ink-faint mt-0.5 truncate">{c.company_name}</p>
 								)}
