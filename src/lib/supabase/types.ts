@@ -832,6 +832,20 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			jobs_with_customer: {
+				Row: {
+					id: string;
+					job_number: string;
+					status: string;
+					move_date: string | null;
+					move_time: string | null;
+					move_end_date: string | null;
+					revenue: number | null;
+					proposal_id: string;
+					customer_name: string;
+				};
+				Relationships: [];
+			};
 		};
 		Functions: {
 			generate_proposal_number: {
@@ -842,9 +856,30 @@ export type Database = {
 				Args: Record<string, never>;
 				Returns: string;
 			};
+			generate_invoice_number: {
+				Args: Record<string, never>;
+				Returns: string;
+			};
 			check_resource_overlap: {
 				Args: { p_type: string; p_id: string; p_date: string };
 				Returns: Array<{ job_id: string; job_number: string; move_date: string }>;
+			};
+			get_ar_totals: {
+				Args: Record<string, never>;
+				Returns: Array<{
+					total_outstanding: number;
+					outstanding_count: number;
+					overdue_amount: number;
+					overdue_count: number;
+					aging_current: number;
+					aging_1_30: number;
+					aging_31_60: number;
+					aging_60_plus: number;
+				}>;
+			};
+			get_invoice_status_breakdown: {
+				Args: Record<string, never>;
+				Returns: Array<{ status: string; inv_count: number; total_amount: number }>;
 			};
 		};
 		Enums: {

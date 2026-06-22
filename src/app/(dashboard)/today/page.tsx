@@ -312,9 +312,9 @@ export default async function TodayPage() {
 				<Suspense fallback={<AtAGlanceSkeleton />}>
 					<AtAGlanceSection
 						movesCount={moves.length}
-						outstandingCount={(outstanding ?? []).length}
+						outstandingCount={Number(arTotals?.outstanding_count ?? 0)}
 						totalOutstanding={totalOutstanding}
-						overdueCount={overdue.length}
+						overdueCount={Number(arTotals?.overdue_count ?? 0)}
 						overdueAmount={overdueAmount}
 					/>
 				</Suspense>
