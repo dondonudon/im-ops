@@ -40,7 +40,7 @@ export async function middleware(request: NextRequest) {
 	// SHA-256 hash of the static theme-init inline script in src/app/layout.tsx.
 	// Recompute if the script changes:
 	//   echo -n '<script>' | openssl dgst -sha256 -binary | base64
-	const THEME_SCRIPT_HASH = "'sha256-ZbmMjbq7u/pJLliTg9iuotQD9CrMXrlGujhpCcwGPso='";
+	const THEME_SCRIPT_HASH = "'sha256-Q+8tPsjVtiDsjF/Cv8FMOpg2Yg91oKFKDAJat1PPb2g='";
 	// 'unsafe-eval' is required by Next.js React Fast Refresh in development only.
 	const scriptSrc =
 		process.env.NODE_ENV === "production"
