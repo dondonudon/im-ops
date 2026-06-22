@@ -6,10 +6,15 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Field, FormError, Input, Select, Textarea } from "@/components/ui";
 import { CUSTOMER_PREFIX_OPTIONS, type CustomerPrefix } from "@/lib/constants";
+import {
+	type CustomerDuplicate,
+	findDuplicateCustomer,
+	formatCustomerLabel,
+} from "@/lib/customerDuplicates";
 import { createClient } from "@/lib/supabase/client";
 import { capitalizeWords, cn, formatCustomerName } from "@/lib/utils";
 
-type Customer = { id: string; prefix: string | null; name: string; phone: string | null };
+type Customer = CustomerDuplicate;
 
 const EMPTY = {
 	customer_id: "",
@@ -158,17 +163,31 @@ export function QuickLeadModal() {
 
 			if (!customerId) {
 				if (!form.name.trim()) throw new Error(t("nameRequired"));
-				const { data: cust, error: custErr } = await supabase
+				const { data: currentCustomers, error: customersErr } = await supabase
 					.from("customers")
-					.insert({
-						prefix: (form.prefix as CustomerPrefix) || null,
-						name: form.name.trim(),
-						phone: form.phone.trim() || null,
-					})
-					.select("id")
-					.single();
-				if (custErr) throw custErr;
-				customerId = cust.id;
+					.select("id, prefix, name, phone");
+				if (customersErr) throw customersErr;
+				const duplicateCustomer = findDuplicateCustomer(currentCustomers ?? [], {
+					name: form.name,
+					phone: form.phone,
+				});
+				if (duplicateCustomer) {
+					throw new Error(
+						`Customer already exists: ${formatCustomerLabel(duplicateCustomer)}. Please search and select them instead.`,
+					);
+				} else {
+					const { data: cust, error: custErr } = await supabase
+						.from("customers")
+						.insert({
+							prefix: (form.prefix as CustomerPrefix) || null,
+							name: form.name.trim(),
+							phone: form.phone.trim() || null,
+						})
+						.select("id")
+						.single();
+					if (custErr) throw custErr;
+					customerId = cust.id;
+				}
 			}
 
 			const { data: lead, error: leadErr } = await supabase

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button, Field, FormError, Input, Select, Textarea } from "@/components/ui";
 import { CUSTOMER_PREFIX_OPTIONS, type CustomerPrefix } from "@/lib/constants";
+import { findDuplicateCustomer, formatCustomerLabel } from "@/lib/customerDuplicates";
 import { createClient } from "@/lib/supabase/client";
 import { capitalizeWords, mapDbError } from "@/lib/utils";
 
@@ -79,6 +80,19 @@ export function CustomerForm({
 				if (err) throw err;
 				router.push(`/customers/${customer.id}`);
 			} else {
+				const { data: currentCustomers, error: customersErr } = await supabase
+					.from("customers")
+					.select("id, prefix, name, phone");
+				if (customersErr) throw customersErr;
+				const duplicateCustomer = findDuplicateCustomer(currentCustomers ?? [], {
+					name: payload.name,
+					phone: payload.phone,
+				});
+				if (duplicateCustomer) {
+					throw new Error(
+						t("duplicateCustomer", { customer: formatCustomerLabel(duplicateCustomer) }),
+					);
+				}
 				const { data, error: err } = await supabase
 					.from("customers")
 					.insert(payload)

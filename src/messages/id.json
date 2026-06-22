@@ -714,6 +714,7 @@
 			"companyName": "Nama perusahaan",
 			"address": "Alamat",
 			"notes": "Catatan",
+			"duplicateCustomer": "Pelanggan yang cocok sudah ada: {customer}. Pilih pelanggan yang sudah ada.",
 			"newTitle": "Pelanggan Baru",
 			"editTitle": "Edit Pelanggan"
 		},

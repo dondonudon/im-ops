@@ -714,6 +714,7 @@
 			"companyName": "Company name",
 			"address": "Address",
 			"notes": "Notes",
+			"duplicateCustomer": "A matching customer already exists: {customer}. Select the existing customer instead.",
 			"newTitle": "New Customer",
 			"editTitle": "Edit Customer"
 		},

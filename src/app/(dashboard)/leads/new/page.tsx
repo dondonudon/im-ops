@@ -5,9 +5,14 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button, Field, FormError, Input, PageHeader, Select, Textarea } from "@/components/ui";
 import { CUSTOMER_PREFIX_OPTIONS, type CustomerPrefix } from "@/lib/constants";
+import {
+	type CustomerDuplicate,
+	findDuplicateCustomer,
+	formatCustomerLabel,
+} from "@/lib/customerDuplicates";
 import { createClient } from "@/lib/supabase/client";
 
-type Customer = { id: string; name: string; phone: string | null };
+type Customer = CustomerDuplicate;
 
 /**
  * Create new lead form.
@@ -47,7 +52,7 @@ export default function NewLeadPage() {
 		const supabase = createClient();
 		supabase
 			.from("customers")
-			.select("id, name, phone")
+			.select("id, prefix, name, phone")
 			.order("name")
 			.then(({ data }) => setCustomers(data ?? []));
 	}, []);
@@ -70,17 +75,31 @@ export default function NewLeadPage() {
 			// Create new customer if needed
 			if (createNewCustomer) {
 				if (!form.new_customer_name.trim()) throw new Error("Customer name is required.");
-				const { data: newCust, error: custErr } = await supabase
+				const { data: currentCustomers, error: customersErr } = await supabase
 					.from("customers")
-					.insert({
-						prefix: (form.new_customer_prefix as CustomerPrefix) || null,
-						name: form.new_customer_name.trim(),
-						phone: form.new_customer_phone.trim() || null,
-					})
-					.select("id")
-					.single();
-				if (custErr) throw custErr;
-				customerId = newCust.id;
+					.select("id, prefix, name, phone");
+				if (customersErr) throw customersErr;
+				const duplicateCustomer = findDuplicateCustomer(currentCustomers ?? [], {
+					name: form.new_customer_name,
+					phone: form.new_customer_phone,
+				});
+				if (duplicateCustomer) {
+					throw new Error(
+						`Customer already exists: ${formatCustomerLabel(duplicateCustomer)}. Please select them from "Existing customer" instead.`,
+					);
+				} else {
+					const { data: newCust, error: custErr } = await supabase
+						.from("customers")
+						.insert({
+							prefix: (form.new_customer_prefix as CustomerPrefix) || null,
+							name: form.new_customer_name.trim(),
+							phone: form.new_customer_phone.trim() || null,
+						})
+						.select("id")
+						.single();
+					if (custErr) throw custErr;
+					customerId = newCust.id;
+				}
 			} else {
 				if (!customerId) throw new Error("Please select a customer.");
 			}
