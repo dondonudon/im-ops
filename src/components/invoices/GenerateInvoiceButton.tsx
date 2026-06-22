@@ -6,12 +6,12 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button, FormError } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
-import { toRomanMonth } from "@/lib/utils";
 
 /**
  * Generates an invoice for a given job and redirects to its detail page.
  * Invoice number format: INV/{YEAR}/{ROMAN_MONTH}/{SEQ}
  * Total amount is pre-filled with the job revenue.
+ * Number generation is atomic via the generate_invoice_number() Postgres function.
  */
 export function GenerateInvoiceButton({
 	jobId,
@@ -30,31 +30,16 @@ export function GenerateInvoiceButton({
 		setError(null);
 		try {
 			const supabase = createClient();
-			const now = new Date();
-			const year = now.getFullYear();
-			const month = now.getMonth() + 1;
-			const romanMonth = toRomanMonth(month);
 
-			// Count invoices created this month to derive the next sequence number
-			const monthStart = `${year}-${String(month).padStart(2, "0")}-01`;
-			const nextMonth = month === 12 ? 1 : month + 1;
-			const nextYear = month === 12 ? year + 1 : year;
-			const monthEnd = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
-
-			const { count } = await supabase
-				.from("invoices")
-				.select("id", { count: "exact", head: true })
-				.gte("created_at", monthStart)
-				.lt("created_at", monthEnd);
-
-			const seq = String((count ?? 0) + 1).padStart(3, "0");
-			const invoiceNumber = `INV/${year}/${romanMonth}/${seq}`;
+			// generate_invoice_number() uses LOCK TABLE to prevent race conditions
+			const { data: invoiceNumber, error: rpcErr } = await supabase.rpc("generate_invoice_number");
+			if (rpcErr) throw rpcErr;
 
 			const { data, error: insertErr } = await supabase
 				.from("invoices")
 				.insert({
 					job_id: jobId,
-					invoice_number: invoiceNumber,
+					invoice_number: invoiceNumber as string,
 					total_amount: jobRevenue,
 					paid_amount: 0,
 					status: "sent",

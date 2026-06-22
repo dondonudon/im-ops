@@ -3,6 +3,7 @@ import { DM_Mono, DM_Sans } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { NavigationProgress } from "@/components/layout/NavigationProgress";
+import "@/lib/env";
 import "./globals.css";
 
 const dmSans = DM_Sans({

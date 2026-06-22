@@ -36,10 +36,15 @@ export async function middleware(request: NextRequest) {
 	supabaseResponse.headers.set("X-Frame-Options", "DENY");
 	supabaseResponse.headers.set("X-Content-Type-Options", "nosniff");
 	supabaseResponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+	supabaseResponse.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+	// SHA-256 hash of the static theme-init inline script in src/app/layout.tsx.
+	// Recompute if the script changes:
+	//   echo -n '<script>' | openssl dgst -sha256 -binary | base64
+	const THEME_SCRIPT_HASH = "'sha256-ZbmMjbq7u/pJLliTg9iuotQD9CrMXrlGujhpCcwGPso='";
 	// 'unsafe-eval' is required by Next.js React Fast Refresh in development only.
 	const scriptSrc =
 		process.env.NODE_ENV === "production"
-			? "script-src 'self' 'unsafe-inline'"
+			? `script-src 'self' ${THEME_SCRIPT_HASH}`
 			: "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
 	supabaseResponse.headers.set(
 		"Content-Security-Policy",

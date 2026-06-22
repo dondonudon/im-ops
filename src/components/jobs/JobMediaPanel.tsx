@@ -62,6 +62,42 @@ export function JobMediaPanel({
 	const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 	const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
+	/** Detect file type from magic bytes rather than trusting the browser-supplied MIME type. */
+	async function detectFileType(file: File): Promise<"pdf" | "image" | "unknown"> {
+		const header = await file.slice(0, 8).arrayBuffer();
+		const bytes = new Uint8Array(header);
+		// PDF: %PDF  (25 50 44 46)
+		if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) {
+			return "pdf";
+		}
+		// PNG: \x89PNG (89 50 4e 47)
+		if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+			return "image";
+		}
+		// JPEG: \xff\xd8\xff
+		if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+			return "image";
+		}
+		// GIF: GIF8 (47 49 46 38)
+		if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) {
+			return "image";
+		}
+		// WebP: RIFF....WEBP (52 49 46 46 .. .. .. .. 57 45 42 50)
+		if (
+			bytes[0] === 0x52 &&
+			bytes[1] === 0x49 &&
+			bytes[2] === 0x46 &&
+			bytes[3] === 0x46 &&
+			bytes[8] === 0x57 &&
+			bytes[9] === 0x45 &&
+			bytes[10] === 0x42 &&
+			bytes[11] === 0x50
+		) {
+			return "image";
+		}
+		return "unknown";
+	}
+
 	async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const files = Array.from(e.target.files ?? []);
 		if (files.length === 0) return;
@@ -70,8 +106,9 @@ export function JobMediaPanel({
 
 		try {
 			for (const file of files) {
-				const isPdf = file.type === "application/pdf";
-				const isImage = file.type.startsWith("image/");
+				const fileType = await detectFileType(file);
+				const isPdf = fileType === "pdf";
+				const isImage = fileType === "image";
 				if (!isPdf && !isImage) {
 					setError(t("unsupportedFile", { name: file.name }));
 					continue;
