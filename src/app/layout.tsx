@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Mono, DM_Sans } from "next/font/google";
+import { headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { NavigationProgress } from "@/components/layout/NavigationProgress";
@@ -48,12 +49,17 @@ export default async function RootLayout({
 }>) {
 	const locale = await getLocale();
 	const messages = await getMessages();
+	// Read the per-request nonce forwarded by middleware so it can be applied to
+	// the theme-init inline script. Next.js 14 also reads this header internally
+	// and adds it to all its own generated inline scripts.
+	const nonce = (await headers()).get("x-nonce") ?? undefined;
 
 	return (
 		<html lang={locale} suppressHydrationWarning>
 			<head>
 				{/* Anti-flash: apply saved theme before first paint */}
 				<script
+					nonce={nonce}
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: intentional inline script for theme initialization
 					dangerouslySetInnerHTML={{
 						__html:

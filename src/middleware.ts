@@ -7,7 +7,23 @@ import type { Database } from "@/lib/supabase/types";
  * Redirects unauthenticated users to /login for protected routes.
  */
 export async function middleware(request: NextRequest) {
-	let supabaseResponse = NextResponse.next({ request });
+	// Generate a fresh cryptographic nonce for every request.
+	// This is forwarded to Next.js via x-nonce so it adds the nonce to ALL its
+	// generated inline scripts automatically (Next.js 14 App Router feature).
+	// With 'strict-dynamic', scripts loaded by a nonce-bearing script are also
+	// trusted, which covers every dynamically-imported chunk.
+	const nonce = btoa(crypto.randomUUID());
+
+	// Helper: build request headers that include the nonce + current cookie state.
+	// Must be re-called inside setAll() after request.cookies.set() to capture
+	// the updated Cookie header before NextResponse.next() is created.
+	const buildRequestHeaders = () => {
+		const hdrs = new Headers(request.headers);
+		hdrs.set("x-nonce", nonce);
+		return hdrs;
+	};
+
+	let supabaseResponse = NextResponse.next({ request: { headers: buildRequestHeaders() } });
 
 	const supabase = createServerClient<Database>(
 		process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +35,7 @@ export async function middleware(request: NextRequest) {
 				},
 				setAll(cookiesToSet) {
 					for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
-					supabaseResponse = NextResponse.next({ request });
+					supabaseResponse = NextResponse.next({ request: { headers: buildRequestHeaders() } });
 					for (const { name, value, options } of cookiesToSet)
 						supabaseResponse.cookies.set(name, value, options);
 				},
@@ -37,18 +53,13 @@ export async function middleware(request: NextRequest) {
 	supabaseResponse.headers.set("X-Content-Type-Options", "nosniff");
 	supabaseResponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 	supabaseResponse.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-	// SHA-256 hashes of the static theme-init inline script in src/app/layout.tsx.
-	// Two hashes are listed because Next.js serialises the script content with
-	// slightly different whitespace depending on rendering context (full SSR vs
-	// partial). Both must be present so either variant passes CSP.
-	// Recompute if the script ever changes:
-	//   echo -n '<script-content>' | openssl dgst -sha256 -binary | base64
-	const THEME_SCRIPT_HASHES =
-		"'sha256-ZbmMjbq7u/pJLliTg9iuotQD9CrMXrlGujhpCcwGPso=' 'sha256-Q+8tPsjVtiDsjF/Cv8FMOpg2Yg91oKFKDAJat1PPb2g='";
-	// 'unsafe-eval' is required by Next.js React Fast Refresh in development only.
+	// Nonce-based CSP: 'strict-dynamic' propagates trust from the nonce-bearing
+	// bootstrapper scripts to every chunk Next.js loads dynamically, so no per-
+	// chunk hash is needed. Development keeps 'unsafe-inline' + 'unsafe-eval' for
+	// React Fast Refresh.
 	const scriptSrc =
 		process.env.NODE_ENV === "production"
-			? `script-src 'self' ${THEME_SCRIPT_HASHES}`
+			? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`
 			: "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
 	supabaseResponse.headers.set(
 		"Content-Security-Policy",
