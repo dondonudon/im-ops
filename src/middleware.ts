@@ -37,14 +37,18 @@ export async function middleware(request: NextRequest) {
 	supabaseResponse.headers.set("X-Content-Type-Options", "nosniff");
 	supabaseResponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 	supabaseResponse.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-	// SHA-256 hash of the static theme-init inline script in src/app/layout.tsx.
-	// Recompute if the script changes:
-	//   echo -n '<script>' | openssl dgst -sha256 -binary | base64
-	const THEME_SCRIPT_HASH = "'sha256-Q+8tPsjVtiDsjF/Cv8FMOpg2Yg91oKFKDAJat1PPb2g='";
+	// SHA-256 hashes of the static theme-init inline script in src/app/layout.tsx.
+	// Two hashes are listed because Next.js serialises the script content with
+	// slightly different whitespace depending on rendering context (full SSR vs
+	// partial). Both must be present so either variant passes CSP.
+	// Recompute if the script ever changes:
+	//   echo -n '<script-content>' | openssl dgst -sha256 -binary | base64
+	const THEME_SCRIPT_HASHES =
+		"'sha256-ZbmMjbq7u/pJLliTg9iuotQD9CrMXrlGujhpCcwGPso=' 'sha256-Q+8tPsjVtiDsjF/Cv8FMOpg2Yg91oKFKDAJat1PPb2g='";
 	// 'unsafe-eval' is required by Next.js React Fast Refresh in development only.
 	const scriptSrc =
 		process.env.NODE_ENV === "production"
-			? `script-src 'self' ${THEME_SCRIPT_HASH}`
+			? `script-src 'self' ${THEME_SCRIPT_HASHES}`
 			: "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
 	supabaseResponse.headers.set(
 		"Content-Security-Policy",
