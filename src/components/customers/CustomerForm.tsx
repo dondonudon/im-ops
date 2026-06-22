@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { useState } from "react";
 import { Button, Field, FormError, Input, Select, Textarea } from "@/components/ui";
+import { CUSTOMER_PREFIX_OPTIONS, type CustomerPrefix } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { capitalizeWords, mapDbError } from "@/lib/utils";
 
@@ -11,15 +12,12 @@ import { capitalizeWords, mapDbError } from "@/lib/utils";
  * Create / edit customer form.
  * @param customer - if provided, renders in edit mode with pre-filled values.
  */
-const PREFIX_OPTIONS = ["Mr", "Ms", "Mrs", "Tn", "Ny", "Nn"] as const;
-type Prefix = (typeof PREFIX_OPTIONS)[number];
-
 export function CustomerForm({
 	customer,
 }: {
 	customer?: {
 		id: string;
-		prefix: Prefix | null;
+		prefix: CustomerPrefix | null;
 		name: string;
 		phone: string | null;
 		email: string | null;
@@ -63,7 +61,7 @@ export function CustomerForm({
 		try {
 			const supabase = createClient();
 			const payload = {
-				prefix: (form.prefix as Prefix) || null,
+				prefix: (form.prefix as CustomerPrefix) || null,
 				name: form.name.trim(),
 				phone: form.phone.trim() || null,
 				email: form.email.trim() || null,
@@ -103,7 +101,7 @@ export function CustomerForm({
 			<Field label={t("prefix")} htmlFor="prefix">
 				<Select id="prefix" name="prefix" value={form.prefix} onChange={handleChange}>
 					<option value="">{t("prefixNone")}</option>
-					{PREFIX_OPTIONS.map((p) => (
+					{CUSTOMER_PREFIX_OPTIONS.map((p) => (
 						<option key={p} value={p}>
 							{p}.
 						</option>

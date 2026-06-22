@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { useEffect, useState } from "react";
 import { Button, Field, FormError, Input, PageHeader, Select, Textarea } from "@/components/ui";
+import { CUSTOMER_PREFIX_OPTIONS, type CustomerPrefix } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 
 type Customer = { id: string; name: string; phone: string | null };
@@ -17,6 +18,7 @@ export default function NewLeadPage() {
 	const sp = useSearchParams();
 	const preselectedCustomerId = sp.get("customer_id");
 	const t = useTranslations("forms.lead");
+	const tCustomerForm = useTranslations("forms.customer");
 	const tButtons = useTranslations("common.buttons");
 	const tLeadType = useTranslations("entity.leadType");
 	const tChannel = useTranslations("entity.originChannel");
@@ -32,6 +34,7 @@ export default function NewLeadPage() {
 		origin_channel: "whatsapp",
 		notes: "",
 		// New customer inline fields
+		new_customer_prefix: "",
 		new_customer_name: "",
 		new_customer_phone: "",
 	});
@@ -70,6 +73,7 @@ export default function NewLeadPage() {
 				const { data: newCust, error: custErr } = await supabase
 					.from("customers")
 					.insert({
+						prefix: (form.new_customer_prefix as CustomerPrefix) || null,
 						name: form.new_customer_name.trim(),
 						phone: form.new_customer_phone.trim() || null,
 					})
@@ -141,6 +145,21 @@ export default function NewLeadPage() {
 
 					{createNewCustomer ? (
 						<div className="space-y-3 pl-1">
+							<Field label={tCustomerForm("prefix")} htmlFor="new_customer_prefix">
+								<Select
+									id="new_customer_prefix"
+									name="new_customer_prefix"
+									value={form.new_customer_prefix}
+									onChange={handleChange}
+								>
+									<option value="">{tCustomerForm("prefixNone")}</option>
+									{CUSTOMER_PREFIX_OPTIONS.map((p) => (
+										<option key={p} value={p}>
+											{p}.
+										</option>
+									))}
+								</Select>
+							</Field>
 							<Field label={t("name")} htmlFor="new_customer_name" required>
 								<Input
 									id="new_customer_name"

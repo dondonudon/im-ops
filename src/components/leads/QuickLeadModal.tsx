@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Field, FormError, Input, Select, Textarea } from "@/components/ui";
+import { CUSTOMER_PREFIX_OPTIONS, type CustomerPrefix } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { capitalizeWords, cn, formatCustomerName } from "@/lib/utils";
 
@@ -12,6 +13,7 @@ type Customer = { id: string; prefix: string | null; name: string; phone: string
 
 const EMPTY = {
 	customer_id: "",
+	prefix: "",
 	name: "",
 	phone: "",
 	pickup_address: "",
@@ -30,6 +32,7 @@ const EMPTY = {
 export function QuickLeadModal() {
 	const router = useRouter();
 	const t = useTranslations("forms.lead");
+	const tCustomerForm = useTranslations("forms.customer");
 	const tButtons = useTranslations("common.buttons");
 	const tLeadType = useTranslations("entity.leadType");
 	const tChannel = useTranslations("entity.originChannel");
@@ -118,7 +121,7 @@ export function QuickLeadModal() {
 
 	function selectExisting(customer: Customer) {
 		setSelectedCustomer(customer);
-		setForm((prev) => ({ ...prev, customer_id: customer.id, name: "", phone: "" }));
+		setForm((prev) => ({ ...prev, customer_id: customer.id, prefix: "", name: "", phone: "" }));
 		setQuery("");
 		setComboOpen(false);
 		setNewMode(false);
@@ -129,6 +132,7 @@ export function QuickLeadModal() {
 		setForm((prev) => ({
 			...prev,
 			customer_id: "",
+			prefix: "",
 			name: capitalizeWords(query.trim()),
 			phone: "",
 		}));
@@ -157,6 +161,7 @@ export function QuickLeadModal() {
 				const { data: cust, error: custErr } = await supabase
 					.from("customers")
 					.insert({
+						prefix: (form.prefix as CustomerPrefix) || null,
 						name: form.name.trim(),
 						phone: form.phone.trim() || null,
 					})
@@ -263,7 +268,21 @@ export function QuickLeadModal() {
 							</div>
 						) : newMode ? (
 							<div className="space-y-3">
-								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+								<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+									<Field label={tCustomerForm("prefix")} htmlFor="ql_prefix">
+										<Select
+											id="ql_prefix"
+											value={form.prefix}
+											onChange={(e) => set("prefix", e.target.value)}
+										>
+											<option value="">{tCustomerForm("prefixNone")}</option>
+											{CUSTOMER_PREFIX_OPTIONS.map((p) => (
+												<option key={p} value={p}>
+													{p}.
+												</option>
+											))}
+										</Select>
+									</Field>
 									<Field label={t("name")} htmlFor="ql_name" required>
 										<Input
 											id="ql_name"
