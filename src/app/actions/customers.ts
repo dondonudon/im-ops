@@ -1,7 +1,7 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import type { CustomerDuplicate } from "@/lib/customerDuplicates";
+import { createClient } from "@/lib/supabase/server";
 
 function normalizePhone(value: string | null | undefined): string {
 	const digits = (value ?? "").replace(/\D/g, "");

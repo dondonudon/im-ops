@@ -27,16 +27,6 @@ function monthRange(ym: string): { start: string; end: string } {
 	return { start, end };
 }
 
-const DAY = 86_400_000;
-
-type InvRow = {
-	id: string;
-	invoice_number: string;
-	total_amount: number;
-	paid_amount: number;
-	due_date: string | null;
-	status: string;
-};
 type Payment = {
 	id: string;
 	amount: number;
@@ -60,22 +50,17 @@ export default async function MoneyPage({
 	const t = await getTranslations("money");
 	const tInv = await getTranslations("status.invoice");
 	const supabase = await createClient();
-	const today = new Date();
-	today.setHours(0, 0, 0, 0);
 
 	const [
-		{ data: outstandingData },
+		{ data: arTotals },
+		{ data: statusBreakdown },
 		{ data: monthlyPayments },
 		{ data: monthlyExp },
 		{ data: paymentsData },
-		{ data: invForStatus },
 	] = await Promise.all([
-		supabase
-			.from("invoices")
-			.select("id, invoice_number, total_amount, paid_amount, due_date, status")
-			.neq("status", "paid")
-			.neq("status", "cancelled")
-			.limit(200),
+		// Server-side aggregates — no row count cap, always accurate
+		supabase.rpc("get_ar_totals").single(),
+		supabase.rpc("get_invoice_status_breakdown"),
 		// Actual cash received: payments made in this month
 		supabase.from("payments").select("amount").gte("paid_at", monthStart).lt("paid_at", monthEnd),
 		supabase
@@ -91,58 +76,33 @@ export default async function MoneyPage({
 			.lt("paid_at", monthEnd)
 			.order("paid_at", { ascending: false })
 			.limit(8),
-		supabase.from("invoices").select("status, total_amount").neq("status", "cancelled").limit(200),
 	]);
 
-	const invRows = (outstandingData ?? []) as InvRow[];
 	const payments = (paymentsData ?? []) as Payment[];
 
-	const outstanding = invRows
-		.map((i) => ({
-			...i,
-			outstanding: (i.total_amount ?? 0) - (i.paid_amount ?? 0),
-		}))
-		.filter((i) => i.outstanding > 0);
-
-	const totalOutstanding = outstanding.reduce((s, i) => s + i.outstanding, 0);
-	const overdue = outstanding.filter(
-		(i) => i.due_date && new Date(`${i.due_date}T00:00:00`) < today,
-	);
-	const overdueAmount = overdue.reduce((s, i) => s + i.outstanding, 0);
+	const totalOutstanding = Number(arTotals?.total_outstanding ?? 0);
+	const outstandingCount = Number(arTotals?.outstanding_count ?? 0);
+	const overdueAmount = Number(arTotals?.overdue_amount ?? 0);
+	const overdueCount = Number(arTotals?.overdue_count ?? 0);
 	const monthRevenue = (monthlyPayments ?? []).reduce((s, p) => s + (p.amount ?? 0), 0);
 	const monthExpenses = (monthlyExp ?? []).reduce((s, i) => s + (i.amount ?? 0), 0);
 	const net = monthRevenue - monthExpenses;
 
-	// AR aging buckets
-	const aging = { current: 0, b1: 0, b31: 0, b60: 0 };
-	for (const inv of outstanding) {
-		const amt = inv.outstanding ?? 0;
-		if (!inv.due_date) {
-			aging.current += amt;
-			continue;
-		}
-		const days = Math.floor(
-			(today.getTime() - new Date(`${inv.due_date}T00:00:00`).getTime()) / DAY,
-		);
-		if (days <= 0) aging.current += amt;
-		else if (days <= 30) aging.b1 += amt;
-		else if (days <= 60) aging.b31 += amt;
-		else aging.b60 += amt;
-	}
+	// AR aging buckets — pre-computed server-side
 	const agingRows: { label: string; amount: number; tone: string }[] = [
-		{ label: t("agingCurrent"), amount: aging.current, tone: "bg-ink-faint" },
-		{ label: t("aging1"), amount: aging.b1, tone: "bg-warning" },
-		{ label: t("aging31"), amount: aging.b31, tone: "bg-warning" },
-		{ label: t("aging60"), amount: aging.b60, tone: "bg-danger" },
+		{
+			label: t("agingCurrent"),
+			amount: Number(arTotals?.aging_current ?? 0),
+			tone: "bg-ink-faint",
+		},
+		{ label: t("aging1"), amount: Number(arTotals?.aging_1_30 ?? 0), tone: "bg-warning" },
+		{ label: t("aging31"), amount: Number(arTotals?.aging_31_60 ?? 0), tone: "bg-warning" },
+		{ label: t("aging60"), amount: Number(arTotals?.aging_60_plus ?? 0), tone: "bg-danger" },
 	];
 
-	// Invoice status breakdown
-	const groups: Record<string, { count: number; total: number }> = {};
-	for (const inv of invForStatus ?? []) {
-		groups[inv.status] ??= { count: 0, total: 0 };
-		groups[inv.status].count++;
-		groups[inv.status].total += inv.total_amount ?? 0;
-	}
+	// Invoice status breakdown — pre-computed server-side
+	type StatusRow = { status: string; inv_count: number; total_amount: number };
+	const groups = (statusBreakdown ?? []) as StatusRow[];
 	const STATUS_DOT: Record<string, string> = {
 		draft: "bg-ink-faint",
 		sent: "bg-primary",
@@ -163,10 +123,10 @@ export default async function MoneyPage({
 			<div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
 				<Stat
 					icon={<Wallet size={16} />}
-					tone={overdue.length > 0 ? "pending" : "neutral"}
+					tone={overdueCount > 0 ? "pending" : "neutral"}
 					label={t("outstanding")}
 					value={formatRupiah(totalOutstanding)}
-					sub={t("outstandingSub", { count: outstanding.length })}
+					sub={t("outstandingSub", { count: outstandingCount })}
 					href="/invoices"
 				/>
 				<Stat
@@ -274,20 +234,22 @@ export default async function MoneyPage({
 			<Card>
 				<CardHeader title={t("invoiceStatus")} />
 				<div className="p-5">
-					{Object.keys(groups).length === 0 ? (
+					{groups.length === 0 ? (
 						<EmptyState title={t("noInvoices")} className="py-4" />
 					) : (
 						<div className="space-y-2.5">
-							{Object.entries(groups).map(([status, { count, total }]) => (
-								<div key={status} className="flex items-center gap-3 text-sm">
+							{groups.map((row) => (
+								<div key={row.status} className="flex items-center gap-3 text-sm">
 									<span
-										className={`h-2.5 w-2.5 rounded-full shrink-0 ${STATUS_DOT[status] ?? "bg-ink-faint"}`}
+										className={`h-2.5 w-2.5 rounded-full shrink-0 ${STATUS_DOT[row.status] ?? "bg-ink-faint"}`}
 										aria-hidden="true"
 									/>
 									<span className="flex-1 text-ink-muted capitalize">
-										{tInv(status as never)} ({count})
+										{tInv(row.status as never)} ({row.inv_count})
 									</span>
-									<span className="tabular-nums font-medium text-ink">{formatRupiah(total)}</span>
+									<span className="tabular-nums font-medium text-ink">
+										{formatRupiah(row.total_amount)}
+									</span>
 								</div>
 							))}
 						</div>

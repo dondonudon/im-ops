@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { AssignmentsPanel } from "@/components/jobs/AssignmentsPanel";
 import { PageHeader } from "@/components/ui";
+import { getActiveCrew, getActiveFleet } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AssignmentsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -10,16 +11,15 @@ export default async function AssignmentsPage({ params }: { params: Promise<{ id
 	const supabase = await createClient();
 	const t = await getTranslations("panels.assignments");
 
-	const [{ data: job }, { data: assignments }, { data: fleetData }, { data: crew }] =
-		await Promise.all([
-			supabase.from("jobs").select("id, job_number, move_date").eq("id", id).single(),
-			supabase
-				.from("job_assignments")
-				.select("id, assignment_type, role, fleet_id, crew_id, fleet(name), crew(name)")
-				.eq("job_id", id),
-			supabase.from("fleet").select("id, name").eq("is_active", true).order("name"),
-			supabase.from("crew").select("id, name, daily_rate").eq("is_active", true).order("name"),
-		]);
+	const [{ data: job }, { data: assignments }, fleetData, crew] = await Promise.all([
+		supabase.from("jobs").select("id, job_number, move_date").eq("id", id).single(),
+		supabase
+			.from("job_assignments")
+			.select("id, assignment_type, role, fleet_id, crew_id, fleet(name), crew(name)")
+			.eq("job_id", id),
+		getActiveFleet(),
+		getActiveCrew(),
+	]);
 
 	if (!job) notFound();
 

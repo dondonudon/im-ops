@@ -60,14 +60,19 @@ export default async function PipelinePage() {
 	const supabase = await createClient();
 
 	const [{ data: leadsData }, { count: lostCount }] = await Promise.all([
-		supabase
-			.from("leads")
-			.select(
-				"id, status, pickup_address, destination_address, destination_address_2, preferred_date, created_at, customers(name, type), proposals(final_price, status)",
-			)
-			.neq("status", "closed_lost")
-			.order("created_at", { ascending: false })
-			.limit(500),
+		(() => {
+			const cutoff = new Date();
+			cutoff.setMonth(cutoff.getMonth() - 18);
+			return supabase
+				.from("leads")
+				.select(
+					"id, status, pickup_address, destination_address, destination_address_2, preferred_date, created_at, customers(name, type), proposals(final_price, status)",
+				)
+				.neq("status", "closed_lost")
+				.gte("created_at", cutoff.toISOString())
+				.order("created_at", { ascending: false })
+				.limit(500);
+		})(),
 		supabase.from("leads").select("*", { count: "exact", head: true }).eq("status", "closed_lost"),
 	]);
 

@@ -84,29 +84,12 @@ export default async function JobsPage({
 		if (status) query = query.filter("status", "eq", status);
 		if (q) {
 			const safe = sanitizeSearch(q);
-			// Resolve customer name → leads → proposals to support OR with job_number
-			const { data: matchedCustomers } = await supabase
-				.from("customers")
-				.select("id")
-				.ilike("name", `%${safe}%`);
-			const proposalIds: string[] = [];
-			if (matchedCustomers?.length) {
-				const { data: matchedLeads } = await supabase
-					.from("leads")
-					.select("id")
-					.in(
-						"customer_id",
-						matchedCustomers.map((c) => c.id),
-					);
-				const leadIds = matchedLeads?.map((l) => l.id) ?? [];
-				if (leadIds.length) {
-					const { data: matchedProposals } = await supabase
-						.from("proposals")
-						.select("id")
-						.in("lead_id", leadIds);
-					proposalIds.push(...(matchedProposals?.map((p) => p.id) ?? []));
-				}
-			}
+			// Single query via jobs_with_customer view — replaces 4 sequential round-trips
+			const { data: matchedJobs } = await supabase
+				.from("jobs_with_customer")
+				.select("proposal_id")
+				.ilike("customer_name", `%${safe}%`);
+			const proposalIds = (matchedJobs ?? []).map((j) => j.proposal_id).filter(Boolean);
 			if (proposalIds.length) {
 				query = query.or(`job_number.ilike.%${safe}%,proposal_id.in.(${proposalIds.join(",")})`);
 			} else {
@@ -169,7 +152,10 @@ export default async function JobsPage({
 										<Badge tone={toneFor("job", s)} dot>
 											{tStatus(s as never)}
 										</Badge>
-										<span className="text-[11px] font-bold text-ink-muted">{items.length}</span>
+										<span className="text-[11px] font-bold text-ink-muted">
+											{items.length}
+											{items.length >= BOARD_PER_COL && "+"}
+										</span>
 									</div>
 									{colRevenue > 0 && (
 										<span className="text-[11px] font-semibold text-ink-muted tabular-nums shrink-0">

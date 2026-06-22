@@ -73,17 +73,22 @@ export default async function TodayPage() {
 
 	// ── Eager fetch: above-the-fold data only ───────────────────────────────
 	const [
-		{ data: outstanding },
+		{ data: arTotals },
+		{ data: overdueInvoices },
 		{ data: todaysMoves },
 		{ data: pendingSurveys },
 		{ data: draftProposals },
 		{ data: syncFailures },
 	] = await Promise.all([
+		// Server-side aggregate: no row count cap — totals are always accurate
+		supabase.rpc("get_ar_totals").single(),
+		// Fetch only overdue invoices (id + amount) needed for the action queue
 		supabase
 			.from("invoice_outstanding")
-			.select("id, outstanding, effective_status")
-			.neq("effective_status", "paid")
-			.limit(200),
+			.select("id, outstanding")
+			.eq("effective_status", "overdue")
+			.order("due_date")
+			.limit(20),
 		supabase
 			.from("jobs")
 			.select(
@@ -112,9 +117,9 @@ export default async function TodayPage() {
 			.limit(5),
 	]);
 
-	const overdue = (outstanding ?? []).filter((i) => i.effective_status === "overdue");
-	const totalOutstanding = (outstanding ?? []).reduce((s, i) => s + (i.outstanding ?? 0), 0);
-	const overdueAmount = overdue.reduce((s, i) => s + (i.outstanding ?? 0), 0);
+	const overdue = (overdueInvoices ?? []) as { id: string; outstanding: number }[];
+	const totalOutstanding = Number(arTotals?.total_outstanding ?? 0);
+	const overdueAmount = Number(arTotals?.overdue_amount ?? 0);
 	const moves = (todaysMoves ?? []) as TodayJob[];
 
 	// ── Build the "Needs you" action queue ──────────────────────────────────

@@ -3,10 +3,10 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { useState } from "react";
+import { checkDuplicateCustomer } from "@/app/actions/customers";
 import { Button, Field, FormError, Input, Select, Textarea } from "@/components/ui";
 import { CUSTOMER_PREFIX_OPTIONS, type CustomerPrefix } from "@/lib/constants";
 import { formatCustomerLabel } from "@/lib/customerDuplicates";
-import { checkDuplicateCustomer } from "@/app/actions/customers";
 import { createClient } from "@/lib/supabase/client";
 import { capitalizeWords, mapDbError } from "@/lib/utils";
 

@@ -242,17 +242,22 @@ export async function removeJobCalendarEvent(jobId: string): Promise<GCalResult>
 async function syncChunked<T>(
 	items: T[],
 	fn: (item: T) => Promise<{ ok: boolean }>,
-	chunkSize = 5,
+	concurrency = 20,
 ): Promise<{ ok: number; failed: number }> {
 	const results = { ok: 0, failed: 0 };
-	for (let i = 0; i < items.length; i += chunkSize) {
-		const chunk = items.slice(i, i + chunkSize);
-		const chunkResults = await Promise.all(chunk.map(fn));
-		for (const r of chunkResults) {
+	// Concurrency-limited pool — all items run in parallel up to `concurrency`
+	// simultaneous calls. Avoids the O(items/5) sequential rounds of the old
+	// chunk-then-await approach.
+	let index = 0;
+	async function worker() {
+		while (index < items.length) {
+			const item = items[index++];
+			const r = await fn(item);
 			if (r.ok) results.ok += 1;
 			else results.failed += 1;
 		}
 	}
+	await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker));
 	return results;
 }
 
