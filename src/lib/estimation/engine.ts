@@ -40,7 +40,7 @@ export interface EstimationInputs {
 	days: number; // number of job days; default 1
 	meals_count: number; // meals per day per traveling crew; default 3
 	travel_crew_count: number; // origin crew that travel with the truck; default 0
-	travel_cost_per_crew: number; // day rate for traveling crew; default 250_000
+	travel_cost_per_crew: number; // day rate for traveling crew; default 500_000
 	spot_hire_count: number; // local helpers hired at destination; default 0
 	spot_hire_cost: number; // day rate per spot hire; no food included; default 100_000
 }
