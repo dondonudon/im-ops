@@ -1,9 +1,8 @@
 "use client";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-
 import { useState, useTransition } from "react";
+import { PendingLink } from "@/components/shared/PendingLink";
 import {
 	Badge,
 	Button,
@@ -184,7 +183,7 @@ export function LeadActionPanel({
 						<p className="font-medium mt-0.5 text-ink">{formatDate(survey.scheduled_at)}</p>
 					</div>
 					<div className="flex gap-2">
-						<Link
+						<PendingLink
 							href={`/surveys/${survey.id}`}
 							className={buttonStyles({
 								variant: "secondary",
@@ -193,7 +192,7 @@ export function LeadActionPanel({
 							})}
 						>
 							{t("viewSurvey")}
-						</Link>
+						</PendingLink>
 						<Button
 							type="button"
 							onClick={handleMarkSurveyDone}
@@ -231,7 +230,7 @@ export function LeadActionPanel({
 			{lead.status === "estimating" && proposals.length > 0 && (
 				<div className="space-y-2">
 					<p className="text-sm text-ink-muted">{t("estimationInProgress")}</p>
-					<Link
+					<PendingLink
 						href={`/proposals/${proposals[0].id}`}
 						className={buttonStyles({
 							variant: "primary",
@@ -240,7 +239,7 @@ export function LeadActionPanel({
 						})}
 					>
 						{t("openProposal")}
-					</Link>
+					</PendingLink>
 				</div>
 			)}
 
@@ -257,12 +256,12 @@ export function LeadActionPanel({
 								<Badge tone={toneFor("proposal", p.status)} dot>
 									{p.status}
 								</Badge>
-								<Link
+								<PendingLink
 									href={`/proposals/${p.id}`}
 									className="text-primary-text text-xs hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ring)] rounded"
 								>
 									{tButtons("view")} →
-								</Link>
+								</PendingLink>
 							</div>
 						</div>
 					))}

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/shared/PendingLink";
 import {
 	Badge,
 	EmptyState,
@@ -77,12 +77,12 @@ export default async function CustomersPage({
 						{rows.map((c) => (
 							<TR key={c.id}>
 								<TD className="font-medium">
-									<Link
+									<PendingLink
 										href={`/customers/${c.id}`}
 										className="text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 									>
 										{formatCustomerName(c.prefix, c.name)}
-									</Link>
+									</PendingLink>
 									{c.company_name && (
 										<span className="ml-1 text-xs text-ink-faint">({c.company_name})</span>
 									)}
@@ -110,7 +110,7 @@ export default async function CustomersPage({
 			{/* Mobile cards */}
 			<div className="md:hidden space-y-3">
 				{rows.map((c) => (
-					<Link
+					<PendingLink
 						key={c.id}
 						href={`/customers/${c.id}`}
 						className="block rounded-xl border border-line bg-surface shadow-token p-4 transition-colors active:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
@@ -138,7 +138,7 @@ export default async function CustomersPage({
 								<p className="text-ink-muted tabular-nums">{formatDate(c.created_at)}</p>
 							</div>
 						</div>
-					</Link>
+					</PendingLink>
 				))}
 				{rows.length === 0 && <EmptyState title={q ? t("emptyFiltered") : t("empty")} />}
 			</div>

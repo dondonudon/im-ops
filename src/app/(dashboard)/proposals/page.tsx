@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FilterForm } from "@/components/shared/FilterForm";
+import { PendingLink } from "@/components/shared/PendingLink";
 import {
 	Badge,
 	EmptyState,
@@ -121,12 +121,12 @@ export default async function ProposalsPage({
 							return (
 								<TR key={p.id}>
 									<TD className="font-mono text-xs">
-										<Link
+										<PendingLink
 											href={`/proposals/${p.id}`}
 											className="text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 										>
 											{p.proposal_number}
-										</Link>
+										</PendingLink>
 									</TD>
 									<TD>{customer?.name ?? "—"}</TD>
 									<TD align="right">
@@ -161,7 +161,7 @@ export default async function ProposalsPage({
 				{(proposals ?? []).map((p) => {
 					const customer = (p.leads as { customers: { name: string } | null } | null)?.customers;
 					return (
-						<Link
+						<PendingLink
 							key={p.id}
 							href={`/proposals/${p.id}`}
 							className="block bg-surface rounded-xl border border-line p-4 shadow-token active:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
@@ -187,7 +187,7 @@ export default async function ProposalsPage({
 									<p className="text-ink-muted">{formatDate(p.created_at)}</p>
 								</div>
 							</div>
-						</Link>
+						</PendingLink>
 					);
 				})}
 				{(proposals ?? []).length === 0 && (

@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { PendingLink } from "@/components/shared/PendingLink";
 import {
 	Badge,
 	buttonStyles,
@@ -209,7 +210,7 @@ export default async function TodayPage() {
 						{moves.map((job) => {
 							const lead = job.proposals?.leads ?? null;
 							return (
-								<Link
+								<PendingLink
 									key={job.id}
 									href={`/jobs/${job.id}`}
 									className="group bg-surface border border-line rounded-xl shadow-token p-4 transition-all hover:border-line-strong hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
@@ -230,7 +231,7 @@ export default async function TodayPage() {
 										via={lead?.destination_address_2}
 										to={lead?.destination_address}
 									/>
-								</Link>
+								</PendingLink>
 							);
 						})}
 					</div>
@@ -279,7 +280,7 @@ export default async function TodayPage() {
 										<p className="text-[13px] font-semibold text-ink truncate">{item.title}</p>
 										<p className="text-xs text-ink-muted truncate">{item.sub}</p>
 									</div>
-									<Link
+									<PendingLink
 										href={item.href}
 										className={buttonStyles({
 											variant: item.tone === "danger" ? "danger" : "subtle",
@@ -287,7 +288,7 @@ export default async function TodayPage() {
 										})}
 									>
 										{item.action}
-									</Link>
+									</PendingLink>
 								</li>
 							))}
 						</ul>
@@ -508,7 +509,7 @@ async function UpcomingSection() {
 						const d = new Date(`${job.move_date}T00:00:00`);
 						return (
 							<li key={job.id}>
-								<Link
+								<PendingLink
 									href={`/jobs/${job.id}`}
 									className="flex items-center gap-4 px-5 py-3.5 hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]"
 								>
@@ -528,7 +529,7 @@ async function UpcomingSection() {
 									<Badge tone={toneFor("job", job.status)} dot>
 										{job.status.replace("_", " ")}
 									</Badge>
-								</Link>
+								</PendingLink>
 							</li>
 						);
 					})}

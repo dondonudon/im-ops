@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { BackLink } from "@/components/shared/BackLink";
+import { PendingLink } from "@/components/shared/PendingLink";
 import { jobStatusVariant, leadStatusVariant, StatusChip } from "@/components/shared/StatusChip";
 import { buttonStyles, PageHeader } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
@@ -93,7 +94,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 					<ul className="space-y-2">
 						{leads!.map((l) => (
 							<li key={l.id}>
-								<Link
+								<PendingLink
 									href={`/leads/${l.id}`}
 									className="flex items-center justify-between rounded-xl border border-line bg-surface px-4 py-3 hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 								>
@@ -107,7 +108,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 										/>
 										<span className="text-xs text-ink-faint">{formatDate(l.created_at)}</span>
 									</div>
-								</Link>
+								</PendingLink>
 							</li>
 						))}
 					</ul>
@@ -123,7 +124,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 					<ul className="space-y-2">
 						{jobs!.map((j) => (
 							<li key={j.id}>
-								<Link
+								<PendingLink
 									href={`/jobs/${j.id}`}
 									className="flex items-center justify-between rounded-xl border border-line bg-surface px-4 py-3 hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 								>
@@ -136,7 +137,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 										/>
 										<span className="text-xs text-ink-faint">{formatDate(j.move_date)}</span>
 									</div>
-								</Link>
+								</PendingLink>
 							</li>
 						))}
 					</ul>

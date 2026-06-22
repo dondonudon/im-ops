@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/shared/PendingLink";
 import {
 	Badge,
 	EmptyState,
@@ -72,12 +72,12 @@ export default async function FleetPage({
 						{rows.map((v) => (
 							<TR key={v.id}>
 								<TD className="font-medium">
-									<Link
+									<PendingLink
 										href={`/fleet/${v.id}`}
 										className="text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 									>
 										{v.name}
-									</Link>
+									</PendingLink>
 								</TD>
 								<TD className="text-ink-muted">{v.contact_person ?? "—"}</TD>
 								<TD className="text-ink-muted">{v.phone ?? "—"}</TD>
@@ -105,7 +105,7 @@ export default async function FleetPage({
 			{/* Mobile cards */}
 			<div className="md:hidden space-y-3">
 				{rows.map((v) => (
-					<Link
+					<PendingLink
 						key={v.id}
 						href={`/fleet/${v.id}`}
 						className="block rounded-xl border border-line bg-surface shadow-token p-4 transition-colors active:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
@@ -133,7 +133,7 @@ export default async function FleetPage({
 								</div>
 							) : null}
 						</div>
-					</Link>
+					</PendingLink>
 				))}
 				{rows.length === 0 && <EmptyState title={t("empty")} />}
 			</div>

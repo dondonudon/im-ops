@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FilterForm } from "@/components/shared/FilterForm";
+import { PendingLink } from "@/components/shared/PendingLink";
 import {
 	Badge,
 	EmptyState,
@@ -97,12 +97,12 @@ export default async function InvoicesPage({
 							return (
 								<TR key={inv.id}>
 									<TD className="font-mono text-xs">
-										<Link
+										<PendingLink
 											href={`/invoices/${inv.id}`}
 											className="text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 										>
 											{inv.invoice_number}
-										</Link>
+										</PendingLink>
 									</TD>
 									<TD>{customerName}</TD>
 									<TD align="right">
@@ -146,7 +146,7 @@ export default async function InvoicesPage({
 						)?.proposals?.leads?.customers?.name ?? "—";
 					const balance = inv.total_amount - (inv.paid_amount ?? 0);
 					return (
-						<Link
+						<PendingLink
 							key={inv.id}
 							href={`/invoices/${inv.id}`}
 							className="block bg-surface rounded-xl border border-line p-4 shadow-token active:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
@@ -183,7 +183,7 @@ export default async function InvoicesPage({
 									</div>
 								)}
 							</div>
-						</Link>
+						</PendingLink>
 					);
 				})}
 				{(invoices ?? []).length === 0 && (

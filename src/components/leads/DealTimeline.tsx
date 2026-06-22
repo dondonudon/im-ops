@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { PendingLink } from "@/components/shared/PendingLink";
 import { Badge, Card, CardHeader, toneFor } from "@/components/ui";
 import { cn, formatDate, formatRupiah } from "@/lib/utils";
 
@@ -99,12 +99,12 @@ export async function DealTimeline({
 											{formatRupiah(p.final_price)}
 										</span>
 									)}
-									<Link
+									<PendingLink
 										href={`/proposals/${p.id}`}
 										className="ml-auto text-primary-text font-semibold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 									>
 										{t("openProposal")} →
-									</Link>
+									</PendingLink>
 								</li>
 							))}
 						</ul>
@@ -118,12 +118,12 @@ export async function DealTimeline({
 							<Badge tone={toneFor("job", job.status)} dot>
 								{tJobStatus(job.status as never)}
 							</Badge>
-							<Link
+							<PendingLink
 								href={`/jobs/${job.id}`}
 								className="ml-auto text-primary-text font-semibold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 							>
 								{t("viewJob")} →
-							</Link>
+							</PendingLink>
 						</div>
 					)}
 				</Stage>
@@ -172,12 +172,12 @@ function Stage({
 				{sub && <p className="text-xs text-ink-muted mt-0.5">{sub}</p>}
 				{children}
 				{link && (
-					<Link
+					<PendingLink
 						href={link.href}
 						className="inline-block mt-1 text-xs font-semibold text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
 					>
 						{link.label} →
-					</Link>
+					</PendingLink>
 				)}
 			</div>
 		</li>

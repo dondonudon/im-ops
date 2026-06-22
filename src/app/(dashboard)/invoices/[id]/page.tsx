@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { InvoicePDFDownloadButton } from "@/components/invoices/InvoicePDFDownloadButton";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { BackLink } from "@/components/shared/BackLink";
+import { PendingLink } from "@/components/shared/PendingLink";
 import { Badge, Card, Money, PageHeader, toneFor } from "@/components/ui";
 import { buildCompanySettings, buildInvoiceTemplateSettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
@@ -115,9 +115,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 							<>
 								{" "}
 								·{" "}
-								<Link href={`/jobs/${job.id}`} className="text-primary-text hover:underline">
+								<PendingLink href={`/jobs/${job.id}`} className="text-primary-text hover:underline">
 									{job.job_number}
-								</Link>
+								</PendingLink>
 							</>
 						)}
 					</>

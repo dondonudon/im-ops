@@ -1,10 +1,9 @@
 "use client";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-
 import { useState, useTransition } from "react";
 import { NumericInput } from "@/components/shared/NumericInput";
+import { PendingLink } from "@/components/shared/PendingLink";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { Button, buttonStyles, Card, Field, FormError, Input, Select } from "@/components/ui";
 import { syncJobToCalendar } from "@/lib/gcal/actions";
@@ -142,12 +141,12 @@ export function ProposalActionPanel({
 			{/* ── DRAFT ── */}
 			{proposal.status === "draft" && (
 				<div className="space-y-2">
-					<Link
+					<PendingLink
 						href={`/estimations/new?proposal_id=${proposal.id}`}
 						className={buttonStyles({ variant: "secondary", size: "md", className: "w-full" })}
 					>
 						{hasEstimation ? t("editEstimation") : t("createEstimation")}
-					</Link>
+					</PendingLink>
 					{hasEstimation && (
 						<Button
 							type="button"
@@ -229,12 +228,12 @@ export function ProposalActionPanel({
 			{job && (
 				<div className="space-y-2">
 					<p className="text-sm text-ink-muted">{t("jobCreated")}</p>
-					<Link
+					<PendingLink
 						href={`/jobs/${job.id}`}
 						className={buttonStyles({ variant: "primary", size: "md", className: "w-full" })}
 					>
 						{t("viewJobWith", { number: job.job_number })}
-					</Link>
+					</PendingLink>
 				</div>
 			)}
 

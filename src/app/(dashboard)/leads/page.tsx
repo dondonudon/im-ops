@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FilterForm } from "@/components/shared/FilterForm";
+import { PendingLink } from "@/components/shared/PendingLink";
 import {
 	Badge,
 	Button,
@@ -102,7 +102,7 @@ export default async function LeadsPage({
 						phone: string | null;
 					} | null;
 					return (
-						<Link
+						<PendingLink
 							key={lead.id}
 							href={`/leads/${lead.id}`}
 							className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface shadow-token px-5 py-4 transition-all hover:border-line-strong hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
@@ -126,7 +126,7 @@ export default async function LeadsPage({
 										: formatDate(lead.created_at)}
 								</span>
 							</div>
-						</Link>
+						</PendingLink>
 					);
 				})}
 				{(leads ?? []).length === 0 && (
