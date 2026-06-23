@@ -17,34 +17,41 @@ type Props = {
 	initialTargets: MonthTarget[];
 };
 
-/** Generate a window of months: 3 past + current + 11 future (15 total). */
-function generateMonthWindow(): { year: number; month: number }[] {
-	const now = new Date();
-	const months: { year: number; month: number }[] = [];
-	for (let offset = -3; offset <= 11; offset++) {
-		const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-		months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
-	}
-	return months;
-}
-
 function monthKey(year: number, month: number): string {
 	return `${year}-${String(month).padStart(2, "0")}`;
 }
 
-function formatMonthLabel(year: number, month: number): string {
-	const d = new Date(year, month - 1, 1);
-	return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(d);
+function currentYearMonth(): { year: number; month: number } {
+	const now = new Date();
+	return { year: now.getFullYear(), month: now.getMonth() + 1 };
 }
 
-function isCurrentMonth(year: number, month: number): boolean {
-	const now = new Date();
-	return year === now.getFullYear() && month === now.getMonth() + 1;
+const MONTH_NAMES = [
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December",
+];
+
+/** Year range: 3 years back to 3 years ahead. */
+function yearOptions(): number[] {
+	const y = new Date().getFullYear();
+	return Array.from({ length: 7 }, (_, i) => y - 3 + i);
 }
+
+const SELECT_CLS =
+	"border border-line rounded-lg px-3 py-1.5 text-sm bg-transparent focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-ink";
 
 export function RevenueTargetEditor({ defaultTarget, initialTargets }: Props) {
 	const t = useTranslations("pages.settings.revenueTargets");
-	const tButtons = useTranslations("common.buttons");
 	const router = useRouter();
 
 	const initMap: Record<string, number> = {};
@@ -53,35 +60,30 @@ export function RevenueTargetEditor({ defaultTarget, initialTargets }: Props) {
 	}
 
 	const [values, setValues] = useState<Record<string, number>>(initMap);
-	const [savingKey, setSavingKey] = useState<string | null>(null);
-	const [savedKey, setSavedKey] = useState<string | null>(null);
+	const [selected, setSelected] = useState(currentYearMonth);
+	const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
 	const [, startTransition] = useTransition();
 
-	const months = generateMonthWindow();
+	const { year, month } = selected;
+	const selectedKey = monthKey(year, month);
+	const value = values[selectedKey] ?? 0;
+	const hasExplicit = selectedKey in values && values[selectedKey] > 0;
 
-	async function handleBlur(year: number, month: number) {
-		const key = monthKey(year, month);
-		const amount = values[key] ?? 0;
-
-		setSavingKey(key);
-		setSavedKey(null);
+	async function handleBlur() {
+		const amount = values[selectedKey] ?? 0;
+		setSaveState("saving");
 
 		const supabase = createClient();
-		await supabase.from("revenue_targets").upsert(
-			{
-				year,
-				month,
-				target_amount: amount,
-				updated_at: new Date().toISOString(),
-			},
-			{ onConflict: "year,month" },
-		);
+		await supabase
+			.from("revenue_targets")
+			.upsert(
+				{ year, month, target_amount: amount, updated_at: new Date().toISOString() },
+				{ onConflict: "year,month" },
+			);
 
-		setSavingKey(null);
-		setSavedKey(key);
+		setSaveState("saved");
 		startTransition(() => router.refresh());
-
-		setTimeout(() => setSavedKey(null), 2000);
+		setTimeout(() => setSaveState("idle"), 2000);
 	}
 
 	return (
@@ -89,61 +91,66 @@ export function RevenueTargetEditor({ defaultTarget, initialTargets }: Props) {
 			<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-widest mb-1">
 				{t("title")}
 			</h2>
-			<p className="text-xs text-ink-faint mb-3">{t("description")}</p>
+			<p className="text-xs text-ink-faint mb-4">{t("description")}</p>
 
-			<div className="rounded-xl border border-line bg-surface divide-y divide-line">
-				{months.map(({ year, month }) => {
-					const key = monthKey(year, month);
-					const value = values[key] ?? 0;
-					const isCurrent = isCurrentMonth(year, month);
-					const isExplicit = key in values && values[key] > 0;
+			<div className="rounded-xl border border-line bg-surface p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+				<div className="flex items-center gap-2 shrink-0">
+					<select
+						value={month}
+						onChange={(e) => {
+							setSelected((s) => ({ ...s, month: Number(e.target.value) }));
+							setSaveState("idle");
+						}}
+						className={SELECT_CLS}
+						aria-label="Month"
+					>
+						{MONTH_NAMES.map((name, i) => (
+							<option key={name} value={i + 1}>
+								{name}
+							</option>
+						))}
+					</select>
+					<select
+						value={year}
+						onChange={(e) => {
+							setSelected((s) => ({ ...s, year: Number(e.target.value) }));
+							setSaveState("idle");
+						}}
+						className={SELECT_CLS}
+						aria-label="Year"
+					>
+						{yearOptions().map((y) => (
+							<option key={y} value={y}>
+								{y}
+							</option>
+						))}
+					</select>
+				</div>
 
-					return (
-						<div key={key} className="flex items-center justify-between gap-4 px-4 py-3">
-							<span
-								className={[
-									"text-sm shrink-0",
-									isCurrent ? "font-semibold text-ink" : "text-ink-muted",
-								].join(" ")}
-							>
-								{formatMonthLabel(year, month)}
-								{isCurrent && (
-									<span className="ml-2 text-[10px] font-medium text-primary-text bg-primary/10 rounded px-1.5 py-0.5">
-										{t("current")}
-									</span>
-								)}
-							</span>
-
-							<div className="flex items-center gap-2 min-w-0">
-								{!isExplicit && value === 0 && (
-									<span className="text-xs text-ink-faint hidden sm:block">
-										{t("defaultHint", {
-											amount: new Intl.NumberFormat("id-ID").format(defaultTarget),
-										})}
-									</span>
-								)}
-								<div className="relative">
-									<NumericInput
-										value={value}
-										onChange={(v) => setValues((prev) => ({ ...prev, [key]: v }))}
-										onBlur={() => handleBlur(year, month)}
-										placeholder={new Intl.NumberFormat("id-ID").format(defaultTarget)}
-										className="w-40 text-right text-sm font-medium tabular-nums border border-line rounded-lg px-3 py-1.5 bg-transparent focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent"
-										aria-label={t("inputLabel", { month: formatMonthLabel(year, month) })}
-									/>
-								</div>
-								<span className="text-xs w-12 text-right shrink-0">
-									{savingKey === key ? (
-										<span className="text-ink-faint">{tButtons("saving")}</span>
-									) : savedKey === key ? (
-										<span className="text-success">✓</span>
-									) : null}
-								</span>
-							</div>
-						</div>
-					);
-				})}
+				<div className="flex items-center gap-2 flex-1">
+					<NumericInput
+						value={value}
+						onChange={(v) => setValues((prev) => ({ ...prev, [selectedKey]: v }))}
+						onBlur={handleBlur}
+						placeholder={new Intl.NumberFormat("id-ID").format(defaultTarget)}
+						className="flex-1 text-right text-sm font-medium tabular-nums border border-line rounded-lg px-3 py-1.5 bg-transparent focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent"
+						aria-label={t("inputLabel", { month: selectedKey })}
+					/>
+					<span className="text-xs w-10 text-right shrink-0">
+						{saveState === "saving" ? (
+							<span className="text-ink-faint">…</span>
+						) : saveState === "saved" ? (
+							<span className="text-success">✓</span>
+						) : null}
+					</span>
+				</div>
 			</div>
+
+			{!hasExplicit && (
+				<p className="text-xs text-ink-faint mt-2">
+					{t("defaultHint", { amount: new Intl.NumberFormat("id-ID").format(defaultTarget) })}
+				</p>
+			)}
 		</section>
 	);
 }
