@@ -806,6 +806,30 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			revenue_targets: {
+				Row: {
+					year: number;
+					month: number;
+					target_amount: number;
+					updated_at: string;
+					updated_by: string | null;
+				};
+				Insert: {
+					year: number;
+					month: number;
+					target_amount?: number;
+					updated_at?: string;
+					updated_by?: string | null;
+				};
+				Update: {
+					year?: number;
+					month?: number;
+					target_amount?: number;
+					updated_at?: string;
+					updated_by?: string | null;
+				};
+				Relationships: [];
+			};
 		};
 		Views: {
 			job_profit_summary: {

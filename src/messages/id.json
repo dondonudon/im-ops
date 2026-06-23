@@ -456,7 +456,8 @@
 				"totalRevenue": "Total pendapatan",
 				"totalProfit": "Total keuntungan",
 				"leadConversion": "Konversi prospek",
-				"totalLeads": "Total prospek"
+				"totalLeads": "Total prospek",
+				"target": "Target"
 			},
 			"profitByJob": {
 				"title": "Keuntungan per pekerjaan",
@@ -513,6 +514,13 @@
 				"invoiceSettings": "Pengaturan Faktur",
 				"dashboard": "Dasbor",
 				"googleCalendar": "Google Calendar"
+			},
+			"revenueTargets": {
+				"title": "Target Pendapatan Bulanan",
+				"description": "Atur target pendapatan untuk setiap bulan. Bulan tanpa target spesifik menggunakan nilai default di atas.",
+				"current": "Bulan ini",
+				"defaultHint": "Default: {amount}",
+				"inputLabel": "Target pendapatan untuk {month}"
 			},
 			"marginTiers": {
 				"upTo": "Hingga (IDR)",

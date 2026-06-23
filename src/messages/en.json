@@ -456,7 +456,8 @@
 				"totalRevenue": "Total revenue",
 				"totalProfit": "Total profit",
 				"leadConversion": "Lead conversion",
-				"totalLeads": "Total leads"
+				"totalLeads": "Total leads",
+				"target": "Target"
 			},
 			"profitByJob": {
 				"title": "Profit by job",
@@ -513,6 +514,13 @@
 				"invoiceSettings": "Invoice Settings",
 				"dashboard": "Dashboard",
 				"googleCalendar": "Google Calendar"
+			},
+			"revenueTargets": {
+				"title": "Monthly Revenue Targets",
+				"description": "Set a revenue target for each month. Months without a specific target use the default above.",
+				"current": "This month",
+				"defaultHint": "Default: {amount}",
+				"inputLabel": "Revenue target for {month}"
 			},
 			"marginTiers": {
 				"upTo": "Up to (IDR)",

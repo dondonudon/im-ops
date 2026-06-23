@@ -335,27 +335,37 @@ async function MoneyCardSection() {
 	const supabase = await createClient();
 	const monthStart = startOfMonth();
 
-	const [{ data: monthlyPaid }, { data: monthlyExp }, { data: revenueTargetSetting }] =
-		await Promise.all([
-			supabase
-				.from("invoices")
-				.select("paid_amount")
-				.in("status", ["paid", "partially_paid"])
-				.gte("created_at", monthStart),
-			supabase.from("expenses").select("amount").gte("incurred_at", monthStart),
-			supabase
-				.from("system_settings")
-				.select("value")
-				.eq("key", "revenue_target_monthly")
-				.maybeSingle(),
-		]);
+	const [
+		{ data: monthlyPaid },
+		{ data: monthlyExp },
+		{ data: revenueTargetRow },
+		{ data: defaultTargetRow },
+	] = await Promise.all([
+		supabase
+			.from("invoices")
+			.select("paid_amount")
+			.in("status", ["paid", "partially_paid"])
+			.gte("created_at", monthStart),
+		supabase.from("expenses").select("amount").gte("incurred_at", monthStart),
+		supabase
+			.from("revenue_targets")
+			.select("target_amount")
+			.eq("year", new Date().getFullYear())
+			.eq("month", new Date().getMonth() + 1)
+			.maybeSingle(),
+		supabase
+			.from("system_settings")
+			.select("value")
+			.eq("key", "revenue_target_monthly")
+			.maybeSingle(),
+	]);
 
 	const monthRevenue = (monthlyPaid ?? []).reduce((s, i) => s + (i.paid_amount ?? 0), 0);
 	const monthExpenses = (monthlyExp ?? []).reduce((s, i) => s + (i.amount ?? 0), 0);
 	const net = monthRevenue - monthExpenses;
-	const revenueTarget = revenueTargetSetting?.value
-		? Number(revenueTargetSetting.value)
-		: 50_000_000;
+	const revenueTarget =
+		revenueTargetRow?.target_amount ??
+		(defaultTargetRow?.value ? Number(defaultTargetRow.value) : 50_000_000);
 	const revenueProgress = Math.min(100, Math.round((monthRevenue / revenueTarget) * 100));
 
 	return (

@@ -49,6 +49,8 @@ export default async function ReportsPage({
 		{ data: leadConversion },
 		{ data: outstandingInvoices },
 		{ data: lostProposals },
+		{ data: revenueTargetRow },
+		{ data: defaultTargetRow },
 	] = await Promise.all([
 		// Jobs scheduled in this month (move_date) for revenue KPI + profit table
 		supabase
@@ -79,6 +81,19 @@ export default async function ReportsPage({
 			.in("status", ["lost", "expired"])
 			.gte("closed_at", monthStart)
 			.lt("closed_at", monthEnd),
+		// Per-month revenue target
+		supabase
+			.from("revenue_targets")
+			.select("target_amount")
+			.eq("year", Number(selectedMonth.split("-")[0]))
+			.eq("month", Number(selectedMonth.split("-")[1]))
+			.maybeSingle(),
+		// Fallback default target
+		supabase
+			.from("system_settings")
+			.select("value")
+			.eq("key", "revenue_target_monthly")
+			.maybeSingle(),
 	]);
 
 	// job_profit_summary has no date column — filter by the month's job IDs
@@ -109,6 +124,12 @@ export default async function ReportsPage({
 	const totalRevenue = (monthJobsData ?? []).reduce((s, j) => s + (j.revenue ?? 0), 0);
 	const totalExpenses = (monthlyExpenses ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
 	const totalProfit = totalRevenue - totalExpenses;
+
+	const revenueTarget =
+		revenueTargetRow?.target_amount ??
+		(defaultTargetRow?.value ? Number(defaultTargetRow.value) : 0);
+	const revenueProgress =
+		revenueTarget > 0 ? Math.min(100, Math.round((totalRevenue / revenueTarget) * 100)) : 0;
 
 	const aging = { current: 0, "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
 	const today = new Date();
@@ -143,12 +164,41 @@ export default async function ReportsPage({
 
 			{/* KPI summary */}
 			<section className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+				{/* Revenue card — enhanced with target progress when available */}
+				<Card className="p-5 overflow-hidden">
+					<p className="text-xs text-ink-muted uppercase tracking-wide mb-1 truncate">
+						{t("kpi.totalRevenue")}
+					</p>
+					<p className="text-lg sm:text-xl lg:text-2xl font-bold tabular-nums leading-tight text-primary-text">
+						{formatRupiah(totalRevenue)}
+					</p>
+					{revenueTarget > 0 && (
+						<div className="mt-2">
+							<div className="flex justify-between text-[10px] text-ink-faint mb-1">
+								<span>
+									{t("kpi.target")}: {formatRupiah(revenueTarget)}
+								</span>
+								<span className={revenueProgress >= 100 ? "text-success font-semibold" : ""}>
+									{revenueProgress}%
+								</span>
+							</div>
+							<div
+								className="h-1.5 rounded-full bg-subtle overflow-hidden"
+								role="progressbar"
+								aria-valuenow={revenueProgress}
+								aria-valuemin={0}
+								aria-valuemax={100}
+							>
+								<div
+									className={`h-full rounded-full transition-all ${revenueProgress >= 100 ? "bg-success" : "bg-primary"}`}
+									style={{ width: `${revenueProgress}%` }}
+								/>
+							</div>
+						</div>
+					)}
+				</Card>
+
 				{[
-					{
-						label: t("kpi.totalRevenue"),
-						value: formatRupiah(totalRevenue),
-						className: "text-primary-text",
-					},
 					{
 						label: t("kpi.totalProfit"),
 						value: formatRupiah(totalProfit),

@@ -7,6 +7,7 @@ import { NumericInput } from "@/components/shared/NumericInput";
 import { Input, Textarea } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { MarginTiersEditor } from "./MarginTiersEditor";
+import { type MonthTarget, RevenueTargetEditor } from "./RevenueTargetEditor";
 
 type Setting = {
 	key: string;
@@ -107,7 +108,15 @@ function inferInputType(key: string, value: string): "textarea" | "number" | "te
  * Tabbed settings editor. All settings are fetched server-side and passed in;
  * tab switching and field editing are handled entirely client-side.
  */
-export function SettingsEditor({ settings }: { settings: Setting[] }) {
+export function SettingsEditor({
+	settings,
+	revenueTargets,
+	defaultRevenueTarget,
+}: {
+	settings: Setting[];
+	revenueTargets: MonthTarget[];
+	defaultRevenueTarget: number;
+}) {
 	const tGroups = useTranslations("pages.settings.groups");
 	const tDescriptions = useTranslations("pages.settings.descriptions");
 	const tSections = useTranslations("pages.settings.sections");
@@ -198,6 +207,13 @@ export function SettingsEditor({ settings }: { settings: Setting[] }) {
 							);
 						})}
 					</div>
+				)}
+
+				{currentTab.id === "billing" && (
+					<RevenueTargetEditor
+						defaultTarget={defaultRevenueTarget}
+						initialTargets={revenueTargets}
+					/>
 				)}
 			</div>
 		</div>
