@@ -57,10 +57,13 @@ export async function middleware(request: NextRequest) {
 	// bootstrapper scripts to every chunk Next.js loads dynamically, so no per-
 	// chunk hash is needed. Development keeps 'unsafe-inline' + 'unsafe-eval' for
 	// React Fast Refresh.
+	// 'wasm-unsafe-eval' is required for @react-pdf/renderer which uses WebAssembly
+	// for font rendering. In production the nonce-based 'strict-dynamic' policy
+	// doesn't implicitly allow WASM, so we must add the permission explicitly.
 	const scriptSrc =
 		process.env.NODE_ENV === "production"
-			? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`
-			: "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+			? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval'`
+			: "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'";
 	supabaseResponse.headers.set(
 		"Content-Security-Policy",
 		[
@@ -68,7 +71,9 @@ export async function middleware(request: NextRequest) {
 			scriptSrc,
 			"style-src 'self' 'unsafe-inline'",
 			"img-src 'self' *.supabase.co data: blob:",
-			"connect-src 'self' *.supabase.co",
+			// data: is required for @react-pdf/renderer which loads its WASM binary
+			// as a data: URL via fetch() before passing it to WebAssembly.instantiate()
+			"connect-src 'self' *.supabase.co data: blob:",
 			"font-src 'self'",
 			"frame-src 'none'",
 			"object-src 'none'",
