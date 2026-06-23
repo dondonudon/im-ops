@@ -34,6 +34,10 @@ function startOfMonth() {
 	const d = new Date();
 	return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
 }
+function startOfNextMonth() {
+	const d = new Date();
+	return new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString().split("T")[0];
+}
 function todayISO() {
 	return new Date().toISOString().split("T")[0];
 }
@@ -334,18 +338,15 @@ async function MoneyCardSection() {
 	const t = await getTranslations("today");
 	const supabase = await createClient();
 	const monthStart = startOfMonth();
+	const monthEnd = startOfNextMonth();
 
 	const [
-		{ data: monthlyPaid },
+		{ data: monthJobs },
 		{ data: monthlyExp },
 		{ data: revenueTargetRow },
 		{ data: defaultTargetRow },
 	] = await Promise.all([
-		supabase
-			.from("invoices")
-			.select("paid_amount")
-			.in("status", ["paid", "partially_paid"])
-			.gte("created_at", monthStart),
+		supabase.from("jobs").select("revenue").gte("move_date", monthStart).lt("move_date", monthEnd),
 		supabase.from("expenses").select("amount").gte("incurred_at", monthStart),
 		supabase
 			.from("revenue_targets")
@@ -360,7 +361,7 @@ async function MoneyCardSection() {
 			.maybeSingle(),
 	]);
 
-	const monthRevenue = (monthlyPaid ?? []).reduce((s, i) => s + (i.paid_amount ?? 0), 0);
+	const monthRevenue = (monthJobs ?? []).reduce((s, j) => s + (j.revenue ?? 0), 0);
 	const monthExpenses = (monthlyExp ?? []).reduce((s, i) => s + (i.amount ?? 0), 0);
 	const net = monthRevenue - monthExpenses;
 	const revenueTarget =
