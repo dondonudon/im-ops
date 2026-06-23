@@ -80,6 +80,25 @@ export function buildProposalTemplateSettings(
 	};
 }
 
+/**
+ * Fetches a remote logo URL and returns a base64 data URL.
+ * Call this server-side only — it uses Node fetch with no CORS/CSP constraints.
+ * Falls back to the original URL (or empty string) on any error.
+ */
+export async function resolveLogoDataUrl(url: string): Promise<string> {
+	if (!url) return "";
+	if (url.startsWith("data:")) return url;
+	try {
+		const res = await fetch(url);
+		if (!res.ok) return url;
+		const mime = res.headers.get("content-type") ?? "image/png";
+		const base64 = Buffer.from(await res.arrayBuffer()).toString("base64");
+		return `data:${mime};base64,${base64}`;
+	} catch {
+		return url;
+	}
+}
+
 /** Build invoice template settings from the raw key→value map. */
 export function buildInvoiceTemplateSettings(map: Record<string, string>): InvoiceTemplateSettings {
 	return {

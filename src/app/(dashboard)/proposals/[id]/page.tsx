@@ -8,7 +8,11 @@ import { ProposalDuplicateButton } from "@/components/proposals/ProposalDuplicat
 import { ProposalPDFDownloadButton } from "@/components/proposals/ProposalPDFDownloadButton";
 import { BackLink } from "@/components/shared/BackLink";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
-import { buildCompanySettings, buildProposalTemplateSettings } from "@/lib/pdfSettings";
+import {
+	buildCompanySettings,
+	buildProposalTemplateSettings,
+	resolveLogoDataUrl,
+} from "@/lib/pdfSettings";
 import { parseCustomFields } from "@/lib/proposalCustomFields";
 import { createClient } from "@/lib/supabase/server";
 import { formatCustomerName, formatDate, formatRupiah } from "@/lib/utils";
@@ -66,6 +70,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const pdfCompany = buildCompanySettings(settingsMap);
+	pdfCompany.logo = await resolveLogoDataUrl(pdfCompany.logo);
 	const pdfTemplate = buildProposalTemplateSettings(settingsMap);
 	const customFields = parseCustomFields(proposal.custom_fields);
 

@@ -5,7 +5,11 @@ import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { BackLink } from "@/components/shared/BackLink";
 import { PendingLink } from "@/components/shared/PendingLink";
 import { Badge, Card, Money, PageHeader, toneFor } from "@/components/ui";
-import { buildCompanySettings, buildInvoiceTemplateSettings } from "@/lib/pdfSettings";
+import {
+	buildCompanySettings,
+	buildInvoiceTemplateSettings,
+	resolveLogoDataUrl,
+} from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
 import { formatCustomerName, formatDate } from "@/lib/utils";
 
@@ -51,6 +55,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const pdfCompany = buildCompanySettings(settingsMap);
+	pdfCompany.logo = await resolveLogoDataUrl(pdfCompany.logo);
 	const pdfTemplate = buildInvoiceTemplateSettings(settingsMap);
 
 	type PaymentRow = {

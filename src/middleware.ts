@@ -17,9 +17,12 @@ export async function middleware(request: NextRequest) {
 	// Helper: build request headers that include the nonce + current cookie state.
 	// Must be re-called inside setAll() after request.cookies.set() to capture
 	// the updated Cookie header before NextResponse.next() is created.
+	// x-nonce is only forwarded in production: in development the CSP uses
+	// 'unsafe-inline' (no nonce), so stamping x-nonce causes a hydration mismatch
+	// between the initial page-load nonce and the new nonce on each HMR re-render.
 	const buildRequestHeaders = () => {
 		const hdrs = new Headers(request.headers);
-		hdrs.set("x-nonce", nonce);
+		if (process.env.NODE_ENV === "production") hdrs.set("x-nonce", nonce);
 		return hdrs;
 	};
 
@@ -74,6 +77,10 @@ export async function middleware(request: NextRequest) {
 			// data: is required for @react-pdf/renderer which loads its WASM binary
 			// as a data: URL via fetch() before passing it to WebAssembly.instantiate()
 			"connect-src 'self' *.supabase.co data: blob:",
+			// blob: workers are required by @react-pdf/renderer which spawns Web Workers
+			// via blob: URLs for font rendering; worker-src falls back to script-src
+			// if omitted, and script-src intentionally does not include blob:
+			"worker-src blob:",
 			"font-src 'self'",
 			"frame-src 'none'",
 			"object-src 'none'",
