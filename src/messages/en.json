@@ -991,6 +991,7 @@
 			"duplicateLead": "Duplicate this lead as a new one?",
 			"duplicateProposal": "Duplicate this proposal as a new draft?",
 			"markJobDone": "Mark this job as completed? This cannot be easily undone.",
+			"cancelJob": "Cancel this job? This cannot be easily undone.",
 			"startJob": "Start this job? Expenses can be logged once it's in progress.",
 			"syncAll": "Re-push recent + upcoming jobs and surveys to Google Calendar?"
 		}
@@ -1013,6 +1014,7 @@
 		"markLost": "Mark Lost",
 		"markDone": "Mark Done",
 		"startJob": "Start Job",
+		"cancelJob": "Cancel Job",
 		"starting": "Starting…",
 		"convertToJob": "Convert to Job",
 		"addItem": "Add item",

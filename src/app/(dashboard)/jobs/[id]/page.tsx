@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { GenerateInvoiceButton } from "@/components/invoices/GenerateInvoiceButton";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
+import { JobCancelButton } from "@/components/jobs/JobCancelButton";
 import { JobMarkDoneButton } from "@/components/jobs/JobMarkDoneButton";
 import { JobMediaPanel } from "@/components/jobs/JobMediaPanel";
 import { TimelineLogEventButton } from "@/components/jobs/TimelineLogEventButton";
@@ -178,6 +179,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 						</Link>
 						<GCalRetryButton kind="job" id={id} hasEvent={Boolean(job.gcal_event_id)} />
 						{job.status === "in_progress" && <JobMarkDoneButton jobId={id} />}
+						{(job.status === "scheduled" || job.status === "in_progress") && (
+							<JobCancelButton jobId={id} />
+						)}
 						<JobStatusActions jobId={id} status={job.status} />
 					</div>
 				}

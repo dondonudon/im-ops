@@ -991,6 +991,7 @@
 			"duplicateLead": "Duplikat prospek ini sebagai yang baru?",
 			"duplicateProposal": "Duplikat proposal ini sebagai draf baru?",
 			"markJobDone": "Tandai pekerjaan ini sebagai selesai? Sulit untuk dibatalkan.",
+			"cancelJob": "Batalkan pekerjaan ini? Sulit untuk dibatalkan.",
 			"startJob": "Mulai pekerjaan ini? Pengeluaran bisa dicatat setelah pekerjaan berjalan.",
 			"syncAll": "Sinkronkan ulang pekerjaan dan survei mendatang ke Google Calendar?"
 		}
@@ -1013,6 +1014,7 @@
 		"markLost": "Tandai Gagal",
 		"markDone": "Tandai Selesai",
 		"startJob": "Mulai Pekerjaan",
+		"cancelJob": "Batalkan Pekerjaan",
 		"starting": "Memulai…",
 		"convertToJob": "Konversi ke Pekerjaan",
 		"addItem": "Tambah item",
