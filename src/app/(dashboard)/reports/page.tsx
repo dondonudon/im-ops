@@ -128,8 +128,9 @@ export default async function ReportsPage({
 	const revenueTarget =
 		revenueTargetRow?.target_amount ??
 		(defaultTargetRow?.value ? Number(defaultTargetRow.value) : 0);
-	const revenueProgress =
-		revenueTarget > 0 ? Math.min(100, Math.round((totalRevenue / revenueTarget) * 100)) : 0;
+	const revenuePercent = revenueTarget > 0 ? Math.round((totalRevenue / revenueTarget) * 100) : 0;
+	const revenueBarWidth = Math.min(100, revenuePercent);
+	const isOverTarget = revenuePercent > 100;
 
 	const aging = { current: 0, "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
 	const today = new Date();
@@ -178,22 +179,27 @@ export default async function ReportsPage({
 								<span>
 									{t("kpi.target")}: {formatRupiah(revenueTarget)}
 								</span>
-								<span className={revenueProgress >= 100 ? "text-success font-semibold" : ""}>
-									{revenueProgress}%
+								<span className={revenuePercent >= 100 ? "text-success-text font-semibold" : ""}>
+									{revenuePercent}%
 								</span>
 							</div>
 							<div
 								className="h-1.5 rounded-full bg-subtle overflow-hidden"
 								role="progressbar"
-								aria-valuenow={revenueProgress}
+								aria-valuenow={revenuePercent}
 								aria-valuemin={0}
 								aria-valuemax={100}
 							>
 								<div
-									className={`h-full rounded-full transition-all ${revenueProgress >= 100 ? "bg-success" : "bg-primary"}`}
-									style={{ width: `${revenueProgress}%` }}
+									className={`h-full rounded-full transition-all ${revenuePercent >= 100 ? "bg-success" : "bg-primary"}`}
+									style={{ width: `${revenueBarWidth}%` }}
 								/>
 							</div>
+							{isOverTarget && (
+								<p className="text-[10px] text-success-text font-medium mt-0.5">
+									+{revenuePercent - 100}% {t("kpi.overTarget")}
+								</p>
+							)}
 						</div>
 					)}
 				</Card>

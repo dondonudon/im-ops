@@ -457,7 +457,8 @@
 				"totalProfit": "Total keuntungan",
 				"leadConversion": "Konversi prospek",
 				"totalLeads": "Total prospek",
-				"target": "Target"
+				"target": "Target",
+				"overTarget": "di atas target"
 			},
 			"profitByJob": {
 				"title": "Keuntungan per pekerjaan",

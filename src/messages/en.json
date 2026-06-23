@@ -457,7 +457,8 @@
 				"totalProfit": "Total profit",
 				"leadConversion": "Lead conversion",
 				"totalLeads": "Total leads",
-				"target": "Target"
+				"target": "Target",
+				"overTarget": "over target"
 			},
 			"profitByJob": {
 				"title": "Profit by job",
