@@ -166,8 +166,8 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 			const canDrag = p.fromHandle || p.pointerType === "mouse" || p.pointerType === "pen";
 			if (canDrag && dist > THRESHOLD) {
 				activateDrag();
-			} else if (!p.fromHandle && p.pointerType === "touch") {
-				// Touch on the card body = scroll/tap, never a drag.
+			} else if (!p.fromHandle && p.pointerType === "touch" && dist > THRESHOLD) {
+				// Touch on the card body moved beyond the tap threshold — user is scrolling, cancel tap.
 				pressRef.current = null;
 			}
 		}
