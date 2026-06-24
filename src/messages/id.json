@@ -353,7 +353,7 @@
 	"pages": {
 		"leads": {
 			"title": "Prospek",
-			"searchPlaceholder": "Cari alamat…",
+			"searchPlaceholder": "Cari pelanggan atau alamat…",
 			"filterAll": "Semua",
 			"empty": "Belum ada prospek.",
 			"emptyFiltered": "Tidak ada prospek yang cocok dengan filter Anda.",

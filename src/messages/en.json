@@ -353,7 +353,7 @@
 	"pages": {
 		"leads": {
 			"title": "Leads",
-			"searchPlaceholder": "Search address…",
+			"searchPlaceholder": "Search customer or address…",
 			"filterAll": "All",
 			"empty": "No leads yet.",
 			"emptyFiltered": "No leads match your filters.",

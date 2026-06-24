@@ -51,9 +51,20 @@ export default async function LeadsPage({
 	if (status) query = query.filter("status", "eq", status);
 	if (q) {
 		const safe = sanitizeSearch(q);
-		query = query.or(
-			`pickup_address.ilike.%${safe}%,destination_address.ilike.%${safe}%,destination_address_2.ilike.%${safe}%`,
-		);
+		const { data: matchedCustomers } = await supabase
+			.from("customers")
+			.select("id")
+			.or(`name.ilike.%${safe}%,phone.ilike.%${safe}%`);
+		const customerIds = (matchedCustomers ?? []).map((c) => c.id);
+		const orParts = [
+			`pickup_address.ilike.%${safe}%`,
+			`destination_address.ilike.%${safe}%`,
+			`destination_address_2.ilike.%${safe}%`,
+		];
+		if (customerIds.length) {
+			orParts.push(`customer_id.in.(${customerIds.join(",")})`);
+		}
+		query = query.or(orParts.join(","));
 	}
 
 	const { data: leads, count } = await query
