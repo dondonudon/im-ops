@@ -1,7 +1,7 @@
 "use client";
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { CompanySettings } from "@/lib/pdfSettings";
-import { formatIndonesianDate, formatRupiahLetter } from "@/lib/utils";
+import { formatIndonesianDate, formatRupiahLetter, numberToIndonesianWords } from "@/lib/utils";
 
 Font.registerHyphenationCallback((word) => [word]);
 
@@ -135,6 +135,7 @@ export function PaymentReceiptPDF({
 		? (PAYMENT_METHOD_LABELS[payment.method] ?? payment.method)
 		: "—";
 	const amountFormatted = formatRupiahLetter(payment.amount);
+	const amountInWords = `${numberToIndonesianWords(Math.round(payment.amount))} rupiah`;
 
 	return (
 		<Document title={`Kwitansi-${receiptRef}`} author={company.name} subject="Kwitansi Pembayaran">
@@ -215,7 +216,7 @@ export function PaymentReceiptPDF({
 				</View>
 
 				{/* Terbilang */}
-				<Text style={styles.terbilang}>Terbilang: {amountFormatted}</Text>
+				<Text style={styles.terbilang}>Terbilang: {amountInWords}</Text>
 
 				{/* Notes */}
 				{payment.notes ? <Text style={styles.notes}>Keterangan: {payment.notes}</Text> : null}
