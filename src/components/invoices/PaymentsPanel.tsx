@@ -64,7 +64,7 @@ export function PaymentsPanel({
 	const [form, setForm] = useState({
 		payment_type: "down_payment",
 		method: "transfer",
-		amount: "",
+		amount: String(Math.round(totalAmount * 0.3)),
 		paid_at: todayISO(),
 		notes: "",
 	});
@@ -110,7 +110,7 @@ export function PaymentsPanel({
 			setForm({
 				payment_type: "down_payment",
 				method: "transfer",
-				amount: "",
+				amount: String(Math.round(totalAmount * 0.3)),
 				paid_at: todayISO(),
 				notes: "",
 			});
@@ -125,21 +125,25 @@ export function PaymentsPanel({
 	return (
 		<div className="space-y-4">
 			{/* Summary */}
-			<div className="grid grid-cols-3 gap-3 text-center">
-				<div className="rounded-xl bg-subtle p-3">
+			<div className="grid grid-cols-3 gap-2 text-center">
+				<div className="rounded-xl bg-subtle px-1 py-3 min-w-0">
 					<p className="text-xs text-ink-muted mb-1">{tPanel("total")}</p>
-					<p className="tabular-nums font-bold text-sm text-ink">{formatRupiah(totalAmount)}</p>
+					<p className="tabular-nums font-bold text-xs text-ink leading-tight">
+						{formatRupiah(totalAmount)}
+					</p>
 				</div>
-				<div className="rounded-xl bg-success-bg p-3">
+				<div className="rounded-xl bg-success-bg px-1 py-3 min-w-0">
 					<p className="text-xs text-ink-muted mb-1">{tPanel("paid")}</p>
-					<Money value={totalPaid} tone="positive" className="font-bold text-sm" />
+					<Money value={totalPaid} tone="positive" className="font-bold text-xs leading-tight" />
 				</div>
-				<div className={`rounded-xl p-3 ${outstanding > 0 ? "bg-danger-bg" : "bg-subtle"}`}>
+				<div
+					className={`rounded-xl px-1 py-3 min-w-0 ${outstanding > 0 ? "bg-danger-bg" : "bg-subtle"}`}
+				>
 					<p className="text-xs text-ink-muted mb-1">{tPanel("outstanding")}</p>
 					<Money
 						value={outstanding > 0 ? outstanding : 0}
 						tone={outstanding > 0 ? "danger" : "muted"}
-						className="font-bold text-sm"
+						className="font-bold text-xs leading-tight"
 					/>
 				</div>
 			</div>
@@ -170,7 +174,14 @@ export function PaymentsPanel({
 							<Select
 								id="pt-type"
 								value={form.payment_type}
-								onChange={(e) => setForm((p) => ({ ...p, payment_type: e.target.value }))}
+								onChange={(e) => {
+									const t = e.target.value;
+									setForm((p) => ({
+										...p,
+										payment_type: t,
+										amount: defaultAmountForType(t, totalAmount, outstanding),
+									}));
+								}}
 							>
 								{PAYMENT_TYPES.map((t) => (
 									<option key={t} value={t}>
@@ -278,4 +289,10 @@ export function PaymentsPanel({
 
 function todayISO() {
 	return new Date().toISOString().slice(0, 10);
+}
+
+function defaultAmountForType(type: string, total: number, outstanding: number): string {
+	if (type === "down_payment") return String(Math.round(total * 0.3));
+	if (type === "final") return String(Math.max(0, outstanding));
+	return "";
 }
