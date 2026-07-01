@@ -169,7 +169,7 @@ export async function syncJobToCalendar(jobId: string): Promise<ActionResult> {
 	const eventInput: GCalEventInput = {
 		calendarId,
 		summary: `[JOB] ${customerName} — ${lead?.pickup_address ?? ""} → ${lead?.destination_address ?? ""}${dest2 ? ` → ${dest2}` : ""}`,
-		description: `Job: ${job.job_number}\nProposal: ${proposal?.proposal_number ?? ""}\nRevenue: ${job.revenue}`,
+		description: `Job: ${job.job_number}\nProposal: ${proposal?.proposal_number ?? ""}\nRevenue: ${job.revenue != null ? Number(job.revenue).toLocaleString("id-ID") : ""}`,
 		startDateTime: buildJakartaDateTime(job.move_date, startTime),
 		endDateTime: buildJakartaDateTime(endDate, endTime),
 		colorId: "2",
