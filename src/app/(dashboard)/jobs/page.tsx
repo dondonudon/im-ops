@@ -22,7 +22,7 @@ import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { cn, deriveJobStatus, formatJobSchedule, formatRupiah, sanitizeSearch } from "@/lib/utils";
 
-const STATUS_OPTS = ["", "upcoming", "today", "done", "cancelled"] as const;
+const STATUS_OPTS = ["", "scheduled", "upcoming", "today", "done", "cancelled"] as const;
 
 /** Board column order — derived from move_date vs today. */
 const BOARD_STATUSES = ["upcoming", "today", "done", "cancelled"] as const;
@@ -48,9 +48,23 @@ const BOARD_PER_COL = 50;
 export default async function JobsPage({
 	searchParams,
 }: {
-	searchParams: Promise<{ status?: string; view?: string; page?: string; q?: string }>;
+	searchParams: Promise<{
+		status?: string;
+		view?: string;
+		page?: string;
+		q?: string;
+		from?: string;
+		to?: string;
+	}>;
 }) {
-	const { status, view: rawView, page: rawPage, q } = await searchParams;
+	const {
+		status,
+		view: rawView,
+		page: rawPage,
+		q,
+		from: dateFrom,
+		to: dateTo,
+	} = await searchParams;
 	const view = rawView === "board" ? "board" : "list";
 	const supabase = await createClient();
 	const t = await getTranslations("pages.jobs");
@@ -102,10 +116,13 @@ export default async function JobsPage({
 			.select(BOARD_COLS_SELECT, { count: "exact" })
 			.order("move_date", { ascending: false });
 		// Translate derived status filter to DB conditions
-		if (status === "upcoming") query = query.eq("status", "scheduled").gt("move_date", today);
+		if (status === "scheduled") query = query.eq("status", "scheduled");
+		else if (status === "upcoming") query = query.eq("status", "scheduled").gt("move_date", today);
 		else if (status === "today") query = query.eq("status", "scheduled").eq("move_date", today);
 		else if (status === "done") query = query.eq("status", "scheduled").lt("move_date", today);
 		else if (status === "cancelled") query = query.eq("status", "cancelled");
+		if (dateFrom) query = query.gte("move_date", dateFrom);
+		if (dateTo) query = query.lte("move_date", dateTo);
 		if (q) {
 			const safe = sanitizeSearch(q);
 			// Single query via jobs_with_customer view — replaces 4 sequential round-trips
@@ -143,6 +160,23 @@ export default async function JobsPage({
 								aria-label={t("searchPlaceholder")}
 								className="max-w-sm"
 							/>
+							<div className="flex items-center gap-1">
+								<Input
+									type="date"
+									name="from"
+									defaultValue={dateFrom ?? ""}
+									aria-label={t("filterFrom")}
+									className="w-auto"
+								/>
+								<span className="text-ink-faint text-sm select-none">–</span>
+								<Input
+									type="date"
+									name="to"
+									defaultValue={dateTo ?? ""}
+									aria-label={t("filterTo")}
+									className="w-auto"
+								/>
+							</div>
 							<Select
 								name="status"
 								defaultValue={status ?? ""}

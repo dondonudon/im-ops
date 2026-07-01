@@ -30,16 +30,27 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { deriveJobStatus, formatDate, formatRupiah } from "@/lib/utils";
 
+function localISO(d: Date) {
+	return [
+		d.getFullYear(),
+		String(d.getMonth() + 1).padStart(2, "0"),
+		String(d.getDate()).padStart(2, "0"),
+	].join("-");
+}
 function startOfMonth() {
 	const d = new Date();
-	return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
+	return localISO(new Date(d.getFullYear(), d.getMonth(), 1));
 }
 function startOfNextMonth() {
 	const d = new Date();
-	return new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString().split("T")[0];
+	return localISO(new Date(d.getFullYear(), d.getMonth() + 1, 1));
+}
+function endOfMonth() {
+	const d = new Date();
+	return localISO(new Date(d.getFullYear(), d.getMonth() + 1, 0));
 }
 function todayISO() {
-	return new Date().toISOString().split("T")[0];
+	return localISO(new Date());
 }
 
 const MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -443,8 +454,16 @@ async function AtAGlanceSection({
 	const t = await getTranslations("today");
 	const supabase = await createClient();
 
+	const monthStart = startOfMonth();
+	const monthEnd = startOfNextMonth();
+
 	const [{ count: activeJobsCount }, { count: openProposalsCount }] = await Promise.all([
-		supabase.from("jobs").select("*", { count: "exact", head: true }).eq("status", "scheduled"),
+		supabase
+			.from("jobs")
+			.select("*", { count: "exact", head: true })
+			.eq("status", "scheduled")
+			.gte("move_date", monthStart)
+			.lt("move_date", monthEnd),
 		supabase
 			.from("proposals")
 			.select("*", { count: "exact", head: true })
@@ -459,7 +478,7 @@ async function AtAGlanceSection({
 				label={t("kpi.activeJobs")}
 				value={String(activeJobsCount ?? 0)}
 				sub={t("kpi.activeJobsSub", { count: movesCount })}
-				href="/jobs"
+				href={`/jobs?status=scheduled&from=${monthStart}&to=${endOfMonth()}`}
 			/>
 			<Stat
 				icon={<FileText size={16} />}
@@ -467,7 +486,7 @@ async function AtAGlanceSection({
 				label={t("kpi.openProposals")}
 				value={String(openProposalsCount ?? 0)}
 				sub={t("kpi.openProposalsSub")}
-				href="/proposals"
+				href="/proposals?status=open"
 			/>
 			<Stat
 				icon={<Receipt size={16} />}
@@ -479,7 +498,7 @@ async function AtAGlanceSection({
 						? t("kpi.overdueSub", { amount: formatRupiah(overdueAmount) })
 						: t("kpi.outstandingSub", { amount: formatRupiah(totalOutstanding) })
 				}
-				href="/invoices"
+				href="/invoices?status=unpaid"
 			/>
 			<Stat
 				icon={<CalendarDays size={16} />}

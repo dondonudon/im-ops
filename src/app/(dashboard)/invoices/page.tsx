@@ -20,7 +20,15 @@ import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatRupiah } from "@/lib/utils";
 
-const STATUS_OPTS = ["", "sent", "partially_paid", "paid", "overdue", "cancelled"] as const;
+const STATUS_OPTS = [
+	"",
+	"unpaid",
+	"sent",
+	"partially_paid",
+	"paid",
+	"overdue",
+	"cancelled",
+] as const;
 
 export default async function InvoicesPage({
 	searchParams,
@@ -46,7 +54,8 @@ export default async function InvoicesPage({
 		{ count: "exact" },
 	);
 
-	if (status) query = query.filter("status", "eq", status);
+	if (status === "unpaid") query = query.in("status", ["sent", "partially_paid", "overdue"]);
+	else if (status) query = query.filter("status", "eq", status);
 
 	const { data: invoices, count } = await query
 		.order("created_at", { ascending: false })

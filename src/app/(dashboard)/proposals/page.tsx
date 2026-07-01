@@ -21,7 +21,16 @@ import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, sanitizeSearch } from "@/lib/utils";
 
-const STATUS_OPTS = ["", "draft", "sent", "negotiating", "approved", "lost", "expired"] as const;
+const STATUS_OPTS = [
+	"",
+	"open",
+	"draft",
+	"sent",
+	"negotiating",
+	"approved",
+	"lost",
+	"expired",
+] as const;
 
 export default async function ProposalsPage({
 	searchParams,
@@ -43,7 +52,8 @@ export default async function ProposalsPage({
 		{ count: "exact" },
 	);
 
-	if (status) query = query.filter("status", "eq", status);
+	if (status === "open") query = query.in("status", ["draft", "sent", "negotiating"]);
+	else if (status) query = query.filter("status", "eq", status);
 	if (q) {
 		const safe = sanitizeSearch(q);
 		// Resolve customer name → leads to support OR with proposal_number

@@ -18,7 +18,8 @@ export function FilterForm({
 			autoComplete="off"
 			className={className}
 			onChange={(e) => {
-				if ((e.target as HTMLElement).tagName === "SELECT") {
+				const el = e.target as HTMLInputElement;
+				if (el.tagName === "SELECT" || (el.tagName === "INPUT" && el.type === "date")) {
 					ref.current?.requestSubmit();
 				}
 			}}

@@ -97,7 +97,7 @@
 			"fix": "Fix"
 		},
 		"kpi": {
-			"activeJobs": "Active jobs",
+			"activeJobs": "Active jobs this month",
 			"activeJobsSub": "{count} move(s) today",
 			"openProposals": "Open proposals",
 			"openProposalsSub": "Awaiting approval",
@@ -246,14 +246,16 @@
 			"negotiating": "Negotiating",
 			"approved": "Approved",
 			"lost": "Lost",
-			"expired": "Expired"
+			"expired": "Expired",
+			"open": "Open"
 		},
 		"invoice": {
 			"sent": "Sent",
 			"partially_paid": "Partially paid",
 			"paid": "Paid",
 			"overdue": "Overdue",
-			"cancelled": "Cancelled"
+			"cancelled": "Cancelled",
+			"unpaid": "Unpaid"
 		}
 	},
 	"dashboard": {
@@ -373,7 +375,9 @@
 			"empty": "No jobs.",
 			"emptyFiltered": "No jobs match your search.",
 			"viewList": "List",
-			"viewBoard": "Board"
+			"viewBoard": "Board",
+			"filterFrom": "From",
+			"filterTo": "To"
 		},
 		"proposals": {
 			"title": "Proposals",

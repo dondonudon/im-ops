@@ -97,7 +97,7 @@
 			"fix": "Perbaiki"
 		},
 		"kpi": {
-			"activeJobs": "Pekerjaan aktif",
+			"activeJobs": "Pekerjaan aktif bulan ini",
 			"activeJobsSub": "{count} pindahan hari ini",
 			"openProposals": "Proposal terbuka",
 			"openProposalsSub": "Menunggu persetujuan",
@@ -246,14 +246,16 @@
 			"negotiating": "Negosiasi",
 			"approved": "Disetujui",
 			"lost": "Ditolak",
-			"expired": "Kedaluwarsa"
+			"expired": "Kedaluwarsa",
+			"open": "Terbuka"
 		},
 		"invoice": {
 			"sent": "Terkirim",
 			"partially_paid": "Sebagian dibayar",
 			"paid": "Lunas",
 			"overdue": "Jatuh tempo",
-			"cancelled": "Dibatalkan"
+			"cancelled": "Dibatalkan",
+			"unpaid": "Belum lunas"
 		}
 	},
 	"dashboard": {
@@ -373,7 +375,9 @@
 			"empty": "Belum ada pekerjaan.",
 			"emptyFiltered": "Tidak ada pekerjaan yang cocok dengan pencarian.",
 			"viewList": "Daftar",
-			"viewBoard": "Papan"
+			"viewBoard": "Papan",
+			"filterFrom": "Dari",
+			"filterTo": "Sampai"
 		},
 		"proposals": {
 			"title": "Proposal",
