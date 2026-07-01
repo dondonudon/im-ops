@@ -1,7 +1,8 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { useTransition } from "react";
 
 const MONTHS = [
 	"January",
@@ -22,9 +23,12 @@ const MONTHS = [
 export function MonthPicker({ value }: { value: string }) {
 	const router = useRouter();
 	const pathname = usePathname();
+	const [isPending, startTransition] = useTransition();
 
 	const navigate = (month: string) => {
-		router.push(`${pathname}?month=${month}`);
+		startTransition(() => {
+			router.push(`${pathname}?month=${month}`);
+		});
 	};
 
 	const [year, month] = value.split("-").map(Number);
@@ -49,20 +53,24 @@ export function MonthPicker({ value }: { value: string }) {
 	const years = Array.from({ length: 5 }, (_, i) => currentYear - 3 + i);
 
 	return (
-		<div className="flex items-center gap-1">
+		<div
+			className={`flex items-center gap-1 transition-opacity ${isPending ? "opacity-50 pointer-events-none" : ""}`}
+		>
 			<button
 				type="button"
 				onClick={prev}
+				disabled={isPending}
 				className="p-1.5 rounded hover:bg-subtle text-ink-muted hover:text-ink transition-colors"
 				aria-label="Previous month"
 			>
-				<ChevronLeft size={15} />
+				{isPending ? <Loader2 size={15} className="animate-spin" /> : <ChevronLeft size={15} />}
 			</button>
 
 			<div className="flex items-center gap-1 px-1">
 				<select
 					value={String(month).padStart(2, "0")}
 					onChange={handleMonthChange}
+					disabled={isPending}
 					className="text-sm font-medium text-ink bg-transparent border-none outline-none cursor-pointer hover:text-primary-text transition-colors appearance-none"
 				>
 					{MONTHS.map((name, i) => (
@@ -75,6 +83,7 @@ export function MonthPicker({ value }: { value: string }) {
 				<select
 					value={year}
 					onChange={handleYearChange}
+					disabled={isPending}
 					className="text-sm font-medium text-ink bg-transparent border-none outline-none cursor-pointer hover:text-primary-text transition-colors appearance-none"
 				>
 					{years.map((y) => (
@@ -88,10 +97,11 @@ export function MonthPicker({ value }: { value: string }) {
 			<button
 				type="button"
 				onClick={next}
+				disabled={isPending}
 				className="p-1.5 rounded hover:bg-subtle text-ink-muted hover:text-ink transition-colors"
 				aria-label="Next month"
 			>
-				<ChevronRight size={15} />
+				{isPending ? <Loader2 size={15} className="animate-spin" /> : <ChevronRight size={15} />}
 			</button>
 		</div>
 	);
