@@ -65,18 +65,18 @@ export async function middleware(request: NextRequest) {
 	// doesn't implicitly allow WASM, so we must add the permission explicitly.
 	const scriptSrc =
 		process.env.NODE_ENV === "production"
-			? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval'`
-			: "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'";
+			? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com`
+			: "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com";
 	supabaseResponse.headers.set(
 		"Content-Security-Policy",
 		[
 			"default-src 'self'",
 			scriptSrc,
-			"style-src 'self' 'unsafe-inline'",
-			"img-src 'self' *.supabase.co data: blob:",
+			"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+			"img-src 'self' *.supabase.co data: blob: https://maps.googleapis.com https://maps.gstatic.com https://*.googleapis.com",
 			// data: is required for @react-pdf/renderer which loads its WASM binary
 			// as a data: URL via fetch() before passing it to WebAssembly.instantiate()
-			"connect-src 'self' *.supabase.co data: blob:",
+			"connect-src 'self' *.supabase.co data: blob: https://maps.googleapis.com https://places.googleapis.com",
 			// blob: workers are required by @react-pdf/renderer which spawns Web Workers
 			// via blob: URLs for font rendering; worker-src falls back to script-src
 			// if omitted, and script-src intentionally does not include blob:

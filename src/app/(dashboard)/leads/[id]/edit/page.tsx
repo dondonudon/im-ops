@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { useEffect, useState } from "react";
+import { LocationInput, type LocationValue } from "@/components/shared/LocationInput";
 import {
 	Button,
 	buttonStyles,
@@ -34,13 +35,21 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 	const tChannel = useTranslations("entity.originChannel");
 
 	const [form, setForm] = useState({
-		pickup_address: "",
-		destination_address: "",
-		destination_address_2: "",
 		preferred_date: "",
 		lead_type: "whatsapp",
 		origin_channel: "whatsapp",
 		notes: "",
+	});
+	const [pickup, setPickup] = useState<LocationValue>({ address: "", lat: null, lng: null });
+	const [destination, setDestination] = useState<LocationValue>({
+		address: "",
+		lat: null,
+		lng: null,
+	});
+	const [destination2, setDestination2] = useState<LocationValue>({
+		address: "",
+		lat: null,
+		lng: null,
 	});
 	const [customerName, setCustomerName] = useState("");
 	const [showDestination2, setShowDestination2] = useState(false);
@@ -63,17 +72,29 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 				}
 				const c = data.customers as { name: string } | null;
 				setCustomerName(c?.name ?? "");
-				const dest2 = data.destination_address_2 ?? "";
+				const dest2Addr = data.destination_address_2 ?? "";
 				setForm({
-					pickup_address: data.pickup_address ?? "",
-					destination_address: data.destination_address ?? "",
-					destination_address_2: dest2,
 					preferred_date: data.preferred_date ?? "",
 					lead_type: data.lead_type ?? "whatsapp",
 					origin_channel: data.origin_channel ?? "whatsapp",
 					notes: data.notes ?? "",
 				});
-				if (dest2) setShowDestination2(true);
+				setPickup({
+					address: data.pickup_address ?? "",
+					lat: data.pickup_lat ?? null,
+					lng: data.pickup_lng ?? null,
+				});
+				setDestination({
+					address: data.destination_address ?? "",
+					lat: data.destination_lat ?? null,
+					lng: data.destination_lng ?? null,
+				});
+				setDestination2({
+					address: dest2Addr,
+					lat: data.destination_2_lat ?? null,
+					lng: data.destination_2_lng ?? null,
+				});
+				if (dest2Addr) setShowDestination2(true);
 				setLoading(false);
 			});
 	}, [id]);
@@ -93,9 +114,15 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 			const { error: err } = await supabase
 				.from("leads")
 				.update({
-					pickup_address: form.pickup_address.trim() || null,
-					destination_address: form.destination_address.trim() || null,
-					destination_address_2: form.destination_address_2.trim() || null,
+					pickup_address: pickup.address.trim() || null,
+					pickup_lat: pickup.lat,
+					pickup_lng: pickup.lng,
+					destination_address: destination.address.trim() || null,
+					destination_lat: destination.lat,
+					destination_lng: destination.lng,
+					destination_address_2: destination2.address.trim() || null,
+					destination_2_lat: destination2.lat,
+					destination_2_lng: destination2.lng,
 					preferred_date: form.preferred_date || null,
 					lead_type: form.lead_type as (typeof LEAD_TYPES)[number],
 					origin_channel: form.origin_channel as (typeof CHANNELS)[number],
@@ -142,52 +169,37 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 				<form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate>
 					{/* Pickup address */}
 					<Field label={t("pickup")} htmlFor="pickup_address">
-						<Input
+						<LocationInput
 							id="pickup_address"
-							name="pickup_address"
-							type="text"
-							value={form.pickup_address}
-							onChange={(e) => {
-								e.target.value = e.target.value.toUpperCase();
-								handleChange(e);
-							}}
-							className="uppercase"
+							value={pickup}
+							onChange={setPickup}
+							placeholder="Search pickup address…"
 						/>
 					</Field>
 
 					{/* Destination address */}
 					<Field label={t("destination")} htmlFor="destination_address">
-						<Input
+						<LocationInput
 							id="destination_address"
-							name="destination_address"
-							type="text"
-							value={form.destination_address}
-							onChange={(e) => {
-								e.target.value = e.target.value.toUpperCase();
-								handleChange(e);
-							}}
-							className="uppercase"
+							value={destination}
+							onChange={setDestination}
+							placeholder="Search destination address…"
 						/>
 					</Field>
 
 					{showDestination2 ? (
 						<Field label={t("destination2")} htmlFor="destination_address_2">
-							<Input
+							<LocationInput
 								id="destination_address_2"
-								name="destination_address_2"
-								type="text"
-								value={form.destination_address_2}
-								onChange={(e) => {
-									e.target.value = e.target.value.toUpperCase();
-									handleChange(e);
-								}}
-								className="uppercase"
+								value={destination2}
+								onChange={setDestination2}
+								placeholder="Search second destination…"
 							/>
 							<button
 								type="button"
 								onClick={() => {
 									setShowDestination2(false);
-									setForm((prev) => ({ ...prev, destination_address_2: "" }));
+									setDestination2({ address: "", lat: null, lng: null });
 								}}
 								className="mt-1 text-xs text-ink-faint hover:text-danger transition-colors"
 							>

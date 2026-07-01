@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { useEffect, useState } from "react";
+import { LocationInput, type LocationValue } from "@/components/shared/LocationInput";
 import { Button, Field, FormError, Input, PageHeader, Select, Textarea } from "@/components/ui";
 import { CUSTOMER_PREFIX_OPTIONS, type CustomerPrefix } from "@/lib/constants";
 import {
@@ -31,9 +32,6 @@ export default function NewLeadPage() {
 	const [customers, setCustomers] = useState<Customer[]>([]);
 	const [form, setForm] = useState({
 		customer_id: preselectedCustomerId ?? "",
-		pickup_address: "",
-		destination_address: "",
-		destination_address_2: "",
 		preferred_date: "",
 		lead_type: "whatsapp",
 		origin_channel: "whatsapp",
@@ -42,6 +40,17 @@ export default function NewLeadPage() {
 		new_customer_prefix: "",
 		new_customer_name: "",
 		new_customer_phone: "",
+	});
+	const [pickup, setPickup] = useState<LocationValue>({ address: "", lat: null, lng: null });
+	const [destination, setDestination] = useState<LocationValue>({
+		address: "",
+		lat: null,
+		lng: null,
+	});
+	const [destination2, setDestination2] = useState<LocationValue>({
+		address: "",
+		lat: null,
+		lng: null,
 	});
 	const [createNewCustomer, setCreateNewCustomer] = useState(!preselectedCustomerId);
 	const [showDestination2, setShowDestination2] = useState(false);
@@ -108,9 +117,15 @@ export default function NewLeadPage() {
 				.from("leads")
 				.insert({
 					customer_id: customerId,
-					pickup_address: form.pickup_address.trim() || null,
-					destination_address: form.destination_address.trim() || null,
-					destination_address_2: form.destination_address_2.trim() || null,
+					pickup_address: pickup.address.trim() || null,
+					pickup_lat: pickup.lat,
+					pickup_lng: pickup.lng,
+					destination_address: destination.address.trim() || null,
+					destination_lat: destination.lat,
+					destination_lng: destination.lng,
+					destination_address_2: destination2.address.trim() || null,
+					destination_2_lat: destination2.lat,
+					destination_2_lng: destination2.lng,
 					preferred_date: form.preferred_date || null,
 					lead_type: form.lead_type as "whatsapp" | "onsite" | "returning" | "corporate",
 					origin_channel: form.origin_channel as "whatsapp" | "call" | "referral" | "walkin",
@@ -218,51 +233,36 @@ export default function NewLeadPage() {
 
 				{/* Addresses */}
 				<Field label={t("pickup")} htmlFor="pickup_address">
-					<Textarea
+					<LocationInput
 						id="pickup_address"
-						name="pickup_address"
-						rows={3}
-						value={form.pickup_address}
-						onChange={(e) => {
-							e.target.value = e.target.value.toUpperCase();
-							handleChange(e);
-						}}
-						className="uppercase"
+						value={pickup}
+						onChange={setPickup}
+						placeholder="Search pickup address…"
 					/>
 				</Field>
 
 				<Field label={t("destination")} htmlFor="destination_address">
-					<Textarea
+					<LocationInput
 						id="destination_address"
-						name="destination_address"
-						rows={3}
-						value={form.destination_address}
-						onChange={(e) => {
-							e.target.value = e.target.value.toUpperCase();
-							handleChange(e);
-						}}
-						className="uppercase"
+						value={destination}
+						onChange={setDestination}
+						placeholder="Search destination address…"
 					/>
 				</Field>
 
 				{showDestination2 ? (
 					<Field label={t("destination2")} htmlFor="destination_address_2">
-						<Textarea
+						<LocationInput
 							id="destination_address_2"
-							name="destination_address_2"
-							rows={3}
-							value={form.destination_address_2}
-							onChange={(e) => {
-								e.target.value = e.target.value.toUpperCase();
-								handleChange(e);
-							}}
-							className="uppercase"
+							value={destination2}
+							onChange={setDestination2}
+							placeholder="Search second destination…"
 						/>
 						<button
 							type="button"
 							onClick={() => {
 								setShowDestination2(false);
-								setForm((prev) => ({ ...prev, destination_address_2: "" }));
+								setDestination2({ address: "", lat: null, lng: null });
 							}}
 							className="mt-1 text-xs text-ink-faint hover:text-danger transition-colors"
 						>

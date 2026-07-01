@@ -1,4 +1,4 @@
-import { Pencil } from "lucide-react";
+import { MapPin, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -28,7 +28,9 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 		await Promise.all([
 			supabase
 				.from("leads")
-				.select("*, destination_address_2, customers(id, prefix, name, phone)")
+				.select(
+					"*, destination_address_2, pickup_lat, pickup_lng, destination_lat, destination_lng, destination_2_lat, destination_2_lng, customers(id, prefix, name, phone)",
+				)
 				.eq("id", id)
 				.single(),
 			supabase
@@ -129,15 +131,48 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 								<div>
 									<p className="text-ink-muted">{t("pickup")}</p>
 									<p className="font-medium mt-0.5 text-ink">{lead.pickup_address ?? "—"}</p>
+									{lead.pickup_lat && lead.pickup_lng && (
+										<a
+											href={`https://www.google.com/maps/dir/?api=1&destination=${lead.pickup_lat},${lead.pickup_lng}`}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-xs text-primary-text hover:underline mt-0.5 inline-flex items-center gap-1"
+										>
+											<MapPin size={11} aria-hidden="true" />
+											Open in Maps
+										</a>
+									)}
 								</div>
 								<div>
 									<p className="text-ink-muted">{t("destination")}</p>
 									<p className="font-medium mt-0.5 text-ink">{lead.destination_address ?? "—"}</p>
+									{lead.destination_lat && lead.destination_lng && (
+										<a
+											href={`https://www.google.com/maps/dir/?api=1&destination=${lead.destination_lat},${lead.destination_lng}`}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-xs text-primary-text hover:underline mt-0.5 inline-flex items-center gap-1"
+										>
+											<MapPin size={11} aria-hidden="true" />
+											Open in Maps
+										</a>
+									)}
 								</div>
 								{lead.destination_address_2 && (
 									<div>
 										<p className="text-ink-muted">{t("destination2")}</p>
 										<p className="font-medium mt-0.5 text-ink">{lead.destination_address_2}</p>
+										{lead.destination_2_lat && lead.destination_2_lng && (
+											<a
+												href={`https://www.google.com/maps/dir/?api=1&destination=${lead.destination_2_lat},${lead.destination_2_lng}`}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-xs text-primary-text hover:underline mt-0.5 inline-flex items-center gap-1"
+											>
+												<MapPin size={11} aria-hidden="true" />
+												Open in Maps
+											</a>
+										)}
 									</div>
 								)}
 								<div>
