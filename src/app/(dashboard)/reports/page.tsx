@@ -99,7 +99,7 @@ export default async function ReportsPage({
 
 	// job_profit_summary has no date column — filter by the month's job IDs
 	const monthJobsMap = new Map((monthJobsData ?? []).map((j) => [j.id, j.move_date]));
-	const monthJobIds = [...monthJobsMap.keys()];
+	const monthJobIds = Array.from(monthJobsMap.keys());
 	const { data: profitRows } =
 		monthJobIds.length > 0
 			? await supabase
