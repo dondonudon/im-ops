@@ -28,6 +28,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 	const tLabels = await getTranslations("common.labels");
 	const tAssign = await getTranslations("panels.assignments");
 	const tPay = await getTranslations("panels.payments");
+	const tCategory = await getTranslations("entity.expenseCategory");
 
 	// Fetch job first to get proposal_id, then fetch all dependent data in parallel.
 	const { data: job } = await supabase
@@ -294,13 +295,22 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							{(expenses ?? []).slice(0, 5).map((e) => (
 								<div key={e.id} className="flex items-center justify-between py-1 text-sm">
 									<span className="text-ink-muted">
-										{e.category} {e.description ? `— ${e.description}` : ""}
+										{tCategory(e.category.toLowerCase().replace(/\s+/g, "_"))}{" "}
+										{e.description ? `— ${e.description}` : ""}
 									</span>
 									<span className="tabular-nums">{formatRupiah(e.amount)}</span>
 								</div>
 							))}
 							{(expenses ?? []).length === 0 && (
 								<p className="text-sm text-ink-faint">{t("noExpenses")}</p>
+							)}
+							{(expenses ?? []).length > 5 && (
+								<Link
+									href={`/jobs/${id}/expenses`}
+									className="mt-1 block text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+								>
+									{t("moreExpenses", { count: (expenses ?? []).length - 5 })}
+								</Link>
 							)}
 						</div>
 					</Card>

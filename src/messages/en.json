@@ -587,7 +587,8 @@
 			"noEstimation": "No estimation for this proposal yet.",
 			"createEstimation": "Create Estimation →",
 			"underBudget": "Under budget",
-			"overBudget": "Over budget"
+			"overBudget": "Over budget",
+			"moreExpenses": "+ {count} more"
 		},
 		"jobsTimeline": {
 			"backToJob": "Back to job",

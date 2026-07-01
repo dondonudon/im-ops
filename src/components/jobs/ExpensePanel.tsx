@@ -319,7 +319,7 @@ export function ExpensePanel({
 		<>
 			<div className="space-y-6">
 				{/* Entry form — large touch targets for mobile */}
-				<form onSubmit={handleSubmit}>
+				<form onSubmit={handleSubmit} autoComplete="off">
 					<Card className="p-5 space-y-4">
 						<div className="flex items-center justify-between gap-3">
 							<h2 className="text-base font-semibold text-ink">{tExpense("title")}</h2>

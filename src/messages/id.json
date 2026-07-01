@@ -587,7 +587,8 @@
 			"noEstimation": "Belum ada estimasi untuk proposal ini.",
 			"createEstimation": "Buat Estimasi →",
 			"underBudget": "Di bawah anggaran",
-			"overBudget": "Melebihi anggaran"
+			"overBudget": "Melebihi anggaran",
+			"moreExpenses": "+ {count} lainnya"
 		},
 		"jobsTimeline": {
 			"backToJob": "Kembali ke pekerjaan",
