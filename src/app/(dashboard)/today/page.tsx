@@ -223,7 +223,7 @@ export default async function TodayPage() {
 								<PendingLink
 									key={job.id}
 									href={`/jobs/${job.id}`}
-									className="group bg-surface border border-line rounded-xl shadow-token p-4 transition-all hover:border-line-strong hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+									className="group bg-surface border border-line rounded-xl shadow-token p-4 overflow-hidden transition-all hover:border-line-strong hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 								>
 									<div className="flex items-center justify-between mb-3">
 										<span className="font-mono text-sm font-bold text-ink group-hover:text-primary transition-colors">
