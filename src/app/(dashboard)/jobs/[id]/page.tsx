@@ -376,10 +376,19 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 						<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
 							{t("profit")}
 						</h2>
-						<div className="text-2xl font-bold">
-							<span className={profit >= 0 ? "text-success" : "text-danger"}>
+						<div className="flex items-baseline gap-2">
+							<span
+								className={`text-2xl font-bold ${profit >= 0 ? "text-success" : "text-danger"}`}
+							>
 								{formatRupiah(profit)}
 							</span>
+							{job.revenue && job.revenue > 0 && (
+								<span
+									className={`text-sm font-medium tabular-nums ${profit >= 0 ? "text-success" : "text-danger"}`}
+								>
+									{Math.round((profit / job.revenue) * 100)}%
+								</span>
+							)}
 						</div>
 						<div className="text-xs text-ink-muted space-y-1">
 							<div className="flex justify-between">

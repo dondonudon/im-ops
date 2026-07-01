@@ -465,7 +465,8 @@
 				"job": "Job",
 				"revenue": "Revenue",
 				"cost": "Cost",
-				"profit": "Profit"
+				"profit": "Profit",
+				"margin": "Margin"
 			},
 			"expensesThisMonth": "Expenses this month",
 			"noExpensesThisMonth": "No expenses this month.",

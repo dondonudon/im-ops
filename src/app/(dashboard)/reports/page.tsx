@@ -209,16 +209,19 @@ export default async function ReportsPage({
 						label: t("kpi.totalProfit"),
 						value: formatRupiah(totalProfit),
 						className: totalProfit >= 0 ? "text-success" : "text-danger",
+						sub: totalRevenue > 0 ? `${Math.round((totalProfit / totalRevenue) * 100)}%` : null,
 					},
 					{
 						label: t("kpi.leadConversion"),
 						value: `${conversionRate}%`,
 						className: "text-ink",
+						sub: null,
 					},
 					{
 						label: t("kpi.totalLeads"),
 						value: String(totalLeads),
 						className: "text-ink",
+						sub: null,
 					},
 				].map((kpi) => (
 					<Card key={kpi.label} className="p-5 overflow-hidden">
@@ -230,6 +233,9 @@ export default async function ReportsPage({
 						>
 							{kpi.value}
 						</p>
+						{kpi.sub && (
+							<p className={`text-xs tabular-nums mt-0.5 ${kpi.className}`}>{kpi.sub} of revenue</p>
+						)}
 					</Card>
 				))}
 			</section>
@@ -244,29 +250,47 @@ export default async function ReportsPage({
 								<TH align="right">{t("profitByJob.revenue")}</TH>
 								<TH align="right">{t("profitByJob.cost")}</TH>
 								<TH align="right">{t("profitByJob.profit")}</TH>
+								<TH align="right">{t("profitByJob.margin")}</TH>
 							</THead>
 							<TBody>
-								{(profitRows ?? []).slice(0, 10).map((r) => (
-									<TR key={r.job_number}>
-										<TD className="font-mono text-xs">{r.job_number}</TD>
-										<TD align="right">
-											<Money value={r.revenue ?? 0} />
-										</TD>
-										<TD align="right">
-											<Money value={r.actual_spend ?? 0} tone="danger" />
-										</TD>
-										<TD align="right">
-											<Money
-												value={r.current_profit ?? 0}
-												tone={(r.current_profit ?? 0) >= 0 ? "positive" : "danger"}
-												className="font-medium"
-											/>
-										</TD>
-									</TR>
-								))}
+								{(profitRows ?? []).slice(0, 10).map((r) => {
+									const margin =
+										r.revenue && r.revenue > 0
+											? Math.round(((r.current_profit ?? 0) / r.revenue) * 100)
+											: null;
+									return (
+										<TR key={r.job_number}>
+											<TD className="font-mono text-xs">{r.job_number}</TD>
+											<TD align="right">
+												<Money value={r.revenue ?? 0} />
+											</TD>
+											<TD align="right">
+												<Money value={r.actual_spend ?? 0} tone="danger" />
+											</TD>
+											<TD align="right">
+												<Money
+													value={r.current_profit ?? 0}
+													tone={(r.current_profit ?? 0) >= 0 ? "positive" : "danger"}
+													className="font-medium"
+												/>
+											</TD>
+											<TD align="right">
+												{margin !== null ? (
+													<span
+														className={`tabular-nums text-sm font-medium ${margin >= 0 ? "text-success" : "text-danger"}`}
+													>
+														{margin}%
+													</span>
+												) : (
+													<span className="text-ink-faint">—</span>
+												)}
+											</TD>
+										</TR>
+									);
+								})}
 								{(profitRows ?? []).length === 0 && (
 									<tr>
-										<td colSpan={4} className="py-4 text-center text-ink-faint">
+										<td colSpan={5} className="py-4 text-center text-ink-faint">
 											—
 										</td>
 									</tr>

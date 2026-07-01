@@ -465,7 +465,8 @@
 				"job": "Pekerjaan",
 				"revenue": "Pendapatan",
 				"cost": "Biaya",
-				"profit": "Keuntungan"
+				"profit": "Keuntungan",
+				"margin": "Margin"
 			},
 			"expensesThisMonth": "Pengeluaran bulan ini",
 			"noExpensesThisMonth": "Belum ada pengeluaran bulan ini.",
