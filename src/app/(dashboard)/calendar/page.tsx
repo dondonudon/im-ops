@@ -97,7 +97,7 @@ export default async function CalendarPage() {
 			<PageHeader
 				title={t("title")}
 				actions={
-					<>
+					<div className="flex flex-wrap items-center justify-end gap-2">
 						<div className="flex items-center gap-3 text-xs text-ink-muted">
 							<LegendDot color="#3b82f6" label={t("legend.survey")} />
 							<LegendDot color="#22c55e" label={t("legend.upcoming")} />
@@ -105,7 +105,7 @@ export default async function CalendarPage() {
 							<LegendDot color="#64748b" label={t("legend.done")} />
 						</div>
 						<SyncAllButton />
-					</>
+					</div>
 				}
 			/>
 			<CalendarView events={events} />
