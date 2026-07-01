@@ -84,7 +84,7 @@ export default async function CalendarPage() {
 				subtitle: "Survey",
 				start: s.scheduled_at as string,
 				endInclusive: (s.scheduled_at as string).slice(0, 10),
-				color: s.conducted_at ? "#94a3b8" : "#3b82f6",
+				color: s.conducted_at ? "#94a3b8" : "#eddb15",
 				status: s.conducted_at ? "done" : "scheduled",
 				synced: Boolean(s.gcal_event_id),
 				url: `/leads/${lead?.id ?? ""}`,
@@ -99,7 +99,7 @@ export default async function CalendarPage() {
 				actions={
 					<div className="flex flex-wrap items-center justify-end gap-2">
 						<div className="flex items-center gap-3 text-xs text-ink-muted">
-							<LegendDot color="#3b82f6" label={t("legend.survey")} />
+							<LegendDot color="#eddb15" label={t("legend.survey")} />
 							<LegendDot color="#22c55e" label={t("legend.upcoming")} />
 							<LegendDot color="#0ea5e9" label={t("legend.today")} />
 							<LegendDot color="#64748b" label={t("legend.done")} />
