@@ -352,7 +352,7 @@ function CounterOfferModal({
 					{tModal("title")}
 				</h3>
 				{error && <FormError>{error}</FormError>}
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
 					<Field label={tModal("proposedBy")} htmlFor="counter-who">
 						<Select
 							id="counter-who"
@@ -454,7 +454,7 @@ function MarkLostModal({
 				<h3 id="lost-title" className="text-base font-semibold text-ink">
 					{tModal("title")}
 				</h3>
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
 					<Field label={tModal("reason")} htmlFor="lost-reason">
 						<Select id="lost-reason" value={reason} onChange={(e) => setReason(e.target.value)}>
 							{REASONS.map((r) => (
@@ -580,7 +580,7 @@ function ConvertToJobModal({
 					{tModal("title", { name: customerName })}
 				</h3>
 				{error && <FormError>{error}</FormError>}
-				<form onSubmit={handleConfirm} className="space-y-4">
+				<form onSubmit={handleConfirm} className="space-y-4" autoComplete="off">
 					<div className="grid grid-cols-2 gap-3">
 						<Field label={tModal("startDate")} htmlFor="job-start-date" required>
 							<Input

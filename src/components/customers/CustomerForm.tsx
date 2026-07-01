@@ -106,7 +106,7 @@ export function CustomerForm({
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-5 max-w-lg" noValidate>
+		<form onSubmit={handleSubmit} className="space-y-5 max-w-lg" noValidate autoComplete="off">
 			{error && <FormError>{error}</FormError>}
 
 			<Field label={t("prefix")} htmlFor="prefix">

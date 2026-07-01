@@ -186,7 +186,7 @@ export function AssignmentsPanel({
 						)}
 
 						{!overlap && (
-							<form onSubmit={handleAdd} className="space-y-4">
+							<form onSubmit={handleAdd} className="space-y-4" autoComplete="off">
 								{/* Fleet / Crew toggle */}
 								<div>
 									<span className="block text-sm font-medium mb-1 text-ink">{t("type")}</span>

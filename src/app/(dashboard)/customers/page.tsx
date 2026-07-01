@@ -52,7 +52,7 @@ export default async function CustomersPage({
 
 			{/* Search */}
 			<search>
-				<form method="GET">
+				<form method="GET" autoComplete="off">
 					<Input
 						type="search"
 						name="q"

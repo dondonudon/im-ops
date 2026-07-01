@@ -120,7 +120,7 @@ export function FleetForm({ fleet }: { fleet?: FleetRow }) {
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="max-w-lg space-y-5" noValidate>
+		<form onSubmit={handleSubmit} className="max-w-lg space-y-5" noValidate autoComplete="off">
 			{error && <FormError>{error}</FormError>}
 
 			<Field label={t("name")} htmlFor="v-name" required>

@@ -148,7 +148,7 @@ export default function NewLeadPage() {
 		<div className="space-y-6">
 			<PageHeader title={t("newTitle")} />
 
-			<form onSubmit={handleSubmit} className="space-y-5 max-w-lg" noValidate>
+			<form onSubmit={handleSubmit} className="space-y-5 max-w-lg" noValidate autoComplete="off">
 				{error && <FormError>{error}</FormError>}
 
 				{/* Customer selection */}

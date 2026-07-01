@@ -166,7 +166,7 @@ export default function EditLeadPage({ params }: { params: { id: string } }) {
 
 				{error && <FormError>{error}</FormError>}
 
-				<form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate>
+				<form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate autoComplete="off">
 					{/* Pickup address */}
 					<Field label={t("pickup")} htmlFor="pickup_address">
 						<LocationInput

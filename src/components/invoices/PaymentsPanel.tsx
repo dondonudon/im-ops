@@ -159,7 +159,11 @@ export function PaymentsPanel({
 
 			{/* Payment form */}
 			{showForm && (
-				<form onSubmit={handleSubmit} className="rounded-xl border border-line p-4 space-y-3">
+				<form
+					onSubmit={handleSubmit}
+					className="rounded-xl border border-line p-4 space-y-3"
+					autoComplete="off"
+				>
 					{error && <FormError>{error}</FormError>}
 					<div className="grid grid-cols-2 gap-3">
 						<Field label={tForm("type")} htmlFor="pt-type">

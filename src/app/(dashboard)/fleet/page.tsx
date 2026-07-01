@@ -46,7 +46,7 @@ export default async function FleetPage({
 			<PageHeader title={t("title")} />
 
 			<search>
-				<form method="GET">
+				<form method="GET" autoComplete="off">
 					<Input
 						type="search"
 						name="q"

@@ -361,7 +361,7 @@ function SurveyScheduleModal({
 
 				{error && <FormError>{error}</FormError>}
 
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
 					<Field label={tModal("dateTime")} htmlFor="survey_scheduled_at" required>
 						<Input
 							id="survey_scheduled_at"

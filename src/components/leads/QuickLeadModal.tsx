@@ -264,7 +264,7 @@ export function QuickLeadModal() {
 					</div>
 				)}
 
-				<form onSubmit={handleSubmit} className="space-y-4" noValidate>
+				<form onSubmit={handleSubmit} className="space-y-4" noValidate autoComplete="off">
 					{/* ── Customer: search → pick existing or create new ── */}
 					<Field label={t("customer")} htmlFor="ql_customer_search" required>
 						{selectedCustomer ? (

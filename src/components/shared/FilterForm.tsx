@@ -15,6 +15,7 @@ export function FilterForm({
 		<form
 			ref={ref}
 			method="GET"
+			autoComplete="off"
 			className={className}
 			onChange={(e) => {
 				if ((e.target as HTMLElement).tagName === "SELECT") {

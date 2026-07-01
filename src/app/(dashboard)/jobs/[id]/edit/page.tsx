@@ -200,7 +200,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 
 				{error && <FormError>{error}</FormError>}
 
-				<form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate>
+				<form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate autoComplete="off">
 					{/* Status */}
 					<Field label={t("status")} htmlFor="status">
 						<Select id="status" name="status" value={form.status} onChange={handleChange}>

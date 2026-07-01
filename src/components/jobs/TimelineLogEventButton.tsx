@@ -153,7 +153,7 @@ export function TimelineLogEventButton({ jobId, jobStatus }: { jobId: string; jo
 							</button>
 						</div>
 
-						<form onSubmit={handleSubmit} className="space-y-3 text-sm">
+						<form onSubmit={handleSubmit} className="space-y-3 text-sm" autoComplete="off">
 							<Field label={tModal("event")} htmlFor="timeline-event-type">
 								<Select
 									id="timeline-event-type"

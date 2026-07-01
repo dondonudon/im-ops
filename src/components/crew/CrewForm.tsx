@@ -114,7 +114,7 @@ export function CrewForm({ member }: { member?: CrewRow }) {
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="max-w-lg space-y-5" noValidate>
+		<form onSubmit={handleSubmit} className="max-w-lg space-y-5" noValidate autoComplete="off">
 			{error && <FormError>{error}</FormError>}
 
 			<Field label={t("name")} htmlFor="c-name" required>
