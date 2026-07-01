@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import {
 	Card,
@@ -55,7 +56,7 @@ export default async function ReportsPage({
 		// Jobs scheduled in this month (move_date) for revenue KPI + profit table
 		supabase
 			.from("jobs")
-			.select("id, revenue")
+			.select("id, revenue, move_date")
 			.gte("move_date", monthStart)
 			.lt("move_date", monthEnd),
 		supabase
@@ -97,12 +98,13 @@ export default async function ReportsPage({
 	]);
 
 	// job_profit_summary has no date column — filter by the month's job IDs
-	const monthJobIds = (monthJobsData ?? []).map((j) => j.id);
+	const monthJobsMap = new Map((monthJobsData ?? []).map((j) => [j.id, j.move_date]));
+	const monthJobIds = [...monthJobsMap.keys()];
 	const { data: profitRows } =
 		monthJobIds.length > 0
 			? await supabase
 					.from("job_profit_summary")
-					.select("job_number, revenue, actual_spend, current_profit")
+					.select("job_id, job_number, revenue, actual_spend, current_profit")
 					.in("job_id", monthJobIds)
 					.order("current_profit", { ascending: false })
 					.limit(10)
@@ -247,6 +249,7 @@ export default async function ReportsPage({
 						<Table>
 							<THead>
 								<TH>{t("profitByJob.job")}</TH>
+								<TH>{t("profitByJob.date")}</TH>
 								<TH align="right">{t("profitByJob.revenue")}</TH>
 								<TH align="right">{t("profitByJob.cost")}</TH>
 								<TH align="right">{t("profitByJob.profit")}</TH>
@@ -260,7 +263,17 @@ export default async function ReportsPage({
 											: null;
 									return (
 										<TR key={r.job_number}>
-											<TD className="font-mono text-xs">{r.job_number}</TD>
+											<TD className="font-mono text-xs">
+												<Link
+													href={`/jobs/${r.job_id}`}
+													className="text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+												>
+													{r.job_number}
+												</Link>
+											</TD>
+											<TD className="text-xs text-ink-muted tabular-nums whitespace-nowrap">
+												{monthJobsMap.get(r.job_id ?? "") ?? "—"}
+											</TD>
 											<TD align="right">
 												<Money value={r.revenue ?? 0} />
 											</TD>
@@ -290,7 +303,7 @@ export default async function ReportsPage({
 								})}
 								{(profitRows ?? []).length === 0 && (
 									<tr>
-										<td colSpan={5} className="py-4 text-center text-ink-faint">
+										<td colSpan={6} className="py-4 text-center text-ink-faint">
 											—
 										</td>
 									</tr>

@@ -463,6 +463,7 @@
 			"profitByJob": {
 				"title": "Keuntungan per pekerjaan",
 				"job": "Pekerjaan",
+				"date": "Tanggal pindah",
 				"revenue": "Pendapatan",
 				"cost": "Biaya",
 				"profit": "Keuntungan",
