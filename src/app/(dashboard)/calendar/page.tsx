@@ -3,6 +3,7 @@ import { CalendarView } from "@/components/calendar/CalendarView";
 import { SyncAllButton } from "@/components/calendar/SyncAllButton";
 import { PageHeader } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
+import { deriveJobStatus } from "@/lib/utils";
 
 export default async function CalendarPage() {
 	const supabase = await createClient();
@@ -64,7 +65,7 @@ export default async function CalendarPage() {
 				detail,
 				start,
 				endInclusive: (j.move_end_date as string | null) ?? j.move_date!,
-				color: jobStatusColor(j.status),
+				color: jobStatusColor(j.move_date as string | null, j.status),
 				status: j.status,
 				synced: Boolean(j.gcal_event_id),
 				url: `/jobs/${j.id}`,
@@ -99,9 +100,9 @@ export default async function CalendarPage() {
 					<>
 						<div className="flex items-center gap-3 text-xs text-ink-muted">
 							<LegendDot color="#3b82f6" label={t("legend.survey")} />
-							<LegendDot color="#22c55e" label={t("legend.scheduled")} />
-							<LegendDot color="#0ea5e9" label={t("legend.inProgress")} />
-							<LegendDot color="#64748b" label={t("legend.completed")} />
+							<LegendDot color="#22c55e" label={t("legend.upcoming")} />
+							<LegendDot color="#0ea5e9" label={t("legend.today")} />
+							<LegendDot color="#64748b" label={t("legend.done")} />
 						</div>
 						<SyncAllButton />
 					</>
@@ -125,17 +126,15 @@ function LegendDot({ color, label }: { color: string; label: string }) {
 	);
 }
 
-function jobStatusColor(status: string): string {
-	switch (status) {
-		case "in_progress":
+function jobStatusColor(moveDate: string | null, dbStatus: string): string {
+	switch (deriveJobStatus(moveDate, dbStatus)) {
+		case "today":
 			return "#0ea5e9";
-		case "completed":
+		case "done":
 			return "#64748b";
-		case "closed":
-			return "#94a3b8";
 		case "cancelled":
 			return "#ef4444";
-		default: // scheduled
+		default: // upcoming
 			return "#22c55e";
 	}
 }

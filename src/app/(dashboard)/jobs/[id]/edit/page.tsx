@@ -19,7 +19,7 @@ import {
 import { syncJobToCalendar } from "@/lib/gcal/actions";
 import { createClient } from "@/lib/supabase/client";
 
-const JOB_STATUSES = ["scheduled", "in_progress", "completed", "closed", "cancelled"] as const;
+const JOB_STATUSES = ["scheduled", "cancelled"] as const;
 
 type JobStatus = (typeof JOB_STATUSES)[number];
 
@@ -163,9 +163,6 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 
 	const STATUS_LABELS: Record<JobStatus, string> = {
 		scheduled: tStatus("scheduled"),
-		in_progress: tStatus("in_progress"),
-		completed: tStatus("completed"),
-		closed: tStatus("closed"),
 		cancelled: tStatus("cancelled"),
 	};
 

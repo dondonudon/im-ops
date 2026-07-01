@@ -437,7 +437,7 @@ export type Database = {
 					id: string;
 					proposal_id: string;
 					job_number: string;
-					status: "scheduled" | "in_progress" | "completed" | "closed" | "cancelled";
+					status: "scheduled" | "cancelled";
 					move_date: string;
 					move_time: string | null;
 					move_end_date: string | null;
@@ -452,7 +452,7 @@ export type Database = {
 					id?: string;
 					proposal_id: string;
 					job_number: string;
-					status?: "scheduled" | "in_progress" | "completed" | "closed" | "cancelled";
+					status?: "scheduled" | "cancelled";
 					move_date: string;
 					move_time?: string | null;
 					move_end_date?: string | null;
@@ -467,7 +467,7 @@ export type Database = {
 					id?: string;
 					proposal_id?: string;
 					job_number?: string;
-					status?: "scheduled" | "in_progress" | "completed" | "closed" | "cancelled";
+					status?: "scheduled" | "cancelled";
 					move_date?: string;
 					move_time?: string | null;
 					move_end_date?: string | null;

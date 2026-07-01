@@ -5,7 +5,6 @@ import { getTranslations } from "next-intl/server";
 import { GenerateInvoiceButton } from "@/components/invoices/GenerateInvoiceButton";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { JobCancelButton } from "@/components/jobs/JobCancelButton";
-import { JobMarkDoneButton } from "@/components/jobs/JobMarkDoneButton";
 import { JobMediaPanel } from "@/components/jobs/JobMediaPanel";
 import { TimelineLogEventButton } from "@/components/jobs/TimelineLogEventButton";
 import { BackLink } from "@/components/shared/BackLink";
@@ -17,7 +16,7 @@ import {
 	resolveLogoDataUrl,
 } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
-import { formatDate, formatJobSchedule, formatRupiah } from "@/lib/utils";
+import { deriveJobStatus, formatDate, formatJobSchedule, formatRupiah } from "@/lib/utils";
 
 export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
@@ -136,6 +135,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 	const customer = proposal?.leads?.customers ?? null;
 	const totalExpenses = (expenses ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
 	const profit = (job.revenue ?? 0) - totalExpenses;
+	const derivedStatus = deriveJobStatus(job.move_date, job.status);
 
 	return (
 		<div className="space-y-6">
@@ -145,8 +145,8 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 				title={
 					<span className="flex items-center gap-3">
 						<span className="font-mono">{job.job_number}</span>
-						<Badge tone={toneFor("job", job.status)} dot>
-							{tStatus(job.status as never)}
+						<Badge tone={toneFor("job", derivedStatus)} dot>
+							{tStatus(derivedStatus as never)}
 						</Badge>
 					</span>
 				}
@@ -184,11 +184,10 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							{tCommon("edit")}
 						</Link>
 						<GCalRetryButton kind="job" id={id} hasEvent={Boolean(job.gcal_event_id)} />
-						{job.status === "in_progress" && <JobMarkDoneButton jobId={id} />}
-						{(job.status === "scheduled" || job.status === "in_progress") && (
-							<JobCancelButton jobId={id} />
+						{derivedStatus !== "cancelled" && (
+							<JobCancelButton jobId={id} payments={payments ?? []} />
 						)}
-						<JobStatusActions jobId={id} status={job.status} />
+						<JobStatusActions jobId={id} derivedStatus={derivedStatus} />
 					</div>
 				}
 			/>
@@ -325,7 +324,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							}
 							action={
 								<div className="flex items-center gap-2">
-									<TimelineLogEventButton jobId={id} jobStatus={job.status} />
+									<TimelineLogEventButton jobId={id} />
 									<Link
 										href={`/jobs/${id}/timeline`}
 										className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
@@ -542,11 +541,17 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 }
 
 // Inline status actions — async so we can read translations
-async function JobStatusActions({ jobId, status }: { jobId: string; status: string }) {
+async function JobStatusActions({
+	jobId,
+	derivedStatus,
+}: {
+	jobId: string;
+	derivedStatus: string;
+}) {
 	const t = await getTranslations("pages.jobDetail");
 	return (
 		<div className="flex gap-2 flex-wrap">
-			{status === "scheduled" && (
+			{derivedStatus === "upcoming" && (
 				<Link
 					href={`/jobs/${jobId}/assignments`}
 					className={buttonStyles({ variant: "secondary", size: "sm" })}
@@ -554,7 +559,7 @@ async function JobStatusActions({ jobId, status }: { jobId: string; status: stri
 					{t("assignResources")}
 				</Link>
 			)}
-			{(status === "scheduled" || status === "in_progress") && (
+			{derivedStatus !== "cancelled" && (
 				<Link
 					href={`/jobs/${jobId}/expenses`}
 					className={buttonStyles({ variant: "primary", size: "sm" })}

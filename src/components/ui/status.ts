@@ -25,10 +25,9 @@ const PROPOSAL: Record<string, Tone> = {
 };
 
 const JOB: Record<string, Tone> = {
-	scheduled: "info",
-	in_progress: "pending",
-	completed: "positive",
-	closed: "neutral",
+	upcoming: "info",
+	today: "pending",
+	done: "positive",
 	cancelled: "danger",
 };
 

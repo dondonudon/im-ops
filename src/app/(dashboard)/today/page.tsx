@@ -28,7 +28,7 @@ import {
 	toneFor,
 } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
-import { formatDate, formatRupiah } from "@/lib/utils";
+import { deriveJobStatus, formatDate, formatRupiah } from "@/lib/utils";
 
 function startOfMonth() {
 	const d = new Date();
@@ -71,6 +71,7 @@ type TodayJob = {
  */
 export default async function TodayPage() {
 	const t = await getTranslations("today");
+	const tStatus = await getTranslations("status.job");
 	const locale = await getLocale();
 	const supabase = await createClient();
 	const today = todayISO();
@@ -116,7 +117,7 @@ export default async function TodayPage() {
 			.from("jobs")
 			.select("id, job_number")
 			.is("gcal_event_id", null)
-			.in("status", ["scheduled", "in_progress"])
+			.eq("status", "scheduled")
 			.gte("move_date", today)
 			.limit(5),
 	]);
@@ -228,9 +229,14 @@ export default async function TodayPage() {
 										<span className="font-mono text-sm font-bold text-ink group-hover:text-primary transition-colors">
 											#{job.job_number}
 										</span>
-										<Badge tone={toneFor("job", job.status)} dot>
-											{job.status.replace("_", " ")}
-										</Badge>
+										{(() => {
+											const ds = deriveJobStatus(job.move_date, job.status);
+											return (
+												<Badge tone={toneFor("job", ds)} dot>
+													{tStatus(ds as never)}
+												</Badge>
+											);
+										})()}
 									</div>
 									<p className="text-sm font-semibold text-ink truncate mb-2">
 										{lead?.customers?.name ?? "—"}
@@ -438,10 +444,7 @@ async function AtAGlanceSection({
 	const supabase = await createClient();
 
 	const [{ count: activeJobsCount }, { count: openProposalsCount }] = await Promise.all([
-		supabase
-			.from("jobs")
-			.select("*", { count: "exact", head: true })
-			.in("status", ["scheduled", "in_progress"]),
+		supabase.from("jobs").select("*", { count: "exact", head: true }).eq("status", "scheduled"),
 		supabase
 			.from("proposals")
 			.select("*", { count: "exact", head: true })
@@ -492,6 +495,7 @@ async function AtAGlanceSection({
 
 async function UpcomingSection() {
 	const t = await getTranslations("today");
+	const tStatus = await getTranslations("status.job");
 	const supabase = await createClient();
 	const today = todayISO();
 
@@ -499,7 +503,7 @@ async function UpcomingSection() {
 		.from("jobs")
 		.select("id, job_number, move_date, status")
 		.gt("move_date", today)
-		.in("status", ["scheduled", "in_progress"])
+		.eq("status", "scheduled")
 		.order("move_date")
 		.limit(5);
 
@@ -542,9 +546,14 @@ async function UpcomingSection() {
 											{formatDate(job.move_date)}
 										</p>
 									</div>
-									<Badge tone={toneFor("job", job.status)} dot>
-										{job.status.replace("_", " ")}
-									</Badge>
+									{(() => {
+										const ds = deriveJobStatus(job.move_date, job.status);
+										return (
+											<Badge tone={toneFor("job", ds)} dot>
+												{tStatus(ds as never)}
+											</Badge>
+										);
+									})()}
 								</PendingLink>
 							</li>
 						);

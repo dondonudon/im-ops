@@ -20,12 +20,12 @@ import {
 } from "@/components/ui";
 import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
-import { cn, formatJobSchedule, formatRupiah, sanitizeSearch } from "@/lib/utils";
+import { cn, deriveJobStatus, formatJobSchedule, formatRupiah, sanitizeSearch } from "@/lib/utils";
 
-const STATUS_OPTS = ["", "scheduled", "in_progress", "completed", "cancelled"] as const;
+const STATUS_OPTS = ["", "upcoming", "today", "done", "cancelled"] as const;
 
-/** Board column order — the operational lifecycle of a job. */
-const BOARD_STATUSES = ["scheduled", "in_progress", "completed", "closed", "cancelled"] as const;
+/** Board column order — derived from move_date vs today. */
+const BOARD_STATUSES = ["upcoming", "today", "done", "cancelled"] as const;
 
 type JobRow = {
 	id: string;
@@ -57,23 +57,43 @@ export default async function JobsPage({
 	const tStatus = await getTranslations("status.job");
 
 	const page = Math.max(1, Number(rawPage) || 1);
+	const today = new Date().toISOString().slice(0, 10);
 	let jobs: JobRow[] = [];
 	let count: number | null = null;
 	let boardColumns: Map<string, JobRow[]> | null = null;
 
 	if (view === "board") {
-		// One indexed query per status column — avoids a 300-row full scan and
-		// the COUNT(*) overhead that the list view needs for pagination.
-		const cols = await Promise.all(
-			BOARD_STATUSES.map((s) =>
-				supabase
-					.from("jobs")
-					.select(BOARD_COLS_SELECT)
-					.eq("status", s)
-					.order("move_date", { ascending: false })
-					.limit(BOARD_PER_COL),
-			),
-		);
+		// Each column maps to a different DB query since status is now derived from move_date.
+		const boardQueries = [
+			supabase
+				.from("jobs")
+				.select(BOARD_COLS_SELECT)
+				.eq("status", "scheduled")
+				.gt("move_date", today)
+				.order("move_date")
+				.limit(BOARD_PER_COL),
+			supabase
+				.from("jobs")
+				.select(BOARD_COLS_SELECT)
+				.eq("status", "scheduled")
+				.eq("move_date", today)
+				.order("move_date")
+				.limit(BOARD_PER_COL),
+			supabase
+				.from("jobs")
+				.select(BOARD_COLS_SELECT)
+				.eq("status", "scheduled")
+				.lt("move_date", today)
+				.order("move_date", { ascending: false })
+				.limit(BOARD_PER_COL),
+			supabase
+				.from("jobs")
+				.select(BOARD_COLS_SELECT)
+				.eq("status", "cancelled")
+				.order("move_date", { ascending: false })
+				.limit(BOARD_PER_COL),
+		];
+		const cols = await Promise.all(boardQueries);
 		boardColumns = new Map(BOARD_STATUSES.map((s, i) => [s, (cols[i].data ?? []) as JobRow[]]));
 	} else {
 		const from = (page - 1) * PAGE_SIZE;
@@ -81,7 +101,11 @@ export default async function JobsPage({
 			.from("jobs")
 			.select(BOARD_COLS_SELECT, { count: "exact" })
 			.order("move_date", { ascending: false });
-		if (status) query = query.filter("status", "eq", status);
+		// Translate derived status filter to DB conditions
+		if (status === "upcoming") query = query.eq("status", "scheduled").gt("move_date", today);
+		else if (status === "today") query = query.eq("status", "scheduled").eq("move_date", today);
+		else if (status === "done") query = query.eq("status", "scheduled").lt("move_date", today);
+		else if (status === "cancelled") query = query.eq("status", "cancelled");
 		if (q) {
 			const safe = sanitizeSearch(q);
 			// Single query via jobs_with_customer view — replaces 4 sequential round-trips
@@ -231,9 +255,14 @@ export default async function JobsPage({
 										</TD>
 										<TD align="right">{job.revenue ? formatRupiah(job.revenue) : "—"}</TD>
 										<TD>
-											<Badge tone={toneFor("job", job.status)} dot>
-												{tStatus(job.status as never)}
-											</Badge>
+											{(() => {
+												const ds = deriveJobStatus(job.move_date, job.status);
+												return (
+													<Badge tone={toneFor("job", ds)} dot>
+														{tStatus(ds as never)}
+													</Badge>
+												);
+											})()}
 										</TD>
 									</TR>
 								))}
@@ -261,9 +290,14 @@ export default async function JobsPage({
 										<p className="font-mono text-xs text-ink-faint">{job.job_number}</p>
 										<p className="font-semibold text-ink mt-0.5">{customerOf(job)}</p>
 									</div>
-									<Badge tone={toneFor("job", job.status)} dot>
-										{tStatus(job.status as never)}
-									</Badge>
+									{(() => {
+										const ds = deriveJobStatus(job.move_date, job.status);
+										return (
+											<Badge tone={toneFor("job", ds)} dot>
+												{tStatus(ds as never)}
+											</Badge>
+										);
+									})()}
 								</div>
 								<div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 text-sm">
 									<div>

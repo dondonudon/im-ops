@@ -234,11 +234,11 @@
 			"closed_lost": "Ditutup — gagal"
 		},
 		"job": {
-			"scheduled": "Terjadwal",
-			"in_progress": "Berjalan",
-			"completed": "Selesai",
-			"closed": "Ditutup",
-			"cancelled": "Dibatalkan"
+			"upcoming": "Mendatang",
+			"today": "Hari ini",
+			"done": "Selesai",
+			"cancelled": "Dibatalkan",
+			"scheduled": "Aktif"
 		},
 		"proposal": {
 			"draft": "Draf",
@@ -445,9 +445,9 @@
 			"title": "Kalender",
 			"legend": {
 				"survey": "Survei",
-				"scheduled": "Terjadwal",
-				"inProgress": "Berjalan",
-				"completed": "Selesai"
+				"upcoming": "Mendatang",
+				"today": "Hari ini",
+				"done": "Selesai"
 			}
 		},
 		"reports": {
@@ -1002,10 +1002,15 @@
 		"confirmations": {
 			"duplicateLead": "Duplikat prospek ini sebagai yang baru?",
 			"duplicateProposal": "Duplikat proposal ini sebagai draf baru?",
-			"markJobDone": "Tandai pekerjaan ini sebagai selesai? Sulit untuk dibatalkan.",
-			"cancelJob": "Batalkan pekerjaan ini? Sulit untuk dibatalkan.",
-			"startJob": "Mulai pekerjaan ini? Pengeluaran bisa dicatat setelah pekerjaan berjalan.",
 			"syncAll": "Sinkronkan ulang pekerjaan dan survei mendatang ke Google Calendar?"
+		},
+		"cancelJob": {
+			"title": "Batalkan pekerjaan ini?",
+			"body": "Tindakan ini permanen dan tidak dapat dibatalkan.",
+			"warningTitle": "Pekerjaan ini sudah ada pembayaran",
+			"warningBody": "Total dibayar: {amount}. Pembatalan tidak otomatis mengembalikan pembayaran ini.",
+			"confirm": "Ya, batalkan pekerjaan ini",
+			"back": "Kembali"
 		}
 	},
 	"actions": {

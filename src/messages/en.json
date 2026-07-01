@@ -234,11 +234,11 @@
 			"closed_lost": "Closed — lost"
 		},
 		"job": {
-			"scheduled": "Scheduled",
-			"in_progress": "In progress",
-			"completed": "Completed",
-			"closed": "Closed",
-			"cancelled": "Cancelled"
+			"upcoming": "Upcoming",
+			"today": "Today",
+			"done": "Done",
+			"cancelled": "Cancelled",
+			"scheduled": "Active"
 		},
 		"proposal": {
 			"draft": "Draft",
@@ -445,9 +445,9 @@
 			"title": "Calendar",
 			"legend": {
 				"survey": "Survey",
-				"scheduled": "Scheduled",
-				"inProgress": "In progress",
-				"completed": "Completed"
+				"upcoming": "Upcoming",
+				"today": "Today",
+				"done": "Done"
 			}
 		},
 		"reports": {
@@ -1002,10 +1002,15 @@
 		"confirmations": {
 			"duplicateLead": "Duplicate this lead as a new one?",
 			"duplicateProposal": "Duplicate this proposal as a new draft?",
-			"markJobDone": "Mark this job as completed? This cannot be easily undone.",
-			"cancelJob": "Cancel this job? This cannot be easily undone.",
-			"startJob": "Start this job? Expenses can be logged once it's in progress.",
 			"syncAll": "Re-push recent + upcoming jobs and surveys to Google Calendar?"
+		},
+		"cancelJob": {
+			"title": "Cancel this job?",
+			"body": "This action is permanent and cannot be undone.",
+			"warningTitle": "This job has recorded payments",
+			"warningBody": "Total paid: {amount}. Cancelling will not automatically refund these payments.",
+			"confirm": "Yes, cancel this job",
+			"back": "Go back"
 		}
 	},
 	"actions": {

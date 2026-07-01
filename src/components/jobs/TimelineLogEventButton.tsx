@@ -19,16 +19,6 @@ const EVENT_TYPE_VALUES = [
 	"custom",
 ] as const;
 
-// Events that signal the job has physically started — trigger auto-start when job is still scheduled
-const OPERATIONAL_EVENTS = new Set([
-	"loading_start",
-	"loading_done",
-	"transit_start",
-	"transit_done",
-	"unloading_start",
-	"unloading_done",
-]);
-
 function nowLocalISO(): string {
 	const d = new Date();
 	const off = d.getTimezoneOffset();
@@ -36,14 +26,13 @@ function nowLocalISO(): string {
 	return local.toISOString().slice(0, 16);
 }
 
-export function TimelineLogEventButton({ jobId, jobStatus }: { jobId: string; jobStatus: string }) {
+export function TimelineLogEventButton({ jobId }: { jobId: string }) {
 	const router = useRouter();
 	const tTimeline = useTranslations("panels.timeline");
 	const tModal = useTranslations("modals.logEvent");
 	const tButtons = useTranslations("common.buttons");
 	const tHints = useTranslations("common.hints");
 	const tEventType = useTranslations("entity.eventType");
-	const tConfirm = useTranslations("modals.confirmations");
 	const [open, setOpen] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -81,33 +70,8 @@ export function TimelineLogEventButton({ jobId, jobStatus }: { jobId: string; jo
 			});
 			if (insertErr) throw insertErr;
 
-			// Auto-start: if job is still scheduled and the logged event signals physical work has begun
-			let effectiveStatus = jobStatus;
-			if (jobStatus === "scheduled" && OPERATIONAL_EVENTS.has(form.event_type)) {
-				await supabase.from("jobs").update({ status: "in_progress" }).eq("id", jobId);
-				await supabase.from("job_timeline").insert({
-					job_id: jobId,
-					event_type: "job_started",
-					logged_by: user?.id ?? null,
-				});
-				effectiveStatus = "in_progress";
-			}
-
 			reset();
 			setOpen(false);
-
-			// Nudge to complete the job after unloading is done
-			if (form.event_type === "unloading_done" && effectiveStatus === "in_progress") {
-				if (window.confirm(tConfirm("markJobDone"))) {
-					await supabase.from("jobs").update({ status: "completed" }).eq("id", jobId);
-					await supabase.from("job_timeline").insert({
-						job_id: jobId,
-						event_type: "job_completed",
-						logged_by: user?.id ?? null,
-					});
-				}
-			}
-
 			router.refresh();
 		} catch (err: unknown) {
 			setError(err instanceof Error ? err.message : "Insert failed.");

@@ -244,3 +244,14 @@ export function numberToIndonesianWords(n: number): string {
 export function formatCustomerName(prefix: string | null | undefined, name: string): string {
 	return prefix ? `${prefix}. ${name}` : name;
 }
+
+export type DerivedJobStatus = "upcoming" | "today" | "done" | "cancelled";
+
+export function deriveJobStatus(moveDate: string | null, dbStatus: string): DerivedJobStatus {
+	if (dbStatus === "cancelled") return "cancelled";
+	if (!moveDate) return "upcoming";
+	const today = new Date().toISOString().slice(0, 10);
+	if (moveDate < today) return "done";
+	if (moveDate === today) return "today";
+	return "upcoming";
+}

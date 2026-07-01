@@ -24,8 +24,7 @@ export default async function ExpensesPage({ params }: { params: Promise<{ id: s
 	if (!job) notFound();
 
 	let lockReason: string | null = null;
-	if (job.status === "closed") lockReason = tExpense("lockedJobClosed");
-	else if (job.status === "cancelled") lockReason = tExpense("lockedJobCancelled");
+	if (job.status === "cancelled") lockReason = tExpense("lockedJobCancelled");
 	else if (invoice?.status === "paid") lockReason = tExpense("lockedInvoicePaid");
 
 	return (
