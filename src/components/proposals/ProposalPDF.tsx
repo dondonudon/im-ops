@@ -203,14 +203,14 @@ export function ProposalPDF({
 						<>
 							{pickup ? (
 								<>
-									{" "}
-									dari <Text style={{ fontFamily: "Helvetica-Bold" }}>{pickup}</Text>
+									{" dari "}
+									<Text style={{ fontFamily: "Helvetica-Bold" }}>{pickup}</Text>
 								</>
 							) : null}
 							{destination ? (
 								<>
-									{" "}
-									ke <Text style={{ fontFamily: "Helvetica-Bold" }}>{destination}</Text>
+									{" ke "}
+									<Text style={{ fontFamily: "Helvetica-Bold" }}>{destination}</Text>
 								</>
 							) : null}
 							{destination2 ? (
