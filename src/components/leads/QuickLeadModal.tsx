@@ -96,6 +96,7 @@ export function QuickLeadModal() {
 			.from("customers")
 			.select("id, prefix, name, phone")
 			.order("name")
+			.limit(200)
 			.then(({ data }) => setCustomers(data ?? []));
 		return () => {
 			window.removeEventListener("keydown", onKey);

@@ -29,43 +29,54 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 	const tPay = await getTranslations("panels.payments");
 	const tCategory = await getTranslations("entity.expenseCategory");
 
-	// Fetch job first to get proposal_id, then fetch all dependent data in parallel.
-	const { data: job } = await supabase
-		.from("jobs")
-		.select(`
-      *,
-      proposals(
-        id, proposal_number, final_price,
-        leads(
-          pickup_address, destination_address, destination_address_2,
-          customers(id, name, phone)
+	// Phase 1: job with nested estimation + settings fetched in parallel.
+	const [{ data: job }, { data: settingsRows }] = await Promise.all([
+		supabase
+			.from("jobs")
+			.select(`
+        *,
+        proposals(
+          id, proposal_number, final_price,
+          leads(
+            pickup_address, destination_address, destination_address_2,
+            customers(id, name, phone)
+          ),
+          estimations(id, outputs, inputs)
         )
-      )
-    `)
-		.eq("id", id)
-		.single();
+      `)
+			.eq("id", id)
+			.single(),
+		supabase
+			.from("system_settings")
+			.select("key, value")
+			.in("key", [
+				"company_name",
+				"company_tagline",
+				"company_logo_url",
+				"company_address",
+				"company_phone",
+				"company_website",
+				"company_city",
+				"invoice_signature_name",
+				"invoice_signature_role",
+			]),
+	]);
 
 	if (!job) notFound();
 
-	const proposalId = (job.proposals as { id: string } | null)?.id ?? null;
+	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
+	const logoUrl = settingsMap.company_logo_url ?? "";
 
+	// Phase 2: remaining queries + logo resolution all in parallel.
 	const [
-		{ data: estimation },
 		{ data: assignments },
 		{ data: expenses },
 		{ data: timeline },
 		{ data: invoice },
 		{ data: payments },
 		{ data: jobMedia },
-		{ data: settingsRows },
+		logoDataUrl,
 	] = await Promise.all([
-		proposalId
-			? supabase
-					.from("estimations")
-					.select("id, outputs, inputs")
-					.eq("proposal_id", proposalId)
-					.maybeSingle()
-			: Promise.resolve({ data: null, error: null }),
 		supabase
 			.from("job_assignments")
 			.select(
@@ -97,25 +108,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 			.select("id, media_type, storage_path, file_name, caption, uploaded_at")
 			.eq("job_id", id)
 			.order("uploaded_at"),
-		supabase
-			.from("system_settings")
-			.select("key, value")
-			.in("key", [
-				"company_name",
-				"company_tagline",
-				"company_logo_url",
-				"company_address",
-				"company_phone",
-				"company_website",
-				"company_city",
-				"invoice_signature_name",
-				"invoice_signature_role",
-			]),
+		resolveLogoDataUrl(logoUrl),
 	]);
 
-	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const pdfCompany = buildCompanySettings(settingsMap);
-	pdfCompany.logo = await resolveLogoDataUrl(pdfCompany.logo);
+	pdfCompany.logo = logoDataUrl;
 	const pdfTemplate = buildInvoiceTemplateSettings(settingsMap);
 
 	const proposal = job.proposals as {
@@ -128,8 +125,10 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 			destination_address_2: string | null;
 			customers: { id: string; name: string; phone: string | null } | null;
 		} | null;
+		estimations: { id: string; outputs: unknown; inputs: unknown }[] | null;
 	} | null;
 
+	const estimation = proposal?.estimations?.[0] ?? null;
 	const estimationOutputs = (estimation?.outputs ?? {}) as Record<string, number>;
 
 	const customer = proposal?.leads?.customers ?? null;

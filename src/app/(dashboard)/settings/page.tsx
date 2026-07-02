@@ -7,26 +7,23 @@ export default async function SettingsPage() {
 	const supabase = await createClient();
 	const t = await getTranslations("pages.settings");
 
-	const [{ data: settings }, { data: revenueTargets }, { data: defaultTargetRow }] =
-		await Promise.all([
-			supabase
-				.from("system_settings")
-				.select("key, value, category, description")
-				.order("category")
-				.order("key"),
-			supabase
-				.from("revenue_targets")
-				.select("year, month, target_amount")
-				.order("year")
-				.order("month"),
-			supabase
-				.from("system_settings")
-				.select("value")
-				.eq("key", "revenue_target_monthly")
-				.maybeSingle(),
-		]);
+	const [{ data: settings }, { data: revenueTargets }] = await Promise.all([
+		supabase
+			.from("system_settings")
+			.select("key, value, category, description")
+			.order("category")
+			.order("key"),
+		supabase
+			.from("revenue_targets")
+			.select("year, month, target_amount")
+			.order("year")
+			.order("month"),
+	]);
 
-	const defaultTarget = defaultTargetRow?.value ? Number(defaultTargetRow.value) : 50_000_000;
+	const defaultTargetValue = (settings ?? []).find(
+		(s) => s.key === "revenue_target_monthly",
+	)?.value;
+	const defaultTarget = defaultTargetValue ? Number(defaultTargetValue) : 50_000_000;
 
 	return (
 		<div className="space-y-6 max-w-3xl">

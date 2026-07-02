@@ -89,7 +89,7 @@ export async function resolveLogoDataUrl(url: string): Promise<string> {
 	if (!url) return "";
 	if (url.startsWith("data:")) return url;
 	try {
-		const res = await fetch(url);
+		const res = await fetch(url, { next: { revalidate: 3600, tags: ["system-settings"] } });
 		if (!res.ok) return url;
 		const mime = res.headers.get("content-type") ?? "image/png";
 		const base64 = Buffer.from(await res.arrayBuffer()).toString("base64");

@@ -888,6 +888,42 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			leads_with_customer: {
+				Row: {
+					id: string;
+					status: string;
+					customer_id: string | null;
+					pickup_address: string | null;
+					destination_address: string | null;
+					destination_address_2: string | null;
+					preferred_date: string | null;
+					lead_type: string | null;
+					origin_channel: string | null;
+					notes: string | null;
+					created_at: string;
+					customer_name: string | null;
+					customer_phone: string | null;
+				};
+				Relationships: [];
+			};
+			proposals_with_customer: {
+				Row: {
+					id: string;
+					proposal_number: string;
+					status: string;
+					final_price: number | null;
+					lead_id: string | null;
+					created_at: string;
+					approved_at: string | null;
+					closed_at: string | null;
+					closed_reason: string | null;
+					pdf_url: string | null;
+					service_type: string | null;
+					custom_fields: unknown;
+					customer_name: string | null;
+				};
+				Relationships: [];
+			};
 		};
 		Functions: {
 			generate_proposal_number: {

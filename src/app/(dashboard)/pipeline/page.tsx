@@ -71,7 +71,7 @@ export default async function PipelinePage() {
 				.neq("status", "closed_lost")
 				.gte("created_at", cutoff.toISOString())
 				.order("created_at", { ascending: false })
-				.limit(500);
+				.limit(200);
 		})(),
 		supabase.from("leads").select("*", { count: "exact", head: true }).eq("status", "closed_lost"),
 	]);

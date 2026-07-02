@@ -364,7 +364,11 @@ async function MoneyCardSection() {
 		{ data: defaultTargetRow },
 	] = await Promise.all([
 		supabase.from("jobs").select("revenue").gte("move_date", monthStart).lt("move_date", monthEnd),
-		supabase.from("expenses").select("amount").gte("incurred_at", monthStart),
+		supabase
+			.from("expenses")
+			.select("amount")
+			.gte("incurred_at", monthStart)
+			.lt("incurred_at", monthEnd),
 		supabase
 			.from("revenue_targets")
 			.select("target_amount")

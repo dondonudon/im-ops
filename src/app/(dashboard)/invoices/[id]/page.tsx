@@ -55,7 +55,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const pdfCompany = buildCompanySettings(settingsMap);
-	pdfCompany.logo = await resolveLogoDataUrl(pdfCompany.logo);
+	pdfCompany.logo = await resolveLogoDataUrl(settingsMap.company_logo_url ?? "");
 	const pdfTemplate = buildInvoiceTemplateSettings(settingsMap);
 
 	type PaymentRow = {

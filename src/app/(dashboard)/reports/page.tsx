@@ -74,7 +74,8 @@ export default async function ReportsPage({
 		supabase
 			.from("invoices")
 			.select("invoice_number, total_amount, paid_amount, due_date, status")
-			.in("status", ["sent", "partially_paid", "overdue"]),
+			.in("status", ["sent", "partially_paid", "overdue"])
+			.limit(500),
 		// Proposals lost/expired this month, filtered by closed_at
 		supabase
 			.from("proposals")

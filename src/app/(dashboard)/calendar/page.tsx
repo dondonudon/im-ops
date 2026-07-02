@@ -11,7 +11,7 @@ export default async function CalendarPage() {
 
 	const now = new Date();
 	const windowStart = new Date(now);
-	windowStart.setFullYear(windowStart.getFullYear() - 1);
+	windowStart.setMonth(windowStart.getMonth() - 3);
 	const windowEnd = new Date(now);
 	windowEnd.setMonth(windowEnd.getMonth() + 6);
 	const startDate = windowStart.toISOString().slice(0, 10);

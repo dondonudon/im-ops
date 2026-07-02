@@ -44,39 +44,17 @@ export default async function ProposalsPage({
 	const t = await getTranslations("pages.proposals");
 	const tStatus = await getTranslations("status.proposal");
 
-	let query = supabase.from("proposals").select(
-		`
-      id, proposal_number, status, final_price, created_at,
-      leads(customer_id, customers(name))
-    `,
-		{ count: "exact" },
-	);
+	let query = supabase
+		.from("proposals_with_customer")
+		.select("id, proposal_number, status, final_price, created_at, customer_name", {
+			count: "exact",
+		});
 
 	if (status === "open") query = query.in("status", ["draft", "sent", "negotiating"]);
 	else if (status) query = query.filter("status", "eq", status);
 	if (q) {
 		const safe = sanitizeSearch(q);
-		// Resolve customer name → leads to support OR with proposal_number
-		const { data: matchedCustomers } = await supabase
-			.from("customers")
-			.select("id")
-			.ilike("name", `%${safe}%`);
-		const leadIds: string[] = [];
-		if (matchedCustomers?.length) {
-			const { data: matchedLeads } = await supabase
-				.from("leads")
-				.select("id")
-				.in(
-					"customer_id",
-					matchedCustomers.map((c) => c.id),
-				);
-			leadIds.push(...(matchedLeads?.map((l) => l.id) ?? []));
-		}
-		if (leadIds.length) {
-			query = query.or(`proposal_number.ilike.%${safe}%,lead_id.in.(${leadIds.join(",")})`);
-		} else {
-			query = query.ilike("proposal_number", `%${safe}%`);
-		}
+		query = query.or(`proposal_number.ilike.%${safe}%,customer_name.ilike.%${safe}%`);
 	}
 
 	const { data: proposals, count } = await query
@@ -126,8 +104,7 @@ export default async function ProposalsPage({
 					</THead>
 					<TBody>
 						{(proposals ?? []).map((p) => {
-							const customer = (p.leads as { customers: { name: string } | null } | null)
-								?.customers;
+							const customerName = p.customer_name;
 							return (
 								<TR key={p.id}>
 									<TD className="font-mono text-xs">
@@ -138,7 +115,7 @@ export default async function ProposalsPage({
 											{p.proposal_number}
 										</PendingLink>
 									</TD>
-									<TD>{customer?.name ?? "—"}</TD>
+									<TD>{customerName ?? "—"}</TD>
 									<TD align="right">
 										{p.final_price ? (
 											<Money value={p.final_price} />
@@ -169,7 +146,7 @@ export default async function ProposalsPage({
 			{/* Mobile cards */}
 			<div className="md:hidden space-y-3">
 				{(proposals ?? []).map((p) => {
-					const customer = (p.leads as { customers: { name: string } | null } | null)?.customers;
+					const customerName = p.customer_name;
 					return (
 						<PendingLink
 							key={p.id}
@@ -179,7 +156,7 @@ export default async function ProposalsPage({
 							<div className="flex items-start justify-between mb-2">
 								<div>
 									<p className="font-mono text-xs text-ink-faint">{p.proposal_number}</p>
-									<p className="font-semibold text-ink mt-0.5">{customer?.name ?? "—"}</p>
+									<p className="font-semibold text-ink mt-0.5">{customerName ?? "—"}</p>
 								</div>
 								<Badge tone={toneFor("proposal", p.status)} dot>
 									{tStatus(p.status as never)}

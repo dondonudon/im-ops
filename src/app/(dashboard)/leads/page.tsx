@@ -40,31 +40,25 @@ export default async function LeadsPage({
 	const tStatus = await getTranslations("status.lead");
 	const tCommon = await getTranslations("common.buttons");
 
-	let query = supabase.from("leads").select(
-		`
-      id, status, pickup_address, destination_address, destination_address_2, preferred_date, created_at,
-      customers(id, name, phone)
-    `,
-		{ count: "exact" },
-	);
+	let query = supabase
+		.from("leads_with_customer")
+		.select(
+			"id, status, pickup_address, destination_address, destination_address_2, preferred_date, created_at, customer_name",
+			{ count: "exact" },
+		);
 
 	if (status) query = query.filter("status", "eq", status);
 	if (q) {
 		const safe = sanitizeSearch(q);
-		const { data: matchedCustomers } = await supabase
-			.from("customers")
-			.select("id")
-			.or(`name.ilike.%${safe}%,phone.ilike.%${safe}%`);
-		const customerIds = (matchedCustomers ?? []).map((c) => c.id);
-		const orParts = [
-			`pickup_address.ilike.%${safe}%`,
-			`destination_address.ilike.%${safe}%`,
-			`destination_address_2.ilike.%${safe}%`,
-		];
-		if (customerIds.length) {
-			orParts.push(`customer_id.in.(${customerIds.join(",")})`);
-		}
-		query = query.or(orParts.join(","));
+		query = query.or(
+			[
+				`pickup_address.ilike.%${safe}%`,
+				`destination_address.ilike.%${safe}%`,
+				`destination_address_2.ilike.%${safe}%`,
+				`customer_name.ilike.%${safe}%`,
+				`customer_phone.ilike.%${safe}%`,
+			].join(","),
+		);
 	}
 
 	const { data: leads, count } = await query
@@ -107,11 +101,6 @@ export default async function LeadsPage({
 			{/* List */}
 			<div className="space-y-2">
 				{(leads ?? []).map((lead) => {
-					const customer = lead.customers as {
-						id: string;
-						name: string;
-						phone: string | null;
-					} | null;
 					return (
 						<PendingLink
 							key={lead.id}
@@ -119,10 +108,10 @@ export default async function LeadsPage({
 							className="flex items-center justify-between gap-4 rounded-xl border border-line bg-surface shadow-token px-5 py-4 transition-all hover:border-line-strong hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 						>
 							<div className="min-w-0 flex-1">
-								<p className="font-semibold text-ink truncate">{customer?.name ?? "—"}</p>
+								<p className="font-semibold text-ink truncate">{lead.customer_name ?? "—"}</p>
 								<RouteLine
 									from={lead.pickup_address}
-									via={(lead as { destination_address_2?: string | null }).destination_address_2}
+									via={lead.destination_address_2}
 									to={lead.destination_address}
 									className="mt-1.5"
 								/>

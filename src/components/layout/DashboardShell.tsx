@@ -1,5 +1,6 @@
 "use client";
 import { Plus } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -8,8 +9,15 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { SectionTabs } from "@/components/layout/SectionTabs";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
-import { QuickLeadModal } from "@/components/leads/QuickLeadModal";
-import { CommandPalette } from "@/components/shared/CommandPalette";
+
+const QuickLeadModal = dynamic(
+	() => import("@/components/leads/QuickLeadModal").then((m) => ({ default: m.QuickLeadModal })),
+	{ ssr: false },
+);
+const CommandPalette = dynamic(
+	() => import("@/components/shared/CommandPalette").then((m) => ({ default: m.CommandPalette })),
+	{ ssr: false },
+);
 
 /** Maps list-page pathnames to their FAB action. Exact match only — detail and edit pages are excluded. */
 const FAB_CONFIG: Record<string, { href: string; label: string }> = {
