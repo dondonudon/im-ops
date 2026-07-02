@@ -204,19 +204,23 @@ export function ProposalPDF({
 							{pickup ? (
 								<>
 									{" dari "}
-									<Text style={{ fontFamily: "Helvetica-Bold" }}>{pickup}</Text>
+									<Text style={{ fontFamily: "Helvetica-Bold" }}>{pickup.replace(/\n/g, " ")}</Text>
 								</>
 							) : null}
 							{destination ? (
 								<>
 									{" ke "}
-									<Text style={{ fontFamily: "Helvetica-Bold" }}>{destination}</Text>
+									<Text style={{ fontFamily: "Helvetica-Bold" }}>
+										{destination.replace(/\n/g, " ")}
+									</Text>
 								</>
 							) : null}
 							{destination2 ? (
 								<>
 									{", lalu ke "}
-									<Text style={{ fontFamily: "Helvetica-Bold" }}>{destination2}</Text>
+									<Text style={{ fontFamily: "Helvetica-Bold" }}>
+										{destination2.replace(/\n/g, " ")}
+									</Text>
 								</>
 							) : null}
 						</>
