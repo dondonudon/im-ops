@@ -197,195 +197,30 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 				}
 			/>
 
-			<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-				{/* Left: details */}
-				<div className="xl:col-span-2 space-y-6">
-					{/* Move summary */}
-					{proposal?.leads && (
-						<Card className="p-5 grid grid-cols-2 gap-4 text-sm">
-							<div>
-								<p className="text-ink-muted">{t("pickup")}</p>
-								<p className="font-medium mt-0.5">{proposal.leads.pickup_address ?? "—"}</p>
-							</div>
-							<div>
-								<p className="text-ink-muted">{t("destination")}</p>
-								<p className="font-medium mt-0.5">{proposal.leads.destination_address ?? "—"}</p>
-							</div>
-							{proposal.leads.destination_address_2 && (
-								<div>
-									<p className="text-ink-muted">{t("destination2")}</p>
-									<p className="font-medium mt-0.5">{proposal.leads.destination_address_2}</p>
-								</div>
-							)}
-							<div>
-								<p className="text-ink-muted">{t("revenue")}</p>
-								<p className="font-bold text-lg text-primary-text mt-0.5">
-									{job.revenue ? formatRupiah(job.revenue) : "—"}
-								</p>
-							</div>
-							<div>
-								<p className="text-ink-muted">{t("expenses")}</p>
-								<p className="font-bold text-lg mt-0.5">{formatRupiah(totalExpenses)}</p>
-							</div>
-						</Card>
+			{/* Move summary — full-width, addresses only */}
+			{proposal?.leads && (
+				<Card className="p-5 grid grid-cols-2 gap-4 text-sm">
+					<div>
+						<p className="text-ink-muted">{t("pickup")}</p>
+						<p className="font-medium mt-0.5">{proposal.leads.pickup_address ?? "—"}</p>
+					</div>
+					<div>
+						<p className="text-ink-muted">{t("destination")}</p>
+						<p className="font-medium mt-0.5">{proposal.leads.destination_address ?? "—"}</p>
+					</div>
+					{proposal.leads.destination_address_2 && (
+						<div>
+							<p className="text-ink-muted">{t("destination2")}</p>
+							<p className="font-medium mt-0.5">{proposal.leads.destination_address_2}</p>
+						</div>
 					)}
+				</Card>
+			)}
 
-					{/* Assignments */}
-					<Card>
-						<CardHeader
-							title={
-								<span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
-									{t("assignments")}
-								</span>
-							}
-							action={
-								<Link
-									href={`/jobs/${id}/assignments`}
-									className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-								>
-									{tAssign("manage")}
-								</Link>
-							}
-						/>
-						<div className="p-5">
-							{(assignments ?? []).length === 0 ? (
-								<p className="text-sm text-ink-faint">{t("noAssignments")}</p>
-							) : (
-								<ul className="space-y-2 text-sm">
-									{(assignments ?? []).map((a) => {
-										const name =
-											a.assignment_type === "fleet"
-												? (a.fleet as { name: string } | null)?.name
-												: (a.crew as { name: string } | null)?.name;
-										return (
-											<li key={a.id} className="flex items-center justify-between">
-												<span>
-													{name ?? "—"}{" "}
-													<span className="text-ink-faint text-xs">
-														({a.role ?? a.assignment_type})
-													</span>
-												</span>
-												{a.daily_rate && a.days && (
-													<span className="tabular-nums text-xs text-ink-muted">
-														{formatRupiah(a.daily_rate * a.days)}
-													</span>
-												)}
-											</li>
-										);
-									})}
-								</ul>
-							)}
-						</div>
-					</Card>
-
-					{/* Recent expenses */}
-					<Card>
-						<CardHeader
-							title={
-								<span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
-									{t("expenses")}
-								</span>
-							}
-							action={
-								<Link
-									href={`/jobs/${id}/expenses`}
-									className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-								>
-									{t("addOrViewAll")}
-								</Link>
-							}
-						/>
-						<div className="p-5">
-							{(expenses ?? []).slice(0, 5).map((e) => (
-								<div key={e.id} className="flex items-center justify-between py-1 text-sm">
-									<span className="text-ink-muted">
-										{tCategory(e.category.toLowerCase().replace(/\s+/g, "_"))}{" "}
-										{e.description ? `— ${e.description}` : ""}
-									</span>
-									<span className="tabular-nums">{formatRupiah(e.amount)}</span>
-								</div>
-							))}
-							{(expenses ?? []).length === 0 && (
-								<p className="text-sm text-ink-faint">{t("noExpenses")}</p>
-							)}
-							{(expenses ?? []).length > 5 && (
-								<Link
-									href={`/jobs/${id}/expenses`}
-									className="mt-1 block text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-								>
-									{t("moreExpenses", { count: (expenses ?? []).length - 5 })}
-								</Link>
-							)}
-						</div>
-					</Card>
-
-					{/* Timeline */}
-					<Card>
-						<CardHeader
-							title={
-								<span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
-									{t("timeline")}
-								</span>
-							}
-							action={
-								<div className="flex items-center gap-2">
-									<TimelineLogEventButton jobId={id} />
-									<Link
-										href={`/jobs/${id}/timeline`}
-										className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-									>
-										{tCommon("viewAll")} →
-									</Link>
-								</div>
-							}
-						/>
-						<div className="p-5">
-							{(timeline ?? []).length === 0 ? (
-								<p className="text-sm text-ink-faint">{t("noTimelineEvents")}</p>
-							) : (
-								<ol className="space-y-3">
-									{(timeline ?? []).map((t, idx) => (
-										<li key={t.id} className="flex gap-3 text-sm">
-											<div className="flex flex-col items-center">
-												<div
-													className={`w-2.5 h-2.5 rounded-full mt-0.5 ${idx === 0 ? "bg-primary" : "bg-line-strong"}`}
-													aria-hidden="true"
-												/>
-												{idx < (timeline ?? []).length - 1 && (
-													<div className="flex-1 w-px bg-line mt-1" aria-hidden="true" />
-												)}
-											</div>
-											<div className="pb-3">
-												<p className="font-medium capitalize">{t.event_type.replace(/_/g, " ")}</p>
-												{t.notes && <p className="text-ink-muted text-xs mt-0.5">{t.notes}</p>}
-												<p className="text-ink-faint text-xs">{formatDate(t.occurred_at)}</p>
-											</div>
-										</li>
-									))}
-								</ol>
-							)}
-						</div>
-					</Card>
-
-					{/* Documentation */}
-					<JobMediaPanel
-						jobId={id}
-						initialMedia={
-							(jobMedia ?? []) as {
-								id: string;
-								media_type: "photo" | "pdf";
-								storage_path: string;
-								file_name: string | null;
-								caption: string | null;
-								uploaded_at: string;
-							}[]
-						}
-					/>
-				</div>
-
-				{/* Right: profit + invoice panel */}
-				<div className="space-y-4">
-					{/* Quick profit */}
+			<div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+				{/* Right: financial panel — first in DOM so it appears first on mobile */}
+				<div className="xl:col-start-3 xl:row-start-1 space-y-4">
+					{/* Profit & Expenses */}
 					<Card className="p-5 space-y-3">
 						<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
 							{t("profit")}
@@ -413,6 +248,31 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 								<span>{t("expenses")}</span>
 								<span className="tabular-nums text-danger">−{formatRupiah(totalExpenses)}</span>
 							</div>
+						</div>
+						<div className="border-t border-line pt-3 space-y-0.5">
+							{(expenses ?? []).length === 0 ? (
+								<p className="text-sm text-ink-faint">{t("noExpenses")}</p>
+							) : (
+								<>
+									{(expenses ?? []).slice(0, 5).map((e) => (
+										<div key={e.id} className="flex items-center justify-between py-1 text-xs">
+											<span className="text-ink-muted truncate mr-2">
+												{tCategory(e.category.toLowerCase().replace(/\s+/g, "_"))}
+												{e.description ? ` — ${e.description}` : ""}
+											</span>
+											<span className="tabular-nums shrink-0">{formatRupiah(e.amount)}</span>
+										</div>
+									))}
+									{(expenses ?? []).length > 5 && (
+										<Link
+											href={`/jobs/${id}/expenses`}
+											className="block pt-1 text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+										>
+											{t("moreExpenses", { count: (expenses ?? []).length - 5 })}
+										</Link>
+									)}
+								</>
+							)}
 						</div>
 						<Link
 							href={`/jobs/${id}/expenses`}
@@ -482,6 +342,101 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							</>
 						) : null}
 					</Card>
+				</div>
+
+				{/* Left: operational + financial actions — second in DOM, pinned to cols 1-2 on desktop */}
+				<div className="xl:col-span-2 xl:col-start-1 xl:row-start-1 space-y-6">
+					{/* Assignments */}
+					<Card>
+						<CardHeader
+							title={
+								<span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
+									{t("assignments")}
+								</span>
+							}
+							action={
+								<Link
+									href={`/jobs/${id}/assignments`}
+									className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+								>
+									{tAssign("manage")}
+								</Link>
+							}
+						/>
+						{(assignments ?? []).length > 0 && (
+							<div className="p-5">
+								<ul className="space-y-2 text-sm">
+									{(assignments ?? []).map((a) => {
+										const name =
+											a.assignment_type === "fleet"
+												? (a.fleet as { name: string } | null)?.name
+												: (a.crew as { name: string } | null)?.name;
+										return (
+											<li key={a.id} className="flex items-center justify-between">
+												<span>
+													{name ?? "—"}{" "}
+													<span className="text-ink-faint text-xs">
+														({a.role ?? a.assignment_type})
+													</span>
+												</span>
+												{a.daily_rate && a.days && (
+													<span className="tabular-nums text-xs text-ink-muted">
+														{formatRupiah(a.daily_rate * a.days)}
+													</span>
+												)}
+											</li>
+										);
+									})}
+								</ul>
+							</div>
+						)}
+					</Card>
+
+					{/* Timeline */}
+					<Card>
+						<CardHeader
+							title={
+								<span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
+									{t("timeline")}
+								</span>
+							}
+							action={
+								<div className="flex items-center gap-2">
+									<TimelineLogEventButton jobId={id} />
+									<Link
+										href={`/jobs/${id}/timeline`}
+										className="text-xs text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+									>
+										{tCommon("viewAll")} →
+									</Link>
+								</div>
+							}
+						/>
+						{(timeline ?? []).length > 0 && (
+							<div className="p-5">
+								<ol className="space-y-3">
+									{(timeline ?? []).map((t, idx) => (
+										<li key={t.id} className="flex gap-3 text-sm">
+											<div className="flex flex-col items-center">
+												<div
+													className={`w-2.5 h-2.5 rounded-full mt-0.5 ${idx === 0 ? "bg-primary" : "bg-line-strong"}`}
+													aria-hidden="true"
+												/>
+												{idx < (timeline ?? []).length - 1 && (
+													<div className="flex-1 w-px bg-line mt-1" aria-hidden="true" />
+												)}
+											</div>
+											<div className="pb-3">
+												<p className="font-medium capitalize">{t.event_type.replace(/_/g, " ")}</p>
+												{t.notes && <p className="text-ink-muted text-xs mt-0.5">{t.notes}</p>}
+												<p className="text-ink-faint text-xs">{formatDate(t.occurred_at)}</p>
+											</div>
+										</li>
+									))}
+								</ol>
+							</div>
+						)}
+					</Card>
 
 					{/* Invoice */}
 					<Card className="p-5 space-y-3">
@@ -539,6 +494,21 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							}}
 						/>
 					</Card>
+
+					{/* Documentation */}
+					<JobMediaPanel
+						jobId={id}
+						initialMedia={
+							(jobMedia ?? []) as {
+								id: string;
+								media_type: "photo" | "pdf";
+								storage_path: string;
+								file_name: string | null;
+								caption: string | null;
+								uploaded_at: string;
+							}[]
+						}
+					/>
 				</div>
 			</div>
 		</div>

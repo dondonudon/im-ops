@@ -26,13 +26,10 @@ type Expense = {
 };
 
 const CATEGORIES: { value: string; key: string }[] = [
-	{ value: "Fuel", key: "fuel" },
-	{ value: "Toll", key: "toll" },
 	{ value: "Food", key: "food" },
 	{ value: "Labor", key: "labor" },
 	{ value: "Packing materials", key: "packing_materials" },
 	{ value: "Transport", key: "transport" },
-	{ value: "Parking", key: "parking" },
 	{ value: "Other", key: "other" },
 ];
 
@@ -369,14 +366,17 @@ export function ExpensePanel({
 							<span className="block text-sm font-medium mb-2 text-ink">
 								{tExpense("category")}
 							</span>
-							<fieldset aria-label={tExpense("category")} className="flex flex-wrap gap-2">
+							<fieldset
+								aria-label={tExpense("category")}
+								className="grid grid-cols-2 gap-2 sm:flex sm:flex-nowrap"
+							>
 								{CATEGORIES.map((c) => (
 									<button
 										key={c.value}
 										type="button"
 										onClick={() => setForm((p) => ({ ...p, category: c.value }))}
 										aria-pressed={form.category === c.value}
-										className={`rounded-full min-h-[44px] px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
+										className={`last:col-span-2 sm:shrink-0 rounded-full min-h-[44px] px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
 											form.category === c.value
 												? "bg-primary text-primary-fg"
 												: "bg-subtle text-ink-muted hover:bg-subtle hover:text-ink"
@@ -514,14 +514,17 @@ export function ExpensePanel({
 										<span className="block text-sm font-medium mb-2 text-ink">
 											{tExpense("category")}
 										</span>
-										<fieldset aria-label={tExpense("category")} className="flex flex-wrap gap-2">
+										<fieldset
+											aria-label={tExpense("category")}
+											className="flex gap-2 overflow-x-auto pb-0.5"
+										>
 											{CATEGORIES.map((c) => (
 												<button
 													key={c.value}
 													type="button"
 													onClick={() => setEditForm((p) => ({ ...p, category: c.value }))}
 													aria-pressed={editForm.category === c.value}
-													className={`rounded-full min-h-[44px] px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
+													className={`shrink-0 rounded-full min-h-[44px] px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
 														editForm.category === c.value
 															? "bg-primary text-primary-fg"
 															: "bg-subtle text-ink-muted hover:bg-subtle hover:text-ink"

@@ -225,9 +225,7 @@ export function JobMediaPanel({
 
 			{error && <p className="text-xs text-danger">{error}</p>}
 
-			{media.length === 0 ? (
-				<p className="text-sm text-ink-faint text-center py-6">{t("empty")}</p>
-			) : (
+			{media.length > 0 && (
 				<>
 					{/* Photo grid */}
 					{photos.length > 0 && (
