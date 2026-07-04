@@ -29,7 +29,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 	const tPay = await getTranslations("panels.payments");
 	const tCategory = await getTranslations("entity.expenseCategory");
 
-	// Phase 1: job with nested estimation + settings fetched in parallel.
+	// Phase 1: job + settings fetched in parallel.
 	const [{ data: job }, { data: settingsRows }] = await Promise.all([
 		supabase
 			.from("jobs")
@@ -40,8 +40,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           leads(
             pickup_address, destination_address, destination_address_2,
             customers(id, name, phone)
-          ),
-          estimations(id, outputs, inputs)
+          )
         )
       `)
 			.eq("id", id)
@@ -66,9 +65,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const logoUrl = settingsMap.company_logo_url ?? "";
+	const proposalId = (job.proposals as { id: string } | null)?.id ?? null;
 
 	// Phase 2: remaining queries + logo resolution all in parallel.
 	const [
+		{ data: estimation },
 		{ data: assignments },
 		{ data: expenses },
 		{ data: timeline },
@@ -77,6 +78,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		{ data: jobMedia },
 		logoDataUrl,
 	] = await Promise.all([
+		proposalId
+			? supabase
+					.from("estimations")
+					.select("id, outputs, inputs")
+					.eq("proposal_id", proposalId)
+					.maybeSingle()
+			: Promise.resolve({ data: null, error: null }),
 		supabase
 			.from("job_assignments")
 			.select(
@@ -125,10 +133,8 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 			destination_address_2: string | null;
 			customers: { id: string; name: string; phone: string | null } | null;
 		} | null;
-		estimations: { id: string; outputs: unknown; inputs: unknown }[] | null;
 	} | null;
 
-	const estimation = proposal?.estimations?.[0] ?? null;
 	const estimationOutputs = (estimation?.outputs ?? {}) as Record<string, number>;
 
 	const customer = proposal?.leads?.customers ?? null;
