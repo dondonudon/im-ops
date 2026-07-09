@@ -87,10 +87,17 @@ function daysBetweenInclusive(a: string, b: string): number {
 	return Math.round((db.getTime() - da.getTime()) / 86_400_000) + 1;
 }
 
-/** Extract "HH:MM" from an ISO datetime string, or null for all-day events. */
+/** Extract "HH:MM" in local time from an ISO datetime string, or null for all-day events. */
 function eventTime(start: string): string | null {
 	if (!start.includes("T")) return null;
-	return start.split("T")[1].slice(0, 5);
+	const d = new Date(start);
+	return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+/** Convert an ISO datetime string or bare date to a local YYYY-MM-DD string. */
+function toLocalDateStr(start: string): string {
+	if (!start.includes("T")) return start; // already a bare date (jobs without time)
+	return toDateStr(new Date(start));
 }
 
 // ---------------------------------------------------------------------------
@@ -565,7 +572,7 @@ export function MobileCalendarView({ events }: { events: CalendarEvent[] }) {
 		}
 
 		for (const ev of events) {
-			const startDate = ev.start.split("T")[0];
+			const startDate = toLocalDateStr(ev.start);
 			const endDate = ev.endInclusive ?? startDate;
 			const total = Math.max(1, daysBetweenInclusive(startDate, endDate));
 			for (let i = 0; i < total; i += 1) {

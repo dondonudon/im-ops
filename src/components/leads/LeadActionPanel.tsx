@@ -316,6 +316,12 @@ export function LeadActionPanel({
 	);
 }
 
+function isoToLocalInput(iso: string): string {
+	const d = new Date(iso);
+	const local = new Date(d.getTime() - d.getTimezoneOffset() * 60_000);
+	return local.toISOString().slice(0, 16);
+}
+
 // ── Edit Survey Modal ─────────────────────────────────────────────────────────
 function SurveyEditModal({
 	survey,
@@ -329,7 +335,7 @@ function SurveyEditModal({
 	const tModal = useTranslations("modals.editSurvey");
 	const tButtons = useTranslations("common.buttons");
 	const [form, setForm] = useState({
-		scheduled_at: survey.scheduled_at.slice(0, 16),
+		scheduled_at: isoToLocalInput(survey.scheduled_at),
 		notes: survey.notes ?? "",
 	});
 	const [saving, setSaving] = useState(false);
