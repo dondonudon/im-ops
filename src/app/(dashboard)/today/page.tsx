@@ -388,7 +388,9 @@ async function MoneyCardSection() {
 	const revenueTarget =
 		revenueTargetRow?.target_amount ??
 		(defaultTargetRow?.value ? Number(defaultTargetRow.value) : 50_000_000);
-	const revenueProgress = Math.min(100, Math.round((monthRevenue / revenueTarget) * 100));
+	const revenueProgress = Math.round((monthRevenue / revenueTarget) * 100);
+	const revenueBarWidth = Math.min(100, revenueProgress);
+	const isOverTarget = revenueProgress > 100;
 
 	return (
 		<Card className="p-5 flex flex-col gap-4">
@@ -409,11 +411,17 @@ async function MoneyCardSection() {
 					aria-valuemax={100}
 				>
 					<div
-						className="h-full rounded-full bg-primary transition-all duration-700"
-						style={{ width: `${revenueProgress}%` }}
+						className={`h-full rounded-full transition-all duration-700 ${isOverTarget ? "bg-success" : "bg-primary"}`}
+						style={{ width: `${revenueBarWidth}%` }}
 					/>
 				</div>
-				<p className="text-[11px] text-ink-faint mt-1">{t("ofTarget", { pct: revenueProgress })}</p>
+				<p
+					className={`text-[11px] mt-1 ${isOverTarget ? "text-success-text font-medium" : "text-ink-faint"}`}
+				>
+					{isOverTarget
+						? `+${revenueProgress - 100}% ${t("overTarget")}`
+						: t("ofTarget", { pct: revenueProgress })}
+				</p>
 			</div>
 
 			<div className="grid grid-cols-2 gap-3">

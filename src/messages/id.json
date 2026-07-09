@@ -78,6 +78,7 @@
 		"money": "Keuangan bulan ini",
 		"revenueTarget": "Pendapatan vs target",
 		"ofTarget": "{pct}% dari target bulanan",
+		"overTarget": "di atas target",
 		"revenue": "Pendapatan",
 		"expenses": "Pengeluaran",
 		"net": "Laba bersih bulan ini",

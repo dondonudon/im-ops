@@ -78,6 +78,7 @@
 		"money": "Money this month",
 		"revenueTarget": "Revenue vs target",
 		"ofTarget": "{pct}% of monthly target",
+		"overTarget": "over target",
 		"revenue": "Revenue",
 		"expenses": "Expenses",
 		"net": "Net this month",
