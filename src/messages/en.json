@@ -872,6 +872,7 @@
 			"skipToEstimate": "Skip → Estimate",
 			"surveyScheduled": "Survey scheduled",
 			"viewSurvey": "View Survey",
+			"editSurvey": "Edit Survey",
 			"markDone": "Mark Done",
 			"surveyCompleted": "Survey completed",
 			"createEstimation": "Create Estimation →",
@@ -963,6 +964,11 @@
 	"modals": {
 		"scheduleSurvey": {
 			"title": "Schedule Survey",
+			"dateTime": "Date & time",
+			"notes": "Notes"
+		},
+		"editSurvey": {
+			"title": "Edit Survey",
 			"dateTime": "Date & time",
 			"notes": "Notes"
 		},

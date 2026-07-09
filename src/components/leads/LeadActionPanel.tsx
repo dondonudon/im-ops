@@ -30,6 +30,7 @@ type Survey = {
 	scheduled_at: string;
 	conducted_at: string | null;
 	gcal_event_id: string | null;
+	notes: string | null;
 } | null;
 
 type Proposal = {
@@ -58,6 +59,7 @@ export function LeadActionPanel({
 	const [isPending, startTransition] = useTransition();
 	const [loading, setLoading] = useState(false);
 	const [showSurveyModal, setShowSurveyModal] = useState(false);
+	const [showEditModal, setShowEditModal] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	// ── Skip → Estimate ───────────────────────────────────────────────
@@ -195,15 +197,24 @@ export function LeadActionPanel({
 						</PendingLink>
 						<Button
 							type="button"
-							onClick={handleMarkSurveyDone}
-							loading={loading || isPending}
-							variant="primary"
+							onClick={() => setShowEditModal(true)}
+							variant="secondary"
 							size="md"
 							className="flex-1"
 						>
-							{t("markDone")}
+							{t("editSurvey")}
 						</Button>
 					</div>
+					<Button
+						type="button"
+						onClick={handleMarkSurveyDone}
+						loading={loading || isPending}
+						variant="primary"
+						size="md"
+						className="w-full"
+					>
+						{t("markDone")}
+					</Button>
 				</div>
 			)}
 
@@ -289,7 +300,122 @@ export function LeadActionPanel({
 					}}
 				/>
 			)}
+
+			{/* Edit survey modal */}
+			{showEditModal && survey && (
+				<SurveyEditModal
+					survey={survey}
+					onClose={() => setShowEditModal(false)}
+					onDone={() => {
+						setShowEditModal(false);
+						startTransition(() => router.refresh());
+					}}
+				/>
+			)}
 		</Card>
+	);
+}
+
+// ── Edit Survey Modal ─────────────────────────────────────────────────────────
+function SurveyEditModal({
+	survey,
+	onClose,
+	onDone,
+}: {
+	survey: { id: string; scheduled_at: string; notes: string | null };
+	onClose: () => void;
+	onDone: () => void;
+}) {
+	const tModal = useTranslations("modals.editSurvey");
+	const tButtons = useTranslations("common.buttons");
+	const [form, setForm] = useState({
+		scheduled_at: survey.scheduled_at.slice(0, 16),
+		notes: survey.notes ?? "",
+	});
+	const [saving, setSaving] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const tErrors = useTranslations("common.errors");
+
+	async function handleSubmit(e: React.FormEvent) {
+		e.preventDefault();
+		if (!form.scheduled_at) {
+			setError(tErrors("dateTimeRequired"));
+			return;
+		}
+		setSaving(true);
+		setError(null);
+
+		try {
+			const supabase = createClient();
+			const { error: survErr } = await supabase
+				.from("surveys")
+				.update({
+					scheduled_at: new Date(form.scheduled_at).toISOString(),
+					notes: form.notes.trim() || null,
+				})
+				.eq("id", survey.id);
+			if (survErr) throw survErr;
+
+			void syncSurveyToCalendar(survey.id).catch(() => {});
+
+			onDone();
+		} catch (err: unknown) {
+			setError(err instanceof Error ? err.message : "Error");
+		} finally {
+			setSaving(false);
+		}
+	}
+
+	return (
+		<div
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="edit-survey-modal-title"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+		>
+			<Card className="w-full max-w-sm p-6 shadow-token-md space-y-4">
+				<h3 id="edit-survey-modal-title" className="text-base font-semibold text-ink">
+					{tModal("title")}
+				</h3>
+
+				{error && <FormError>{error}</FormError>}
+
+				<form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+					<Field label={tModal("dateTime")} htmlFor="edit_survey_scheduled_at" required>
+						<Input
+							id="edit_survey_scheduled_at"
+							type="datetime-local"
+							value={form.scheduled_at}
+							onChange={(e) => setForm((p) => ({ ...p, scheduled_at: e.target.value }))}
+							required
+						/>
+					</Field>
+					<Field label={tModal("notes")} htmlFor="edit_survey_notes">
+						<Textarea
+							id="edit_survey_notes"
+							rows={2}
+							value={form.notes}
+							onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
+							className="resize-none"
+						/>
+					</Field>
+					<div className="flex gap-2">
+						<Button type="submit" loading={saving} variant="primary" size="md" className="flex-1">
+							{saving ? tButtons("saving") : tButtons("save")}
+						</Button>
+						<Button
+							type="button"
+							onClick={onClose}
+							variant="secondary"
+							size="md"
+							className="flex-1"
+						>
+							{tButtons("cancel")}
+						</Button>
+					</div>
+				</form>
+			</Card>
+		</div>
 	);
 }
 

@@ -872,6 +872,7 @@
 			"skipToEstimate": "Lewati → Estimasi",
 			"surveyScheduled": "Survei dijadwalkan",
 			"viewSurvey": "Lihat Survei",
+			"editSurvey": "Edit Survei",
 			"markDone": "Tandai Selesai",
 			"surveyCompleted": "Survei selesai",
 			"createEstimation": "Buat Estimasi →",
@@ -963,6 +964,11 @@
 	"modals": {
 		"scheduleSurvey": {
 			"title": "Jadwalkan Survei",
+			"dateTime": "Tanggal & waktu",
+			"notes": "Catatan"
+		},
+		"editSurvey": {
+			"title": "Edit Survei",
 			"dateTime": "Tanggal & waktu",
 			"notes": "Catatan"
 		},

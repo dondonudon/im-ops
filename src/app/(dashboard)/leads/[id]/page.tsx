@@ -40,7 +40,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 				.order("uploaded_at", { ascending: true }),
 			supabase
 				.from("surveys")
-				.select("id, scheduled_at, conducted_at, gcal_event_id")
+				.select("id, scheduled_at, conducted_at, gcal_event_id, notes")
 				.eq("lead_id", id)
 				.maybeSingle(),
 			supabase
