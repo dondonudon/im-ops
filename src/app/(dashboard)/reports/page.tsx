@@ -98,15 +98,18 @@ export default async function ReportsPage({
 			.maybeSingle(),
 	]);
 
-	// job_profit_summary has no date column — filter by the month's job IDs
+	// job_profit_summary has no date column — filter by completed month job IDs
+	const todayStr = new Date().toISOString().slice(0, 10);
 	const monthJobsMap = new Map((monthJobsData ?? []).map((j) => [j.id, j.move_date]));
-	const monthJobIds = Array.from(monthJobsMap.keys());
+	const completedJobIds = (monthJobsData ?? [])
+		.filter((j) => (j.move_date ?? "") <= todayStr)
+		.map((j) => j.id);
 	const { data: profitRows } =
-		monthJobIds.length > 0
+		completedJobIds.length > 0
 			? await supabase
 					.from("job_profit_summary")
 					.select("job_id, job_number, revenue, actual_spend, current_profit")
-					.in("job_id", monthJobIds)
+					.in("job_id", completedJobIds)
 					.order("current_profit", { ascending: false })
 					.limit(10)
 			: { data: [] };
@@ -126,7 +129,10 @@ export default async function ReportsPage({
 
 	const totalRevenue = (monthJobsData ?? []).reduce((s, j) => s + (j.revenue ?? 0), 0);
 	const totalExpenses = (monthlyExpenses ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
-	const totalProfit = totalRevenue - totalExpenses;
+	const completedRevenue = (monthJobsData ?? [])
+		.filter((j) => (j.move_date ?? "") <= todayStr)
+		.reduce((s, j) => s + (j.revenue ?? 0), 0);
+	const totalProfit = completedRevenue - totalExpenses;
 
 	const revenueTarget =
 		revenueTargetRow?.target_amount ??
@@ -212,7 +218,10 @@ export default async function ReportsPage({
 						label: t("kpi.totalProfit"),
 						value: formatRupiah(totalProfit),
 						className: totalProfit >= 0 ? "text-success" : "text-danger",
-						sub: totalRevenue > 0 ? `${Math.round((totalProfit / totalRevenue) * 100)}%` : null,
+						sub:
+							completedRevenue > 0
+								? `${Math.round((totalProfit / completedRevenue) * 100)}%`
+								: null,
 					},
 					{
 						label: t("kpi.leadConversion"),

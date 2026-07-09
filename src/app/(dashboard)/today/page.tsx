@@ -363,7 +363,11 @@ async function MoneyCardSection() {
 		{ data: revenueTargetRow },
 		{ data: defaultTargetRow },
 	] = await Promise.all([
-		supabase.from("jobs").select("revenue").gte("move_date", monthStart).lt("move_date", monthEnd),
+		supabase
+			.from("jobs")
+			.select("revenue, move_date")
+			.gte("move_date", monthStart)
+			.lt("move_date", monthEnd),
 		supabase
 			.from("expenses")
 			.select("amount")
@@ -382,9 +386,13 @@ async function MoneyCardSection() {
 			.maybeSingle(),
 	]);
 
+	const todayStr = new Date().toISOString().slice(0, 10);
 	const monthRevenue = (monthJobs ?? []).reduce((s, j) => s + (j.revenue ?? 0), 0);
 	const monthExpenses = (monthlyExp ?? []).reduce((s, i) => s + (i.amount ?? 0), 0);
-	const net = monthRevenue - monthExpenses;
+	const completedRevenue = (monthJobs ?? [])
+		.filter((j) => (j.move_date ?? "") <= todayStr)
+		.reduce((s, j) => s + (j.revenue ?? 0), 0);
+	const net = completedRevenue - monthExpenses;
 	const revenueTarget =
 		revenueTargetRow?.target_amount ??
 		(defaultTargetRow?.value ? Number(defaultTargetRow.value) : 50_000_000);
