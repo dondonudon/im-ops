@@ -308,7 +308,7 @@ export function LeadActionPanel({
 					onClose={() => setShowEditModal(false)}
 					onDone={() => {
 						setShowEditModal(false);
-						startTransition(() => router.refresh());
+						router.refresh();
 					}}
 				/>
 			)}
