@@ -51,12 +51,15 @@ export default async function MoneyPage({
 	const tInv = await getTranslations("status.invoice");
 	const supabase = await createClient();
 
+	const todayStr = new Date().toISOString().slice(0, 10);
+
 	const [
 		{ data: arTotals },
 		{ data: statusBreakdown },
 		{ data: monthlyPayments },
 		{ data: monthlyExp },
 		{ data: paymentsData },
+		{ data: monthJobsData },
 	] = await Promise.all([
 		// Server-side aggregates — no row count cap, always accurate
 		supabase.rpc("get_ar_totals").single(),
@@ -76,6 +79,12 @@ export default async function MoneyPage({
 			.lt("paid_at", monthEnd)
 			.order("paid_at", { ascending: false })
 			.limit(8),
+		// Jobs scheduled this month — for NET (revenue basis, consistent with reports)
+		supabase
+			.from("jobs")
+			.select("id, revenue, move_date")
+			.gte("move_date", monthStart)
+			.lt("move_date", monthEnd),
 	]);
 
 	const payments = (paymentsData ?? []) as Payment[];
@@ -84,9 +93,14 @@ export default async function MoneyPage({
 	const outstandingCount = Number(arTotals?.outstanding_count ?? 0);
 	const overdueAmount = Number(arTotals?.overdue_amount ?? 0);
 	const overdueCount = Number(arTotals?.overdue_count ?? 0);
-	const monthRevenue = (monthlyPayments ?? []).reduce((s, p) => s + (p.amount ?? 0), 0);
+	// Cash actually received this month (for CASH IN card)
+	const cashIn = (monthlyPayments ?? []).reduce((s, p) => s + (p.amount ?? 0), 0);
 	const monthExpenses = (monthlyExp ?? []).reduce((s, i) => s + (i.amount ?? 0), 0);
-	const net = monthRevenue - monthExpenses;
+	// NET uses job revenue from completed jobs — consistent with reports page TOTAL PROFIT
+	const completedRevenue = (monthJobsData ?? [])
+		.filter((j) => (j.move_date ?? "") <= todayStr)
+		.reduce((s, j) => s + (j.revenue ?? 0), 0);
+	const net = completedRevenue - monthExpenses;
 
 	// AR aging buckets — pre-computed server-side
 	const agingRows: { label: string; amount: number; tone: string }[] = [
@@ -141,7 +155,7 @@ export default async function MoneyPage({
 					icon={<Banknote size={16} />}
 					tone="positive"
 					label={t("cashIn")}
-					value={formatRupiah(monthRevenue)}
+					value={formatRupiah(cashIn)}
 					sub={t("cashInSub")}
 				/>
 				<Stat
