@@ -1,7 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { buttonStyles } from "@/components/ui";
 import type { InvoicePDFProps } from "./InvoicePDF";
 
@@ -9,56 +8,46 @@ function buildInvoiceFilename(invoiceNumber: string) {
 	return `${invoiceNumber.replace(/\//g, "-")}.pdf`;
 }
 
-/**
- * Renders a PDF download link for an invoice.
- *
- * Both @react-pdf/renderer and InvoicePDF are loaded together after hydration
- * via useEffect + Promise.all, so InvoicePDF is never undefined when passed
- * as the `document` prop to PDFDownloadLink (avoids the "Uncaught undefined" crash).
- */
 export function InvoicePDFDownloadButton({ pdfProps }: { pdfProps: InvoicePDFProps }) {
 	const tActions = useTranslations("common.actions");
 	const tDetail = useTranslations("pages.invoiceDetail");
+	const [generating, setGenerating] = useState(false);
+
 	const filename = buildInvoiceFilename(pdfProps.invoice.invoice_number);
-	const [DownloadLink, setDownloadLink] = useState<React.ReactNode>(null);
 
-	useEffect(() => {
-		Promise.all([import("@react-pdf/renderer"), import("./InvoicePDF")]).then(
-			([renderer, pdfModule]) => {
-				const { PDFDownloadLink } = renderer;
-				const { InvoicePDF } = pdfModule;
-
-				setDownloadLink(
-					<PDFDownloadLink
-						document={<InvoicePDF {...pdfProps} />}
-						fileName={filename}
-						className={buttonStyles({ variant: "secondary", size: "sm" })}
-						aria-label={`${tDetail("downloadInvoicePdf")} — ${pdfProps.invoice.invoice_number}`}
-					>
-						{({ loading }: { loading: boolean }) =>
-							loading ? tActions("generatingPdf") : `⬇ ${tDetail("downloadInvoicePdf")}`
-						}
-					</PDFDownloadLink>,
-				);
-			},
-		);
-		// pdfProps is serialisable server data — stable on mount
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [pdfProps, tDetail, tActions, filename]);
-
-	if (!DownloadLink) {
-		return (
-			<span
-				className={buttonStyles({
-					variant: "secondary",
-					size: "sm",
-					className: "cursor-wait opacity-60",
-				})}
-			>
-				{tActions("loadingPdf")}
-			</span>
-		);
+	async function handleDownload() {
+		if (generating) return;
+		setGenerating(true);
+		try {
+			const [{ pdf }, { InvoicePDF }] = await Promise.all([
+				import("@react-pdf/renderer"),
+				import("./InvoicePDF"),
+			]);
+			const blob = await pdf(<InvoicePDF {...pdfProps} />).toBlob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = filename;
+			a.click();
+			URL.revokeObjectURL(url);
+		} finally {
+			setGenerating(false);
+		}
 	}
 
-	return <>{DownloadLink}</>;
+	return (
+		<button
+			type="button"
+			onClick={handleDownload}
+			disabled={generating}
+			className={buttonStyles({
+				variant: "secondary",
+				size: "sm",
+				className: generating ? "cursor-wait opacity-60" : "",
+			})}
+			aria-label={`${tDetail("downloadInvoicePdf")} — ${pdfProps.invoice.invoice_number}`}
+		>
+			{generating ? tActions("generatingPdf") : `⬇ ${tDetail("downloadInvoicePdf")}`}
+		</button>
+	);
 }

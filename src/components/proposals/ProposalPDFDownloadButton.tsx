@@ -1,7 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { buttonStyles } from "@/components/ui";
 import type { ProposalPDFProps } from "./ProposalPDF";
 
@@ -9,56 +8,45 @@ function buildProposalFilename(proposalNumber: string) {
 	return `Proposal_${proposalNumber.replace(/\//g, "-")}.pdf`;
 }
 
-/**
- * Renders a PDF download link for a proposal.
- *
- * Both @react-pdf/renderer and ProposalPDF are imported dynamically inside
- * useEffect so they only execute client-side, after hydration. This avoids the
- * "Uncaught undefined" crash that occurs when react-pdf tries to reconcile a
- * null/loading document during the first render pass.
- */
 export function ProposalPDFDownloadButton({ pdfProps }: { pdfProps: ProposalPDFProps }) {
 	const tActions = useTranslations("common.actions");
+	const [generating, setGenerating] = useState(false);
+
 	const filename = buildProposalFilename(pdfProps.proposal.proposal_number);
-	const [DownloadLink, setDownloadLink] = useState<React.ReactNode>(null);
 
-	useEffect(() => {
-		Promise.all([import("@react-pdf/renderer"), import("./ProposalPDF")]).then(
-			([renderer, pdfModule]) => {
-				const { PDFDownloadLink } = renderer;
-				const { ProposalPDF } = pdfModule;
-
-				setDownloadLink(
-					<PDFDownloadLink
-						document={<ProposalPDF {...pdfProps} />}
-						fileName={filename}
-						className={buttonStyles({ variant: "secondary", size: "sm" })}
-						aria-label={`${tActions("downloadPdf")} — ${filename}`}
-					>
-						{({ loading }: { loading: boolean }) =>
-							loading ? tActions("generatingPdf") : `⬇ ${tActions("downloadPdf")}`
-						}
-					</PDFDownloadLink>,
-				);
-			},
-		);
-		// pdfProps is serialisable data from the server — stable reference on mount
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [tActions, pdfProps, filename]);
-
-	if (!DownloadLink) {
-		return (
-			<span
-				className={buttonStyles({
-					variant: "secondary",
-					size: "sm",
-					className: "opacity-60 cursor-wait",
-				})}
-			>
-				{tActions("loadingPdf")}
-			</span>
-		);
+	async function handleDownload() {
+		if (generating) return;
+		setGenerating(true);
+		try {
+			const [{ pdf }, { ProposalPDF }] = await Promise.all([
+				import("@react-pdf/renderer"),
+				import("./ProposalPDF"),
+			]);
+			const blob = await pdf(<ProposalPDF {...pdfProps} />).toBlob();
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = filename;
+			a.click();
+			URL.revokeObjectURL(url);
+		} finally {
+			setGenerating(false);
+		}
 	}
 
-	return <>{DownloadLink}</>;
+	return (
+		<button
+			type="button"
+			onClick={handleDownload}
+			disabled={generating}
+			className={buttonStyles({
+				variant: "secondary",
+				size: "sm",
+				className: generating ? "cursor-wait opacity-60" : "",
+			})}
+			aria-label={`${tActions("downloadPdf")} — ${filename}`}
+		>
+			{generating ? tActions("generatingPdf") : `⬇ ${tActions("downloadPdf")}`}
+		</button>
+	);
 }
