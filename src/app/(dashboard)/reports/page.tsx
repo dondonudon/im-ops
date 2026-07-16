@@ -111,7 +111,6 @@ export default async function ReportsPage({
 					.select("job_id, job_number, revenue, actual_spend, current_profit")
 					.in("job_id", completedJobIds)
 					.order("current_profit", { ascending: false })
-					.limit(10)
 			: { data: [] };
 
 	const expenseByCategory: Record<string, number> = {};
@@ -128,11 +127,11 @@ export default async function ReportsPage({
 	const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
 
 	const totalRevenue = (monthJobsData ?? []).reduce((s, j) => s + (j.revenue ?? 0), 0);
-	const totalExpenses = (monthlyExpenses ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
 	const completedRevenue = (monthJobsData ?? [])
 		.filter((j) => (j.move_date ?? "") <= todayStr)
 		.reduce((s, j) => s + (j.revenue ?? 0), 0);
-	const totalProfit = completedRevenue - totalExpenses;
+	// Use job_profit_summary so totalProfit matches the sum of individual job rows
+	const totalProfit = (profitRows ?? []).reduce((s, r) => s + (r.current_profit ?? 0), 0);
 
 	const revenueTarget =
 		revenueTargetRow?.target_amount ??
