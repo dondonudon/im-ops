@@ -19,15 +19,15 @@ export default async function HomePage() {
 			<div className="w-full max-w-lg space-y-10 text-center">
 				{/* Brand */}
 				<div className="space-y-3">
-					<h1 className="text-4xl font-bold text-ink">Indo Mover</h1>
+					<h1 className="text-4xl font-bold text-ink">IM Operations</h1>
 					<p className="text-lg text-ink-muted">Internal Operations Platform</p>
 				</div>
 
 				{/* Purpose */}
 				<div className="bg-surface rounded-xl border border-line p-8 space-y-4 text-left">
-					<h2 className="text-xl font-semibold text-ink">What is Indo Mover?</h2>
+					<h2 className="text-xl font-semibold text-ink">What is IM Operations?</h2>
 					<p className="text-sm text-ink-muted leading-relaxed">
-						Indo Mover is a private, invite-only operations management platform for Indo
+						IM Operations is a private, invite-only operations management platform for Indo
 						Mover&apos;s moving and relocation business. It helps authorised staff manage daily
 						jobs, crews, vehicles, leads, invoices, and expenses — all in one place.
 					</p>
