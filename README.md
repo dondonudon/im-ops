@@ -2,7 +2,7 @@
 
 Internal operational platform for moving/logistics coordination. Captures leads from first contact, runs them through estimation and proposal negotiation, converts approved proposals into scheduled jobs, tracks expenses + live profit during execution, and closes the loop with invoicing and payments.
 
-Built around workflows, not modules. **Current UI/UX + design system: `imops_redesign_plan_1.md`.** The original blueprints (`imops_implementation_spec_1.md`, `imops_detailed_plan_1.md`) document the data model + workflows; their UI/IA sections are superseded by the redesign.
+Built around workflows, not modules.
 
 ## Stack
 
@@ -15,6 +15,7 @@ Built around workflows, not modules. **Current UI/UX + design system: `imops_red
 | PDF          | `@react-pdf/renderer` (client-side proposal + invoice PDFs) |
 | Calendar     | Google Calendar API push (one-way sync) |
 | State        | Zustand + React Server Components |
+| i18n         | `next-intl` — Indonesian (default) + English, locale toggled from TopBar |
 | PWA          | `next-pwa` (configured in `package.json`; runtime wiring pending) |
 
 ## Quick start
@@ -59,12 +60,15 @@ Built around workflows, not modules. **Current UI/UX + design system: `imops_red
 | `npm run format`     | Biome — format all files in-place |
 | `npm run check`      | Biome — report format + lint issues (read-only) |
 | `npm run check:fix`  | Biome — fix all auto-fixable issues in-place |
+| `npm test`           | Vitest — run unit tests |
+| `npm run test:watch` | Vitest — watch mode |
+| `npm run test:coverage` | Vitest — run with coverage report |
 
 Biome (`biome.json`) owns formatting and general linting. `next lint` is kept alongside it for Next.js-specific rules (Image, Link, a11y helpers) that Biome doesn't cover.
 
 ## Routes
 
-> UI/UX is organized around a flat workflow nav — **Today · Pipeline · Jobs · Calendar · Money · Directory · Settings** — with sub-tabs grouping the underlying routes. See `imops_redesign_plan_1.md` for the design system + IA. Routes stay backward-compatible (the URLs below still resolve).
+> UI/UX is organized around a flat workflow nav — **Today · Pipeline · Jobs · Calendar · Money · Directory · Settings** — with sub-tabs grouping the underlying routes. Routes stay backward-compatible (the URLs below still resolve).
 
 ```
 /login                          Google OAuth entry
@@ -126,12 +130,14 @@ src/
 │   ├── estimation/             EstimationForm
 │   ├── invoices/               InvoicePDF, PaymentsPanel, GenerateInvoiceButton
 │   ├── jobs/                   ExpensePanel, AssignmentsPanel, JobMarkDoneButton
-│   ├── layout/                 Sidebar, TopBar, ThemeToggle, DashboardShell
+│   ├── layout/                 Sidebar, TopBar, ThemeToggle, BottomNav (mobile), DashboardShell
 │   ├── leads/                  LeadActionPanel, LeadPhotoGallery
 │   ├── proposals/              ProposalPDF, NegotiationHistory, ProposalActionPanel
 │   ├── settings/
 │   ├── shared/                 StatusChip, WhatsAppButton, PhotoLightbox
-│   └── surveys/                SurveyDetailClient
+│   ├── surveys/                SurveyDetailClient
+│   └── ui/                     Design system kit — Button, Card, Badge, Table, Form, Field,
+│                               EmptyState, Money, Stat, PageHeader, Pagination, MonthPicker…
 ├── lib/
 │   ├── estimation/engine.ts    Cost + suggested price calculation
 │   ├── gcal/sync.ts            Google Calendar push (never blocks core ops)
@@ -170,8 +176,6 @@ Lead Intake  →  Survey (optional)  →  Estimation  →  Proposal
                   Complete → Generate Invoice → Record Payments → Close
 ```
 
-The full action map (every button, what it requires, what it writes) lives in `imops_implementation_spec_1.md` section 12.
-
 ## Data model — key invariants
 
 - **Lead status mirrors reality.** `converted` ⇔ a job exists; `proposal_sent` ⇔ at least one non-terminal proposal.
@@ -187,7 +191,7 @@ The full action map (every button, what it requires, what it writes) lives in `i
 - **Google Calendar** — one-way push for surveys + jobs (color-coded). Auth via a service account key (`GCAL_SERVICE_ACCOUNT_KEY`) — no token expiry. Editing or deleting in GCal does not sync back; IM Ops is the operational truth.
 - **WhatsApp** — deeplinks only (`wa.me/…?text=…`). No WhatsApp Business API. The operator taps a button, the OS opens WhatsApp with a pre-filled message, and the operator sends it from their own account.
 - **PDF** — `@react-pdf/renderer` for both proposals and invoices. Generated client-side, uploaded to Supabase Storage, URL persisted on the record.
-- **Storage buckets** — `lead-photos`, `survey-media`, `proposals`, `invoices` (all behind RLS; see migration 002).
+- **Storage buckets** — `lead-photos`, `survey-media`, `proposals`, `invoices`, `receipts` (all behind RLS; see migrations 009 and 014).
 
 ## Conventions
 
