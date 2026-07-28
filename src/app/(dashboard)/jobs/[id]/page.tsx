@@ -6,6 +6,7 @@ import { GenerateInvoiceButton } from "@/components/invoices/GenerateInvoiceButt
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { JobCancelButton } from "@/components/jobs/JobCancelButton";
 import { JobMediaPanel } from "@/components/jobs/JobMediaPanel";
+import { LeadSurveyReferencePanel } from "@/components/jobs/LeadSurveyReferencePanel";
 import { TimelineLogEventButton } from "@/components/jobs/TimelineLogEventButton";
 import { BackLink } from "@/components/shared/BackLink";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
@@ -38,7 +39,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         proposals(
           id, proposal_number, final_price,
           leads(
-            pickup_address, destination_address, destination_address_2,
+            id, pickup_address, destination_address, destination_address_2,
             customers(id, name, phone)
           )
         )
@@ -65,7 +66,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const logoUrl = settingsMap.company_logo_url ?? "";
-	const proposalId = (job.proposals as { id: string } | null)?.id ?? null;
+	const earlyProposal = job.proposals as {
+		id: string;
+		leads: { id: string } | null;
+	} | null;
+	const proposalId = earlyProposal?.id ?? null;
+	const leadId = earlyProposal?.leads?.id ?? null;
 
 	// Phase 2: remaining queries + logo resolution all in parallel.
 	const [
@@ -76,6 +82,8 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		{ data: invoice },
 		{ data: payments },
 		{ data: jobMedia },
+		{ data: leadPhotos },
+		{ data: surveys },
 		logoDataUrl,
 	] = await Promise.all([
 		proposalId
@@ -116,6 +124,22 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 			.select("id, media_type, storage_path, file_name, caption, uploaded_at")
 			.eq("job_id", id)
 			.order("uploaded_at"),
+		leadId
+			? supabase
+					.from("lead_photos")
+					.select("id, storage_path, caption")
+					.eq("lead_id", leadId)
+					.order("uploaded_at")
+			: Promise.resolve({ data: null, error: null }),
+		leadId
+			? supabase
+					.from("surveys")
+					.select(
+						"id, special_items, access_notes, notes, conducted_at, survey_media(id, storage_path, caption, media_type)",
+					)
+					.eq("lead_id", leadId)
+					.order("scheduled_at", { ascending: false })
+			: Promise.resolve({ data: null, error: null }),
 		resolveLogoDataUrl(logoUrl),
 	]);
 
@@ -128,6 +152,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		proposal_number: string;
 		final_price: number | null;
 		leads: {
+			id: string;
 			pickup_address: string | null;
 			destination_address: string | null;
 			destination_address_2: string | null;
@@ -509,6 +534,33 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							}[]
 						}
 					/>
+					{leadId && (
+						<LeadSurveyReferencePanel
+							leadId={leadId}
+							leadPhotos={
+								(leadPhotos ?? []) as Array<{
+									id: string;
+									storage_path: string;
+									caption: string | null;
+								}>
+							}
+							surveys={
+								(surveys ?? []) as Array<{
+									id: string;
+									special_items: Array<{ type: string; qty: number; note: string }>;
+									access_notes: string | null;
+									notes: string | null;
+									conducted_at: string | null;
+									survey_media: Array<{
+										id: string;
+										storage_path: string;
+										caption: string | null;
+										media_type: string;
+									}>;
+								}>
+							}
+						/>
+					)}
 				</div>
 			</div>
 		</div>

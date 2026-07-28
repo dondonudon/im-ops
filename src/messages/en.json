@@ -944,6 +944,21 @@
 		"timeline": {
 			"logEvent": "Log Event"
 		},
+		"intakeReference": {
+			"title": "Intake Reference",
+			"viewLead": "View lead →",
+			"empty": "No intake photos or survey data for this job.",
+			"leadPhotos": "Lead intake photos ({count})",
+			"surveySection": "Survey",
+			"surveyConducted": "conducted {date}",
+			"specialItems": "Special items",
+			"noSpecialItems": "No special items recorded.",
+			"surveyPhotos": "Survey photos ({count})",
+			"photoAlt": "Intake photo",
+			"viewPhoto": "View photo {n} of {total}",
+			"showMore": "Show {count} more",
+			"showLess": "Show less"
+		},
 		"jobMedia": {
 			"title": "Documentation",
 			"titleCount": "Documentation ({count})",

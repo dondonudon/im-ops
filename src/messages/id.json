@@ -944,6 +944,21 @@
 		"timeline": {
 			"logEvent": "Catat Peristiwa"
 		},
+		"intakeReference": {
+			"title": "Catatan Awal",
+			"viewLead": "Lihat prospek →",
+			"empty": "Belum ada foto atau data survei yang tercatat.",
+			"leadPhotos": "Foto dari prospek ({count})",
+			"surveySection": "Survei",
+			"surveyConducted": "selesai {date}",
+			"specialItems": "Barang khusus",
+			"noSpecialItems": "Belum ada barang khusus yang dicatat.",
+			"surveyPhotos": "Foto survei ({count})",
+			"photoAlt": "Foto prospek",
+			"viewPhoto": "Lihat foto {n} dari {total}",
+			"showMore": "Tampilkan {count} lainnya",
+			"showLess": "Tampilkan lebih sedikit"
+		},
 		"jobMedia": {
 			"title": "Dokumentasi",
 			"titleCount": "Dokumentasi ({count})",
