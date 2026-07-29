@@ -28,6 +28,7 @@ export default function NewLeadPage() {
 	const tButtons = useTranslations("common.buttons");
 	const tLeadType = useTranslations("entity.leadType");
 	const tChannel = useTranslations("entity.originChannel");
+	const tCustomerType = useTranslations("entity.customerType");
 
 	const [customers, setCustomers] = useState<Customer[]>([]);
 	const [form, setForm] = useState({
@@ -40,6 +41,8 @@ export default function NewLeadPage() {
 		new_customer_prefix: "",
 		new_customer_name: "",
 		new_customer_phone: "",
+		new_customer_type: "individual",
+		new_customer_company_name: "",
 	});
 	const [pickup, setPickup] = useState<LocationValue>({ address: "", lat: null, lng: null });
 	const [destination, setDestination] = useState<LocationValue>({
@@ -103,6 +106,11 @@ export default function NewLeadPage() {
 							prefix: (form.new_customer_prefix as CustomerPrefix) || null,
 							name: form.new_customer_name.trim(),
 							phone: form.new_customer_phone.trim() || null,
+							type: form.new_customer_type as "individual" | "corporate",
+							company_name:
+								form.new_customer_type === "corporate"
+									? form.new_customer_company_name.trim() || null
+									: null,
 						})
 						.select("id")
 						.single();
@@ -203,6 +211,28 @@ export default function NewLeadPage() {
 									onChange={handleChange}
 								/>
 							</Field>
+							<Field label={tCustomerForm("type")} htmlFor="new_customer_type">
+								<Select
+									id="new_customer_type"
+									name="new_customer_type"
+									value={form.new_customer_type}
+									onChange={handleChange}
+								>
+									<option value="individual">{tCustomerType("individual")}</option>
+									<option value="corporate">{tCustomerType("corporate")}</option>
+								</Select>
+							</Field>
+							{form.new_customer_type === "corporate" && (
+								<Field label={tCustomerForm("companyName")} htmlFor="new_customer_company_name">
+									<Input
+										id="new_customer_company_name"
+										name="new_customer_company_name"
+										type="text"
+										value={form.new_customer_company_name}
+										onChange={handleChange}
+									/>
+								</Field>
+							)}
 							<Field label={t("phone")} htmlFor="new_customer_phone">
 								<Input
 									id="new_customer_phone"

@@ -21,6 +21,8 @@ const EMPTY = {
 	prefix: "",
 	name: "",
 	phone: "",
+	type: "individual",
+	company_name: "",
 	pickup_address: "",
 	destination_address: "",
 	destination_address_2: "",
@@ -41,6 +43,7 @@ export function QuickLeadModal() {
 	const tButtons = useTranslations("common.buttons");
 	const tLeadType = useTranslations("entity.leadType");
 	const tChannel = useTranslations("entity.originChannel");
+	const tCustomerType = useTranslations("entity.customerType");
 
 	const [open, setOpen] = useState(false);
 	const [form, setForm] = useState(EMPTY);
@@ -141,6 +144,8 @@ export function QuickLeadModal() {
 			prefix: "",
 			name: capitalizeWords(query.trim()),
 			phone: "",
+			type: "individual",
+			company_name: "",
 		}));
 		setQuery("");
 		setComboOpen(false);
@@ -150,7 +155,14 @@ export function QuickLeadModal() {
 	function clearCustomer() {
 		setSelectedCustomer(null);
 		setNewMode(false);
-		setForm((prev) => ({ ...prev, customer_id: "", name: "", phone: "" }));
+		setForm((prev) => ({
+			...prev,
+			customer_id: "",
+			name: "",
+			phone: "",
+			type: "individual",
+			company_name: "",
+		}));
 		setQuery("");
 	}
 
@@ -183,6 +195,8 @@ export function QuickLeadModal() {
 							prefix: (form.prefix as CustomerPrefix) || null,
 							name: form.name.trim(),
 							phone: form.phone.trim() || null,
+							type: form.type as "individual" | "corporate",
+							company_name: form.type === "corporate" ? form.company_name.trim() || null : null,
 						})
 						.select("id")
 						.single();
@@ -319,6 +333,27 @@ export function QuickLeadModal() {
 											onChange={(e) => set("phone", e.target.value)}
 										/>
 									</Field>
+								</div>
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+									<Field label={tCustomerForm("type")} htmlFor="ql_customer_type">
+										<Select
+											id="ql_customer_type"
+											value={form.type}
+											onChange={(e) => set("type", e.target.value)}
+										>
+											<option value="individual">{tCustomerType("individual")}</option>
+											<option value="corporate">{tCustomerType("corporate")}</option>
+										</Select>
+									</Field>
+									{form.type === "corporate" && (
+										<Field label={tCustomerForm("companyName")} htmlFor="ql_company_name">
+											<Input
+												id="ql_company_name"
+												value={form.company_name}
+												onChange={(e) => set("company_name", e.target.value)}
+											/>
+										</Field>
+									)}
 								</div>
 								<button
 									type="button"
