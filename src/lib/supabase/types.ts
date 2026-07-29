@@ -879,6 +879,20 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			job_outstanding: {
+				Row: {
+					id: string;
+					job_number: string;
+					move_date: string;
+					revenue: number;
+					customer_name: string | null;
+					paid: number;
+					outstanding: number;
+					partial: boolean;
+					invoice_overdue: boolean;
+				};
+				Relationships: [];
+			};
 			jobs_with_customer: {
 				Row: {
 					id: string;

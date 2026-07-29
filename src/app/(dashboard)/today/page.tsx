@@ -91,7 +91,7 @@ export default async function TodayPage() {
 	const [
 		{ data: arTotals },
 		{ data: overdueInvoices },
-		{ data: unpaidInvoices },
+		{ data: unpaidJobs },
 		{ data: todaysMoves },
 		{ data: pendingSurveys },
 		{ data: draftProposals },
@@ -106,17 +106,16 @@ export default async function TodayPage() {
 			.eq("effective_status", "overdue")
 			.order("due_date")
 			.limit(20),
-		// Outstanding invoices (fully unpaid or partially paid) joined to the
-		// customer name so operators know who still owes us. Past-due invoices
-		// are surfaced as "overdue" above and filtered out below to avoid dupes.
+		// Jobs that still owe us money, computed server-side (payments vs revenue).
+		// Payments live at the job level — a job can be paid before it's ever
+		// invoiced — so we track jobs, not invoices, to catch un-invoiced ones too.
+		// The view returns only positive-balance jobs, so there's no fetch cap;
+		// oldest move first surfaces the longest-owed jobs.
 		supabase
-			.from("invoices")
-			.select(
-				"id, invoice_number, total_amount, paid_amount, status, due_date, jobs(proposals(leads(customers(name))))",
-			)
-			.in("status", ["sent", "partially_paid"])
-			.order("due_date")
-			.limit(20),
+			.from("job_outstanding")
+			.select("id, job_number, customer_name, outstanding, partial, invoice_overdue")
+			.eq("invoice_overdue", false)
+			.order("move_date"),
 		supabase
 			.from("jobs")
 			.select(
@@ -146,28 +145,13 @@ export default async function TodayPage() {
 	]);
 
 	const overdue = (overdueInvoices ?? []) as { id: string; outstanding: number }[];
-	type UnpaidRow = {
+	const unpaid = (unpaidJobs ?? []) as {
 		id: string;
-		invoice_number: string;
-		total_amount: number;
-		paid_amount: number;
-		status: string;
-		due_date: string | null;
-		jobs: {
-			proposals: { leads: { customers: { name: string } | null } | null } | null;
-		} | null;
-	};
-	const unpaid = ((unpaidInvoices ?? []) as UnpaidRow[])
-		// Drop past-due invoices — they already appear as "overdue" above.
-		.filter((inv) => !(inv.due_date && inv.due_date < today))
-		.map((inv) => ({
-			id: inv.id,
-			invoice_number: inv.invoice_number,
-			status: inv.status,
-			outstanding: (inv.total_amount ?? 0) - (inv.paid_amount ?? 0),
-			customer: inv.jobs?.proposals?.leads?.customers?.name ?? null,
-		}))
-		.filter((inv) => inv.outstanding > 0);
+		job_number: string;
+		customer_name: string | null;
+		outstanding: number;
+		partial: boolean;
+	}[];
 	const totalOutstanding = Number(arTotals?.total_outstanding ?? 0);
 	const overdueAmount = Number(arTotals?.overdue_amount ?? 0);
 	const moves = (todaysMoves ?? []) as TodayJob[];
@@ -210,15 +194,14 @@ export default async function TodayPage() {
 			action: t("queue.collect"),
 			href: `/invoices/${inv.id}`,
 		})),
-		...unpaid.slice(0, 5).map((inv) => ({
-			id: `unpaid-${inv.id}`,
+		...unpaid.slice(0, 5).map((j) => ({
+			id: `unpaid-${j.id}`,
 			icon: <Receipt size={16} />,
 			tone: "pending" as const,
-			title:
-				inv.status === "partially_paid" ? t("queue.partialPayment") : t("queue.awaitingPayment"),
-			sub: `${inv.customer ?? `#${inv.invoice_number}`} · ${formatRupiah(inv.outstanding)}`,
+			title: j.partial ? t("queue.partialPayment") : t("queue.awaitingPayment"),
+			sub: `${j.customer_name ?? `#${j.job_number}`} · ${formatRupiah(j.outstanding)}`,
 			action: t("queue.collect"),
-			href: `/invoices/${inv.id}`,
+			href: `/jobs/${j.id}`,
 		})),
 		...(syncFailures ?? []).map((j) => ({
 			id: `sync-${j.id}`,
