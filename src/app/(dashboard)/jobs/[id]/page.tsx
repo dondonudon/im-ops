@@ -15,7 +15,6 @@ import {
 	buildCompanySettings,
 	buildInvoiceTemplateSettings,
 	resolveLogoDataUrl,
-	resolveSignatureDataUrl,
 } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
 import { deriveJobStatus, formatDate, formatJobSchedule, formatRupiah } from "@/lib/utils";
@@ -60,7 +59,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 				"company_city",
 				"invoice_signature_name",
 				"invoice_signature_role",
-				"invoice_signature_image_url",
 			]),
 	]);
 
@@ -68,7 +66,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const logoUrl = settingsMap.company_logo_url ?? "";
-	const signatureUrl = settingsMap.invoice_signature_image_url ?? "";
 	const earlyProposal = job.proposals as {
 		id: string;
 		leads: { id: string } | null;
@@ -88,7 +85,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		{ data: leadPhotos },
 		{ data: surveys },
 		logoDataUrl,
-		signatureDataUrl,
 	] = await Promise.all([
 		proposalId
 			? supabase
@@ -145,7 +141,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 					.order("scheduled_at", { ascending: false })
 			: Promise.resolve({ data: null, error: null }),
 		resolveLogoDataUrl(logoUrl),
-		resolveSignatureDataUrl(signatureUrl),
 	]);
 
 	const pdfCompany = buildCompanySettings(settingsMap);
@@ -521,7 +516,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							receiptTemplate={{
 								signatureName: pdfTemplate.signatureName,
 								signatureRole: pdfTemplate.signatureRole,
-								signatureImageUrl: signatureDataUrl,
 							}}
 						/>
 					</Card>

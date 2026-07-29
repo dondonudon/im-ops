@@ -8,7 +8,6 @@ import { Input, Textarea } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { MarginTiersEditor } from "./MarginTiersEditor";
 import { type MonthTarget, RevenueTargetEditor } from "./RevenueTargetEditor";
-import { SignaturePad } from "./SignaturePad";
 
 type Setting = {
 	key: string;
@@ -225,14 +224,11 @@ export function SettingsEditor({
 // Row component
 // ---------------------------------------------------------------------------
 
+const HIDDEN_KEYS = new Set(["proposal_signature_image_url", "invoice_signature_image_url"]);
+
 function SettingRow({ setting }: { setting: Setting }) {
+	if (HIDDEN_KEYS.has(setting.key)) return null;
 	if (setting.key === "margin_tiers") return <MarginTiersEditor setting={setting} />;
-	if (
-		setting.key === "proposal_signature_image_url" ||
-		setting.key === "invoice_signature_image_url"
-	) {
-		return <SignaturePad setting={setting} />;
-	}
 	return <GenericSettingRow setting={setting} />;
 }
 

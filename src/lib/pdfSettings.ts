@@ -19,8 +19,6 @@ export interface ProposalTemplateSettings {
 	includedServices: string[];
 	signatureName: string;
 	signatureRole: string;
-	/** Base64 data URL of the drawn signature image. Resolved server-side before PDF render. */
-	signatureImageUrl: string;
 	/** Base64 data URL of the QR code. Generated server-side from the proposal's verification_token. */
 	verificationQrUrl: string;
 }
@@ -32,8 +30,6 @@ export interface InvoiceTemplateSettings {
 	bankAccountHolder: string;
 	signatureName: string;
 	signatureRole: string;
-	/** Base64 data URL of the drawn signature image. Resolved server-side before PDF render. */
-	signatureImageUrl: string;
 	/** Base64 data URL of the QR code. Generated server-side from the invoice's verification_token. */
 	verificationQrUrl: string;
 }
@@ -42,8 +38,6 @@ export interface InvoiceTemplateSettings {
 export interface ReceiptTemplateSettings {
 	signatureName: string;
 	signatureRole: string;
-	/** Base64 data URL of the drawn signature image. Resolved server-side, passed through props. */
-	signatureImageUrl: string;
 	/** Base64 data URL of the QR code. Generated client-side in PaymentReceiptDownloadButton. */
 	verificationQrUrl: string;
 }
@@ -59,13 +53,11 @@ const DEFAULTS: Record<string, string> = {
 	proposal_included_services: "",
 	proposal_signature_name: "",
 	proposal_signature_role: "",
-	proposal_signature_image_url: "",
 	invoice_bank_name: "",
 	invoice_bank_account_number: "",
 	invoice_bank_account_holder: "",
 	invoice_signature_name: "",
 	invoice_signature_role: "",
-	invoice_signature_image_url: "",
 };
 
 function get(map: Record<string, string>, key: string): string {
@@ -97,7 +89,6 @@ export function buildProposalTemplateSettings(
 			.filter(Boolean),
 		signatureName: get(map, "proposal_signature_name"),
 		signatureRole: get(map, "proposal_signature_role"),
-		signatureImageUrl: get(map, "proposal_signature_image_url"),
 		verificationQrUrl: "", // filled in by page after QR generation
 	};
 }
@@ -132,14 +123,6 @@ export async function resolveLogoDataUrl(url: string): Promise<string> {
 	return resolveImageDataUrl(url, "system-settings");
 }
 
-/**
- * Fetches a remote signature image URL and returns a base64 data URL.
- * Call this server-side only.
- */
-export async function resolveSignatureDataUrl(url: string): Promise<string> {
-	return resolveImageDataUrl(url, "system-settings");
-}
-
 /** Build invoice template settings from the raw key→value map. */
 export function buildInvoiceTemplateSettings(map: Record<string, string>): InvoiceTemplateSettings {
 	return {
@@ -148,7 +131,6 @@ export function buildInvoiceTemplateSettings(map: Record<string, string>): Invoi
 		bankAccountHolder: get(map, "invoice_bank_account_holder"),
 		signatureName: get(map, "invoice_signature_name"),
 		signatureRole: get(map, "invoice_signature_role"),
-		signatureImageUrl: get(map, "invoice_signature_image_url"),
 		verificationQrUrl: "", // filled in by page after QR generation
 	};
 }

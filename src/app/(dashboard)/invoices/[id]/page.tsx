@@ -10,7 +10,6 @@ import {
 	buildCompanySettings,
 	buildInvoiceTemplateSettings,
 	resolveLogoDataUrl,
-	resolveSignatureDataUrl,
 } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
 import { formatCustomerName, formatDate } from "@/lib/utils";
@@ -50,7 +49,6 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 				"invoice_bank_account_holder",
 				"invoice_signature_name",
 				"invoice_signature_role",
-				"invoice_signature_image_url",
 			]),
 	]);
 
@@ -60,14 +58,12 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 	const pdfCompany = buildCompanySettings(settingsMap);
 	const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 	const verificationUrl = `${appUrl}/verify/${invoice.verification_token}`;
-	const [logoDataUrl, signatureDataUrl, verificationQrUrl] = await Promise.all([
+	const [logoDataUrl, verificationQrUrl] = await Promise.all([
 		resolveLogoDataUrl(settingsMap.company_logo_url ?? ""),
-		resolveSignatureDataUrl(settingsMap.invoice_signature_image_url ?? ""),
 		QRCode.toDataURL(verificationUrl, { width: 160, margin: 1 }),
 	]);
 	pdfCompany.logo = logoDataUrl;
 	const pdfTemplate = buildInvoiceTemplateSettings(settingsMap);
-	pdfTemplate.signatureImageUrl = signatureDataUrl;
 	pdfTemplate.verificationQrUrl = verificationQrUrl;
 
 	type PaymentRow = {
@@ -238,7 +234,6 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 						receiptTemplate={{
 							signatureName: pdfTemplate.signatureName,
 							signatureRole: pdfTemplate.signatureRole,
-							signatureImageUrl: signatureDataUrl,
 						}}
 					/>
 				</div>

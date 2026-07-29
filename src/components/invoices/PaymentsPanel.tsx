@@ -50,7 +50,7 @@ export function PaymentsPanel({
 	customerName: string;
 	invoiceNumber?: string | null;
 	company: CompanySettings;
-	receiptTemplate: { signatureName: string; signatureRole: string; signatureImageUrl: string };
+	receiptTemplate: { signatureName: string; signatureRole: string };
 }) {
 	const router = useRouter();
 	const tPanel = useTranslations("panels.payments");
