@@ -38,6 +38,9 @@ Built around workflows, not modules.
    - `GCAL_SERVICE_ACCOUNT_KEY` — full contents of the service account JSON key file (single line)
    - Plus `gcal_calendar_id` in the `system_settings` table; the calendar must be shared with the service account email
 
+   Optional (Google Maps location input on lead forms):
+   - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` — Maps JavaScript API key; input degrades gracefully without it
+
 3. Apply the database migrations in order via the Supabase SQL Editor
 
 4. In Supabase Auth, enable the **Google** provider and add `http://localhost:3000/auth/callback` (and your prod URL) as redirect URLs.
@@ -72,6 +75,7 @@ Biome (`biome.json`) owns formatting and general linting. `next lint` is kept al
 
 ```
 /login                          Google OAuth entry
+/verify/[token]                 Public eSign verification (no auth required)
 /today                          Operator triage cockpit (replaces /dashboard, which redirects here)
 
 /pipeline                       Deal funnel board (drag-to-advance) — groups Leads + Proposals
@@ -129,12 +133,12 @@ src/
 │   ├── dashboard/
 │   ├── estimation/             EstimationForm
 │   ├── invoices/               InvoicePDF, PaymentsPanel, GenerateInvoiceButton
-│   ├── jobs/                   ExpensePanel, AssignmentsPanel, JobMarkDoneButton
+│   ├── jobs/                   ExpensePanel, AssignmentsPanel
 │   ├── layout/                 Sidebar, TopBar, ThemeToggle, BottomNav (mobile), DashboardShell
 │   ├── leads/                  LeadActionPanel, LeadPhotoGallery
 │   ├── proposals/              ProposalPDF, NegotiationHistory, ProposalActionPanel
 │   ├── settings/
-│   ├── shared/                 StatusChip, WhatsAppButton, PhotoLightbox
+│   ├── shared/                 StatusChip, WhatsAppButton, PhotoLightbox, LocationInput, GCalRetryButton
 │   ├── surveys/                SurveyDetailClient
 │   └── ui/                     Design system kit — Button, Card, Badge, Table, Form, Field,
 │                               EmptyState, Money, Stat, PageHeader, Pagination, MonthPicker…
@@ -206,8 +210,6 @@ Lead Intake  →  Survey (optional)  →  Estimation  →  Proposal
 These are tracked but not yet implemented:
 
 - `payments` is FK'd to `invoices.id` instead of `jobs.id` — down payments before invoice generation aren't supported yet.
-- No retry button when Google Calendar push fails (`gcal_event_id IS NULL`).
-- No proposal/lead duplication for re-quotes.
 - `/estimations/[id]` (edit existing estimation) — only the `new` route exists.
 - `next-pwa` is installed but the service worker + offline expense queue aren't wired.
 - Reports are minimal — missing avg discount, lost-reason breakdown, AR aging, fleet/crew utilization.

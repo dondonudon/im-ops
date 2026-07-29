@@ -17,15 +17,16 @@ React Server Components by default. Use `"use client"` only where interaction or
 
 ### Auth
 - Supabase Auth with Google OAuth only
-- Middleware (`src/middleware.ts`) gates every route except `/login`, `/auth`, `/privacy`, `/terms`
-- OAuth callback is at `/auth/callback/route.ts` with safe redirect allowlist (13 routes)
+- Middleware (`src/middleware.ts`) gates every route except `/login`, `/auth`, `/privacy`, `/terms`, `/verify`
+- `/verify/[token]` is a public eSign verification route — no auth required
+- OAuth callback is at `/auth/callback/route.ts` with safe redirect allowlist (14 routes)
 - RLS is enabled on all tables — single-org policy, any authenticated user gets full access
 
 ### Data layer
 - Supabase JS client: `src/lib/supabase/client.ts` (browser) and `src/lib/supabase/server.ts` (server)
 - Full DB types auto-generated into `src/lib/supabase/types.ts`
 - All currency stored as `BIGINT` (IDR, no decimals). Never use `FLOAT` or `DECIMAL` for money.
-- Migrations live in `supabase/migrations/` — 23 files, run in numeric order via Supabase SQL Editor
+- Migrations live in `supabase/migrations/` — 26 files, run in numeric order via Supabase SQL Editor
 
 ---
 
@@ -57,6 +58,7 @@ Always prefer these over raw HTML + classes:
 - `Money` — IDR formatter component (wraps `formatRupiah`)
 - `Stat` — KPI card (label + value)
 - `StatusChip` (in `src/components/shared/`) — status dot + label; uses `toneFor(entity, status)`
+- `LocationInput` (in `src/components/shared/`) — address search + map pin via Google Maps; stores lat/lng; requires `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` env var (optional — input degrades gracefully without it)
 
 ### Status colors
 `toneFor(entity, status)` in `src/components/ui/status.ts` is the **single source of truth** for mapping any domain status to a semantic tone. Never hardcode status colors inline.
@@ -85,6 +87,8 @@ These are enforced at the DB level and in app logic:
 | `src/lib/supabase/types.ts` | Full DB type definitions — regenerate after schema changes |
 | `src/lib/supabase/client.ts` | Browser client (for Client Components) |
 | `src/lib/supabase/server.ts` | Server client (for Server Components + Actions) |
+| `src/lib/supabase/queries.ts` | Shared query helpers used across Server Components + Actions |
+| `src/lib/pdfSettings.ts` | PDF document defaults (fonts, margins, signature/eSign settings) |
 | `src/lib/estimation/engine.ts` | ENGINE_VERSION 2.5.1 — cost + margin calculation, tiered margin table |
 | `src/lib/gcal/sync.ts` | Google Calendar push sync (never blocks) |
 | `src/lib/utils.ts` | `formatRupiah`, `parseRupiah`, `formatDate`, `cn`, `resizeImage`, `sanitizeSearch` |
@@ -123,6 +127,24 @@ import { formatRupiah, parseRupiah, formatDate, cn } from "@/lib/utils"
 // Currency display
 formatRupiah(1500000)        // "Rp 1.500.000"
 parseRupiah("Rp 1.500.000") // 1500000
+
+// Date display
+formatDate(dateStr)               // locale-aware short date
+formatIndonesianDate(dateStr)     // Indonesian long format
+formatJobSchedule(...)            // job time + crew summary string
+
+// Number to words (for invoice/proposal text)
+numberToIndonesianWords(1500000)  // "satu juta lima ratus ribu"
+
+// Customer name with honorific prefix
+formatCustomerName(prefix, name)
+
+// WhatsApp deeplink (no Business API — opens user's own WhatsApp)
+buildWhatsAppLink(phone, message) // "https://wa.me/62…?text=…"
+
+// Derived job status from move_date (no stored state)
+// DerivedJobStatus = "upcoming" | "today" | "done" | "cancelled"
+deriveJobStatus(moveDate, dbStatus)
 
 // Tailwind merging
 cn("base-class", condition && "conditional-class", "override")
@@ -226,8 +248,6 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 ## Known gaps (not yet implemented)
 
 - `payments` is FK'd to `invoices.id` — down payments before invoice generation aren't supported
-- No retry UI when Google Calendar push fails (`gcal_event_id IS NULL`)
-- No proposal/lead duplication for re-quotes
 - `/estimations/[id]` (edit existing) — only `/estimations/new` exists
 - `next-pwa` installed but service worker + offline expense queue not wired
 - Reports missing: avg discount, lost-reason breakdown, AR aging detail, fleet/crew utilization
@@ -237,5 +257,11 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 ## Active development context (as of 2026-07)
 
 - Phase 1 UX redesign complete: semantic token system, drag-to-advance pipeline, `/today` cockpit, mobile bottom-nav, AR aging in `/money`
+- eSign flow live: proposals use eSign exclusively (no handwritten signature pad); public `/verify/[token]` route for recipient verification
+- Revenue targets: monthly targets stored in `system_settings`, surfaced in `/today` and `/money`
+- Job status is now derived (`deriveJobStatus`) from `move_date` — no stored status states
+- Google Maps location input (`LocationInput`) on lead forms; coordinates stored in DB (`migration 020`)
+- GCal retry button (`GCalRetryButton`) wired on job + survey detail pages
+- Lead + proposal duplication buttons (`LeadDuplicateButton`, `ProposalDuplicateButton`) live on detail pages
 - Remaining: reports metrics gaps, manual dark-mode QA pass
 - Branding: "IM Operations" (not "Indo Mover")
