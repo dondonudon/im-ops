@@ -91,6 +91,8 @@
 			"surveyDue": "Survey due",
 			"proposalReady": "Proposal ready to send",
 			"invoiceOverdue": "Invoice overdue",
+			"awaitingPayment": "Awaiting payment",
+			"partialPayment": "Partially paid",
 			"syncFailed": "Calendar sync failed",
 			"review": "Review",
 			"send": "Send",

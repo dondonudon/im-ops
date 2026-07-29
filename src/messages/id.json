@@ -91,6 +91,8 @@
 			"surveyDue": "Survei jatuh tempo",
 			"proposalReady": "Proposal siap dikirim",
 			"invoiceOverdue": "Faktur terlambat",
+			"awaitingPayment": "Menunggu pembayaran",
+			"partialPayment": "Dibayar sebagian",
 			"syncFailed": "Sinkronisasi kalender gagal",
 			"review": "Tinjau",
 			"send": "Kirim",
