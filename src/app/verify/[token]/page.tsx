@@ -59,9 +59,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ token: 
 					<Row label={t("docType")} value={docTypeLabel} />
 					<Row label={t("number")} value={result.doc_number} />
 					<Row label={t("date")} value={formatDate(result.issued_at)} />
-					{result.signatory_name && (
-						<Row label={t("signatory")} value={result.signatory_name} />
-					)}
+					{result.signatory_name && <Row label={t("signatory")} value={result.signatory_name} />}
 				</div>
 
 				<p className="text-xs text-gray-400 text-center">{t("footer")}</p>

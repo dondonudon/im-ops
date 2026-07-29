@@ -1,5 +1,13 @@
 "use client";
-import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import {
+	Document,
+	Font,
+	Page,
+	Image as PdfImage,
+	StyleSheet,
+	Text,
+	View,
+} from "@react-pdf/renderer";
 import type { ProposalCustomFields } from "@/lib/proposalCustomFields";
 import {
 	formatCustomerName,
@@ -156,8 +164,7 @@ export function ProposalPDF({
 			<Page size="A4" style={styles.page}>
 				{/* Header */}
 				<View style={styles.header}>
-					{/* eslint-disable-next-line jsx-a11y/alt-text */}
-					{company.logo ? <Image src={company.logo} style={styles.logo} /> : null}
+					{company.logo ? <PdfImage src={company.logo} style={styles.logo} /> : null}
 					<Text style={styles.tagline}>{company.tagline}</Text>
 					<Text style={styles.headerAddress}>
 						{[company.address, company.phone ? `Telp ${company.phone}` : ""]
@@ -287,9 +294,8 @@ export function ProposalPDF({
 					<View style={styles.signBlock}>
 						<Text style={styles.signLabel}>Hormat kami,</Text>
 						<Text style={styles.signCompany}>{company.name.toUpperCase()}</Text>
-						{/* eslint-disable-next-line jsx-a11y/alt-text */}
 						{template.signatureImageUrl ? (
-							<Image src={template.signatureImageUrl} style={styles.signatureImg} />
+							<PdfImage src={template.signatureImageUrl} style={styles.signatureImg} />
 						) : null}
 						<Text style={styles.signName}>{template.signatureName}</Text>
 						<Text style={styles.signRole}>{template.signatureRole}</Text>
@@ -299,8 +305,7 @@ export function ProposalPDF({
 				{/* QR code — bottom-left, separate from signature block */}
 				{template.verificationQrUrl ? (
 					<View style={styles.qrBlock} fixed>
-						{/* eslint-disable-next-line jsx-a11y/alt-text */}
-						<Image src={template.verificationQrUrl} style={styles.qrImage} />
+						<PdfImage src={template.verificationQrUrl} style={styles.qrImage} />
 						<Text style={styles.qrLabel}>Pindai untuk{"\n"}verifikasi</Text>
 					</View>
 				) : null}

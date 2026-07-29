@@ -23,7 +23,6 @@ export function SignaturePad({ setting }: { setting: Setting }) {
 	const [error, setError] = useState<string | null>(null);
 	const [currentUrl, setCurrentUrl] = useState(setting.value);
 
-
 	function openModal() {
 		canvasRef.current?.clear();
 		setError(null);
@@ -44,10 +43,8 @@ export function SignaturePad({ setting }: { setting: Setting }) {
 	useEffect(() => {
 		const dialog = dialogRef.current;
 		if (!dialog) return;
-		const onOpen = () => (document.body.style.overflow = "hidden");
 		const onClose = () => (document.body.style.overflow = "");
 		dialog.addEventListener("close", onClose);
-		// dialog doesn't fire an "open" event; we set overflow in openModal instead
 		return () => {
 			dialog.removeEventListener("close", onClose);
 		};
