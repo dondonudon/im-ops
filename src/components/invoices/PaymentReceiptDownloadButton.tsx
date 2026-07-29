@@ -11,8 +11,10 @@ function buildReceiptFilename(jobNumber: string, receiptNumber: number): string 
 
 export function PaymentReceiptDownloadButton({
 	receiptProps,
+	verificationToken,
 }: {
 	receiptProps: PaymentReceiptProps;
+	verificationToken: string;
 }) {
 	const tPanel = useTranslations("panels.payments");
 	const [generating, setGenerating] = useState(false);
@@ -23,11 +25,26 @@ export function PaymentReceiptDownloadButton({
 		if (generating) return;
 		setGenerating(true);
 		try {
-			const [{ pdf }, { PaymentReceiptPDF }] = await Promise.all([
+			const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+			const verificationUrl = `${appUrl}/verify/${verificationToken}`;
+
+			const [{ pdf }, { PaymentReceiptPDF }, QRCode] = await Promise.all([
 				import("@react-pdf/renderer"),
 				import("./PaymentReceiptPDF"),
+				import("qrcode"),
 			]);
-			const blob = await pdf(<PaymentReceiptPDF {...receiptProps} />).toBlob();
+
+			const verificationQrUrl = await QRCode.default.toDataURL(verificationUrl, {
+				width: 160,
+				margin: 1,
+			});
+
+			const props: PaymentReceiptProps = {
+				...receiptProps,
+				template: { ...receiptProps.template, verificationQrUrl },
+			};
+
+			const blob = await pdf(<PaymentReceiptPDF {...props} />).toBlob();
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = url;

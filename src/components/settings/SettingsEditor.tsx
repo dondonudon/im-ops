@@ -8,6 +8,7 @@ import { Input, Textarea } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { MarginTiersEditor } from "./MarginTiersEditor";
 import { type MonthTarget, RevenueTargetEditor } from "./RevenueTargetEditor";
+import { SignaturePad } from "./SignaturePad";
 
 type Setting = {
 	key: string;
@@ -225,11 +226,13 @@ export function SettingsEditor({
 // ---------------------------------------------------------------------------
 
 function SettingRow({ setting }: { setting: Setting }) {
-	// Structured settings get a bespoke editor instead of the generic input.
-	if (setting.key === "margin_tiers") {
-		return <MarginTiersEditor setting={setting} />;
+	if (setting.key === "margin_tiers") return <MarginTiersEditor setting={setting} />;
+	if (
+		setting.key === "proposal_signature_image_url" ||
+		setting.key === "invoice_signature_image_url"
+	) {
+		return <SignaturePad setting={setting} />;
 	}
-
 	return <GenericSettingRow setting={setting} />;
 }
 

@@ -537,6 +537,36 @@
 				"andAbove": "And above",
 				"addTier": "Add tier",
 				"remove": "Remove tier"
+			},
+			"signaturePad": {
+				"saved": "Saved",
+				"saving": "Saving...",
+				"currentLabel": "Current signature:",
+				"imageAlt": "Saved signature",
+				"hint": "Draw your signature above, then click Save.",
+				"clear": "Clear",
+				"save": "Save Signature",
+				"uploadFailed": "Failed to upload signature",
+				"editButton": "Edit Signature",
+				"setButton": "Set Signature",
+				"noSignature": "Not set",
+				"cancel": "Cancel"
+			}
+		},
+		"verify": {
+			"notFoundTitle": "Document Not Found",
+			"notFoundDesc": "This QR code is invalid or the document is not available.",
+			"verifiedBadge": "Document Verified",
+			"issuedBy": "This document is authentic and issued by",
+			"docType": "Document Type",
+			"number": "Number",
+			"date": "Date",
+			"signatory": "Signed by",
+			"footer": "Automatically verified by the IM Operations system",
+			"docTypes": {
+				"Proposal": "Proposal",
+				"Invoice": "Invoice",
+				"Kwitansi": "Receipt"
 			}
 		},
 		"leadDetail": {

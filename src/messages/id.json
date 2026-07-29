@@ -537,6 +537,36 @@
 				"andAbove": "Ke atas",
 				"addTier": "Tambah tier",
 				"remove": "Hapus tier"
+			},
+			"signaturePad": {
+				"saved": "Tersimpan",
+				"saving": "Menyimpan...",
+				"currentLabel": "Tanda tangan saat ini:",
+				"imageAlt": "Tanda tangan tersimpan",
+				"hint": "Gambar tanda tangan di atas, lalu klik Simpan.",
+				"clear": "Bersihkan",
+				"save": "Simpan Tanda Tangan",
+				"uploadFailed": "Gagal mengupload tanda tangan",
+				"editButton": "Ubah Tanda Tangan",
+				"setButton": "Atur Tanda Tangan",
+				"noSignature": "Belum diatur",
+				"cancel": "Batal"
+			}
+		},
+		"verify": {
+			"notFoundTitle": "Dokumen Tidak Ditemukan",
+			"notFoundDesc": "QR code ini tidak valid atau dokumen tidak tersedia.",
+			"verifiedBadge": "Dokumen Terverifikasi",
+			"issuedBy": "Dokumen ini asli dan diterbitkan oleh",
+			"docType": "Jenis Dokumen",
+			"number": "Nomor",
+			"date": "Tanggal",
+			"signatory": "Ditandatangani oleh",
+			"footer": "Verifikasi otomatis oleh sistem IM Operations",
+			"docTypes": {
+				"Proposal": "Proposal",
+				"Invoice": "Invoice",
+				"Kwitansi": "Kwitansi"
 			}
 		},
 		"leadDetail": {

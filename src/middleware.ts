@@ -102,7 +102,8 @@ export async function middleware(request: NextRequest) {
 		pathname.startsWith("/login") ||
 		pathname.startsWith("/auth") ||
 		pathname.startsWith("/privacy") ||
-		pathname.startsWith("/terms")
+		pathname.startsWith("/terms") ||
+		pathname.startsWith("/verify")
 	) {
 		return supabaseResponse;
 	}

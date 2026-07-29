@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import QRCode from "qrcode";
 import { NegotiationHistory } from "@/components/proposals/NegotiationHistory";
 import { ProposalActionPanel } from "@/components/proposals/ProposalActionPanel";
 import { ProposalCustomFieldsEditor } from "@/components/proposals/ProposalCustomFieldsEditor";
@@ -12,6 +13,7 @@ import {
 	buildCompanySettings,
 	buildProposalTemplateSettings,
 	resolveLogoDataUrl,
+	resolveSignatureDataUrl,
 } from "@/lib/pdfSettings";
 import { parseCustomFields } from "@/lib/proposalCustomFields";
 import { createClient } from "@/lib/supabase/server";
@@ -63,6 +65,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 				"proposal_included_services",
 				"proposal_signature_name",
 				"proposal_signature_role",
+				"proposal_signature_image_url",
 			]),
 	]);
 
@@ -70,8 +73,17 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const pdfCompany = buildCompanySettings(settingsMap);
-	pdfCompany.logo = await resolveLogoDataUrl(settingsMap.company_logo_url ?? "");
+	const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+	const verificationUrl = `${appUrl}/verify/${proposal.verification_token}`;
+	const [logoDataUrl, signatureDataUrl, verificationQrUrl] = await Promise.all([
+		resolveLogoDataUrl(settingsMap.company_logo_url ?? ""),
+		resolveSignatureDataUrl(settingsMap.proposal_signature_image_url ?? ""),
+		QRCode.toDataURL(verificationUrl, { width: 160, margin: 1 }),
+	]);
+	pdfCompany.logo = logoDataUrl;
 	const pdfTemplate = buildProposalTemplateSettings(settingsMap);
+	pdfTemplate.signatureImageUrl = signatureDataUrl;
+	pdfTemplate.verificationQrUrl = verificationQrUrl;
 	const customFields = parseCustomFields(proposal.custom_fields);
 
 	const lead = proposal.leads as {

@@ -70,9 +70,14 @@ const styles = StyleSheet.create({
 	signatureRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 16 },
 	signBlock: { width: 200, alignItems: "center" },
 	signLabel: { fontSize: 11, marginBottom: 1 },
-	signCompany: { fontSize: 11, fontFamily: "Helvetica-Bold", marginBottom: 48 },
+	signCompany: { fontSize: 11, fontFamily: "Helvetica-Bold", marginBottom: 6 },
+	signatureImg: { width: 160, height: 56, objectFit: "contain", marginBottom: 4 },
 	signName: { fontSize: 11, fontFamily: "Helvetica-Bold", textDecoration: "underline" },
 	signRole: { fontSize: 11 },
+	// ── QR code (bottom-left, fixed) ─────────────────────────────────────────
+	qrBlock: { position: "absolute", bottom: 14, left: 56 },
+	qrImage: { width: 44, height: 44 },
+	qrLabel: { fontSize: 7, color: "#6b7280", textAlign: "center", marginTop: 2 },
 	// ── Footer ───────────────────────────────────────────────────────────────
 	footer: { position: "absolute", bottom: 18, left: 56, right: 56, textAlign: "center" },
 	footerText: { fontSize: 8, color: "#dc2626", textAlign: "center" },
@@ -110,7 +115,13 @@ export interface ProposalPDFProps {
 		city: string;
 		logo: string;
 	};
-	template: { includedServices: string[]; signatureName: string; signatureRole: string };
+	template: {
+		includedServices: string[];
+		signatureName: string;
+		signatureRole: string;
+		signatureImageUrl: string;
+		verificationQrUrl: string;
+	};
 	customFields?: ProposalCustomFields;
 }
 
@@ -276,10 +287,23 @@ export function ProposalPDF({
 					<View style={styles.signBlock}>
 						<Text style={styles.signLabel}>Hormat kami,</Text>
 						<Text style={styles.signCompany}>{company.name.toUpperCase()}</Text>
+						{/* eslint-disable-next-line jsx-a11y/alt-text */}
+						{template.signatureImageUrl ? (
+							<Image src={template.signatureImageUrl} style={styles.signatureImg} />
+						) : null}
 						<Text style={styles.signName}>{template.signatureName}</Text>
 						<Text style={styles.signRole}>{template.signatureRole}</Text>
 					</View>
 				</View>
+
+				{/* QR code — bottom-left, separate from signature block */}
+				{template.verificationQrUrl ? (
+					<View style={styles.qrBlock} fixed>
+						{/* eslint-disable-next-line jsx-a11y/alt-text */}
+						<Image src={template.verificationQrUrl} style={styles.qrImage} />
+						<Text style={styles.qrLabel}>Pindai untuk{"\n"}verifikasi</Text>
+					</View>
+				) : null}
 
 				{/* Footer */}
 				<View style={styles.footer} fixed>

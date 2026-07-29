@@ -306,6 +306,7 @@ export type Database = {
 					custom_fields: Json | null;
 					created_by: string | null;
 					created_at: string;
+					verification_token: string;
 				};
 				Insert: {
 					id?: string;
@@ -684,6 +685,7 @@ export type Database = {
 					paid_at: string;
 					notes: string | null;
 					created_at: string;
+					verification_token: string;
 				};
 				Insert: {
 					id?: string;
@@ -694,6 +696,7 @@ export type Database = {
 					paid_at: string;
 					notes?: string | null;
 					created_at?: string;
+					verification_token?: string;
 				};
 				Update: {
 					id?: string;
@@ -704,6 +707,7 @@ export type Database = {
 					paid_at?: string;
 					notes?: string | null;
 					created_at?: string;
+					verification_token?: string;
 				};
 				Relationships: [
 					{
@@ -727,6 +731,7 @@ export type Database = {
 					notes: string | null;
 					pdf_url: string | null;
 					created_at: string;
+					verification_token: string;
 				};
 				Insert: {
 					id?: string;
@@ -958,6 +963,16 @@ export type Database = {
 			get_invoice_status_breakdown: {
 				Args: Record<string, never>;
 				Returns: Array<{ status: string; inv_count: number; total_amount: number }>;
+			};
+			verify_document_by_token: {
+				Args: { p_token: string };
+				Returns: {
+					doc_type: "Proposal" | "Invoice" | "Kwitansi";
+					doc_number: string;
+					issued_at: string;
+					signatory_name: string;
+					company_name: string;
+				} | null;
 			};
 		};
 		Enums: {

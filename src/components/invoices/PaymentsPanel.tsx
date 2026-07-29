@@ -17,6 +17,7 @@ type Payment = {
 	amount: number;
 	paid_at: string;
 	notes: string | null;
+	verification_token: string;
 };
 
 const PAYMENT_TYPES = ["down_payment", "partial", "final", "refund"];
@@ -49,7 +50,7 @@ export function PaymentsPanel({
 	customerName: string;
 	invoiceNumber?: string | null;
 	company: CompanySettings;
-	receiptTemplate: { signatureName: string; signatureRole: string };
+	receiptTemplate: { signatureName: string; signatureRole: string; signatureImageUrl: string };
 }) {
 	const router = useRouter();
 	const tPanel = useTranslations("panels.payments");
@@ -100,7 +101,7 @@ export function PaymentsPanel({
 					paid_at: form.paid_at,
 					notes: form.notes.trim() || null,
 				})
-				.select("id, payment_type, method, amount, paid_at, notes")
+				.select("id, payment_type, method, amount, paid_at, notes, verification_token")
 				.single();
 
 			if (insertErr) throw insertErr;
@@ -277,8 +278,12 @@ export function PaymentsPanel({
 								customerName,
 								invoiceNumber,
 								company,
-								template: receiptTemplate,
+								template: {
+									...receiptTemplate,
+									verificationQrUrl: "",
+								},
 							}}
+							verificationToken={p.verification_token}
 						/>
 					</div>
 				))}
