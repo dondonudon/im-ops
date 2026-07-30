@@ -21,7 +21,7 @@ export type PipelineCard = {
 
 export type ColumnsData = Record<Stage, PipelineCard[]>;
 
-const STAGE_ORDER: Stage[] = ["new", "survey", "estimate", "proposal"];
+const STAGE_ORDER: Stage[] = ["new", "survey", "estimate", "proposal", "won"];
 
 /** Canonical lead.status for the optimistic card while the server confirms. */
 const STAGE_STATUS: Record<Stage, string> = {
@@ -29,6 +29,7 @@ const STAGE_STATUS: Record<Stage, string> = {
 	survey: "survey_scheduled",
 	estimate: "estimating",
 	proposal: "proposal_sent",
+	won: "converted",
 };
 
 const THRESHOLD = 6; // px before a press becomes a drag

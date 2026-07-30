@@ -56,12 +56,14 @@
 			"new": "New",
 			"survey": "Survey",
 			"estimate": "Estimate",
-			"proposal": "Proposal"
+			"proposal": "Proposal",
+			"won": "Won"
 		},
 		"notices": {
 			"needs_survey": "Schedule a survey from the lead first.",
 			"needs_proposal": "Create a proposal for this lead first.",
-			"error": "Couldn't move that deal. Please try again."
+			"error": "Couldn't move that deal. Please try again.",
+			"needs_job": "Convert the approved proposal to a job first."
 		}
 	},
 	"today": {

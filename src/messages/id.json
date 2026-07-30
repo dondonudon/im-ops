@@ -56,12 +56,14 @@
 			"new": "Baru",
 			"survey": "Survei",
 			"estimate": "Estimasi",
-			"proposal": "Proposal"
+			"proposal": "Proposal",
+			"won": "Menang"
 		},
 		"notices": {
 			"needs_survey": "Jadwalkan survei dari prospek terlebih dahulu.",
 			"needs_proposal": "Buat proposal untuk prospek ini terlebih dahulu.",
-			"error": "Gagal memindahkan transaksi. Coba lagi."
+			"error": "Gagal memindahkan transaksi. Coba lagi.",
+			"needs_job": "Konversi proposal yang disetujui menjadi pekerjaan dahulu."
 		}
 	},
 	"today": {
