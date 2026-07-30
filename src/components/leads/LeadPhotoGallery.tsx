@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { type LightboxPhoto, PhotoLightbox } from "@/components/shared/PhotoLightbox";
 import { buttonStyles, Card } from "@/components/ui";
+import { batchSignedUrls, type UrlCache } from "@/lib/storage/signedUrls";
 import { createClient } from "@/lib/supabase/client";
 import { resizeImage } from "@/lib/utils";
 
@@ -42,32 +43,19 @@ export function LeadPhotoGallery({
 
 	const supabase = useMemo(() => createClient(), []);
 	const [photoUrls, setPhotoUrls] = useState<Map<string, string>>(new Map());
-	// Cache: storage_path → { url, expiresAt (ms) }
-	const urlCache = useRef<Map<string, { url: string; expiresAt: number }>>(new Map());
+	const urlCache = useRef<UrlCache>(new Map());
 
 	useEffect(() => {
+		if (photos.length === 0) return;
 		let cancelled = false;
 		async function refreshUrls() {
-			const TTL = 3600; // seconds
-			const now = Date.now();
-			const entries = await Promise.all(
-				photos.map(async (p) => {
-					const cached = urlCache.current.get(p.storage_path);
-					// Reuse if cached URL has >60s remaining
-					if (cached && cached.expiresAt > now + 60_000) {
-						return [p.storage_path, cached.url] as const;
-					}
-					const { data } = await supabase.storage
-						.from("lead-photos")
-						.createSignedUrl(p.storage_path, TTL);
-					const url = data?.signedUrl ?? "";
-					if (url) {
-						urlCache.current.set(p.storage_path, { url, expiresAt: now + TTL * 1000 });
-					}
-					return [p.storage_path, url] as const;
-				}),
+			const map = await batchSignedUrls(
+				supabase,
+				"lead-photos",
+				photos.map((p) => p.storage_path),
+				urlCache.current,
 			);
-			if (!cancelled) setPhotoUrls(new Map(entries));
+			if (!cancelled) setPhotoUrls(map);
 		}
 		refreshUrls();
 		return () => {

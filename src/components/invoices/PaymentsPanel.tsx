@@ -40,6 +40,7 @@ export function PaymentsPanel({
 	customerName,
 	invoiceNumber,
 	company,
+	logoUrl,
 	receiptTemplate,
 }: {
 	jobId: string;
@@ -50,6 +51,8 @@ export function PaymentsPanel({
 	customerName: string;
 	invoiceNumber?: string | null;
 	company: CompanySettings;
+	/** Raw logo URL — forwarded to the receipt button for deferred base64 resolution. */
+	logoUrl: string;
 	receiptTemplate: { signatureName: string; signatureRole: string };
 }) {
 	const router = useRouter();
@@ -284,6 +287,7 @@ export function PaymentsPanel({
 								},
 							}}
 							verificationToken={p.verification_token}
+							logoUrl={logoUrl}
 						/>
 					</div>
 				))}

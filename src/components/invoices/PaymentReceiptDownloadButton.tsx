@@ -2,6 +2,7 @@
 import { Printer } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { getLogoAsset } from "@/app/actions/getPdfAssets";
 import { buttonStyles } from "@/components/ui";
 import type { PaymentReceiptProps } from "./PaymentReceiptPDF";
 
@@ -12,9 +13,12 @@ function buildReceiptFilename(jobNumber: string, receiptNumber: number): string 
 export function PaymentReceiptDownloadButton({
 	receiptProps,
 	verificationToken,
+	logoUrl,
 }: {
 	receiptProps: PaymentReceiptProps;
 	verificationToken: string;
+	/** Raw company logo URL — resolved to a base64 data URL on click, not on page load. */
+	logoUrl: string;
 }) {
 	const tPanel = useTranslations("panels.payments");
 	const [generating, setGenerating] = useState(false);
@@ -28,10 +32,11 @@ export function PaymentReceiptDownloadButton({
 			const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 			const verificationUrl = `${appUrl}/verify/${verificationToken}`;
 
-			const [{ pdf }, { PaymentReceiptPDF }, QRCode] = await Promise.all([
+			const [{ pdf }, { PaymentReceiptPDF }, QRCode, logoDataUrl] = await Promise.all([
 				import("@react-pdf/renderer"),
 				import("./PaymentReceiptPDF"),
 				import("qrcode"),
+				getLogoAsset(logoUrl),
 			]);
 
 			const verificationQrUrl = await QRCode.default.toDataURL(verificationUrl, {
@@ -41,6 +46,7 @@ export function PaymentReceiptDownloadButton({
 
 			const props: PaymentReceiptProps = {
 				...receiptProps,
+				company: { ...receiptProps.company, logo: logoDataUrl },
 				template: { ...receiptProps.template, verificationQrUrl },
 			};
 

@@ -13,6 +13,7 @@ import {
 	queuedCount,
 	subscribe,
 } from "@/lib/offline/expenseQueue";
+import { batchSignedUrls, type UrlCache } from "@/lib/storage/signedUrls";
 import { createClient } from "@/lib/supabase/client";
 import { formatRupiah, resizeImage } from "@/lib/utils";
 
@@ -71,26 +72,26 @@ export function ExpensePanel({
 	// store a full public URL, so receiptStoragePath() normalizes both.
 	const receiptClient = useMemo(() => createClient(), []);
 	const [receiptUrls, setReceiptUrls] = useState<Map<string, string>>(new Map());
-	const receiptUrlCache = useRef<Map<string, { url: string; expiresAt: number }>>(new Map());
+	const receiptUrlCache = useRef<UrlCache>(new Map());
 	useEffect(() => {
 		const withReceipts = expenses.filter((e) => e.receipt_url);
 		if (withReceipts.length === 0) return;
 		let cancelled = false;
 		async function refresh() {
-			const TTL = 3600;
-			const now = Date.now();
-			const entries = await Promise.all(
-				withReceipts.map(async (e) => {
-					const path = receiptStoragePath(e.receipt_url as string);
-					const cached = receiptUrlCache.current.get(path);
-					if (cached && cached.expiresAt > now + 60_000) return [e.id, cached.url] as const;
-					const { data } = await receiptClient.storage.from("receipts").createSignedUrl(path, TTL);
-					const url = data?.signedUrl ?? "";
-					if (url) receiptUrlCache.current.set(path, { url, expiresAt: now + TTL * 1000 });
-					return [e.id, url] as const;
-				}),
+			const paths = withReceipts.map((e) => receiptStoragePath(e.receipt_url as string));
+			const byPath = await batchSignedUrls(
+				receiptClient,
+				"receipts",
+				paths,
+				receiptUrlCache.current,
 			);
-			if (!cancelled) setReceiptUrls(new Map(entries));
+			// Re-key by expense id so callers can look up by e.id directly.
+			const byId = new Map<string, string>();
+			for (const e of withReceipts) {
+				const path = receiptStoragePath(e.receipt_url as string);
+				byId.set(e.id, byPath.get(path) ?? "");
+			}
+			if (!cancelled) setReceiptUrls(byId);
 		}
 		refresh();
 		return () => {

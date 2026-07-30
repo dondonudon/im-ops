@@ -11,11 +11,7 @@ import { TimelineLogEventButton } from "@/components/jobs/TimelineLogEventButton
 import { BackLink } from "@/components/shared/BackLink";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
-import {
-	buildCompanySettings,
-	buildInvoiceTemplateSettings,
-	resolveLogoDataUrl,
-} from "@/lib/pdfSettings";
+import { buildCompanySettings, buildInvoiceTemplateSettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
 import { deriveJobStatus, formatDate, formatJobSchedule, formatRupiah } from "@/lib/utils";
 
@@ -84,7 +80,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		{ data: jobMedia },
 		{ data: leadPhotos },
 		{ data: surveys },
-		logoDataUrl,
 	] = await Promise.all([
 		proposalId
 			? supabase
@@ -140,11 +135,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 					.eq("lead_id", leadId)
 					.order("scheduled_at", { ascending: false })
 			: Promise.resolve({ data: null, error: null }),
-		resolveLogoDataUrl(logoUrl),
 	]);
 
 	const pdfCompany = buildCompanySettings(settingsMap);
-	pdfCompany.logo = logoDataUrl;
 	const pdfTemplate = buildInvoiceTemplateSettings(settingsMap);
 
 	const proposal = job.proposals as {
@@ -513,6 +506,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							customerName={customer?.name ?? ""}
 							invoiceNumber={invoice?.invoice_number ?? null}
 							company={pdfCompany}
+							logoUrl={logoUrl}
 							receiptTemplate={{
 								signatureName: pdfTemplate.signatureName,
 								signatureRole: pdfTemplate.signatureRole,

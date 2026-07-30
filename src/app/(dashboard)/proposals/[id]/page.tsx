@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import QRCode from "qrcode";
 import { NegotiationHistory } from "@/components/proposals/NegotiationHistory";
 import { ProposalActionPanel } from "@/components/proposals/ProposalActionPanel";
 import { ProposalCustomFieldsEditor } from "@/components/proposals/ProposalCustomFieldsEditor";
@@ -9,11 +8,7 @@ import { ProposalDuplicateButton } from "@/components/proposals/ProposalDuplicat
 import { ProposalPDFDownloadButton } from "@/components/proposals/ProposalPDFDownloadButton";
 import { BackLink } from "@/components/shared/BackLink";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
-import {
-	buildCompanySettings,
-	buildProposalTemplateSettings,
-	resolveLogoDataUrl,
-} from "@/lib/pdfSettings";
+import { buildCompanySettings, buildProposalTemplateSettings } from "@/lib/pdfSettings";
 import { parseCustomFields } from "@/lib/proposalCustomFields";
 import { createClient } from "@/lib/supabase/server";
 import { formatCustomerName, formatDate, formatRupiah } from "@/lib/utils";
@@ -71,15 +66,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const pdfCompany = buildCompanySettings(settingsMap);
-	const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-	const verificationUrl = `${appUrl}/verify/${proposal.verification_token}`;
-	const [logoDataUrl, verificationQrUrl] = await Promise.all([
-		resolveLogoDataUrl(settingsMap.company_logo_url ?? ""),
-		QRCode.toDataURL(verificationUrl, { width: 160, margin: 1 }),
-	]);
-	pdfCompany.logo = logoDataUrl;
 	const pdfTemplate = buildProposalTemplateSettings(settingsMap);
-	pdfTemplate.verificationQrUrl = verificationQrUrl;
 	const customFields = parseCustomFields(proposal.custom_fields);
 
 	const lead = proposal.leads as {
@@ -153,6 +140,8 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 						)}
 						{customer && lead && (
 							<ProposalPDFDownloadButton
+								logoUrl={settingsMap.company_logo_url ?? ""}
+								verificationToken={proposal.verification_token}
 								pdfProps={{
 									proposal: {
 										proposal_number: proposal.proposal_number,

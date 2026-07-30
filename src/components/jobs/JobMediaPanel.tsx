@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PhotoLightbox } from "@/components/shared/PhotoLightbox";
 import { Card } from "@/components/ui";
+import { batchSignedUrls, type UrlCache } from "@/lib/storage/signedUrls";
 import { createClient } from "@/lib/supabase/client";
 import { resizeImage } from "@/lib/utils";
 
@@ -34,34 +35,20 @@ export function JobMediaPanel({
 	const [showAll, setShowAll] = useState(false);
 	const [signedUrls, setSignedUrls] = useState<Map<string, string>>(new Map());
 	const fileInputRef = useRef<HTMLInputElement>(null);
-	// Cache: storage_path → { url, expiresAt (ms) }
-	const urlCache = useRef<Map<string, { url: string; expiresAt: number }>>(new Map());
-
+	const urlCache = useRef<UrlCache>(new Map());
 	const supabase = useMemo(() => createClient(), []);
 
 	useEffect(() => {
+		if (media.length === 0) return;
 		let cancelled = false;
 		async function refreshUrls() {
-			const TTL = 3600; // seconds
-			const now = Date.now();
-			const entries = await Promise.all(
-				media.map(async (m) => {
-					const cached = urlCache.current.get(m.storage_path);
-					// Reuse if cached URL has >60s remaining
-					if (cached && cached.expiresAt > now + 60_000) {
-						return [m.storage_path, cached.url] as const;
-					}
-					const { data } = await supabase.storage
-						.from("job-media")
-						.createSignedUrl(m.storage_path, TTL);
-					const url = data?.signedUrl ?? "";
-					if (url) {
-						urlCache.current.set(m.storage_path, { url, expiresAt: now + TTL * 1000 });
-					}
-					return [m.storage_path, url] as const;
-				}),
+			const map = await batchSignedUrls(
+				supabase,
+				"job-media",
+				media.map((m) => m.storage_path),
+				urlCache.current,
 			);
-			if (!cancelled) setSignedUrls(new Map(entries));
+			if (!cancelled) setSignedUrls(map);
 		}
 		refreshUrls();
 		return () => {

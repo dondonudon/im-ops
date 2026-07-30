@@ -1,14 +1,26 @@
 "use client";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { buttonStyles } from "@/components/ui";
+import { getPdfAssets } from "@/app/actions/getPdfAssets";
+import { Button } from "@/components/ui";
 import type { InvoicePDFProps } from "./InvoicePDF";
 
 function buildInvoiceFilename(invoiceNumber: string) {
 	return `${invoiceNumber.replace(/\//g, "-")}.pdf`;
 }
 
-export function InvoicePDFDownloadButton({ pdfProps }: { pdfProps: InvoicePDFProps }) {
+export function InvoicePDFDownloadButton({
+	pdfProps,
+	logoUrl,
+	verificationToken,
+}: {
+	pdfProps: Omit<InvoicePDFProps, "company" | "template"> & {
+		company: Omit<InvoicePDFProps["company"], "logo">;
+		template: Omit<InvoicePDFProps["template"], "verificationQrUrl">;
+	};
+	logoUrl: string;
+	verificationToken: string;
+}) {
 	const tActions = useTranslations("common.actions");
 	const tDetail = useTranslations("pages.invoiceDetail");
 	const [generating, setGenerating] = useState(false);
@@ -19,11 +31,17 @@ export function InvoicePDFDownloadButton({ pdfProps }: { pdfProps: InvoicePDFPro
 		if (generating) return;
 		setGenerating(true);
 		try {
-			const [{ pdf }, { InvoicePDF }] = await Promise.all([
+			const [{ pdf }, { InvoicePDF }, { logoDataUrl, verificationQrUrl }] = await Promise.all([
 				import("@react-pdf/renderer"),
 				import("./InvoicePDF"),
+				getPdfAssets(logoUrl, verificationToken),
 			]);
-			const blob = await pdf(<InvoicePDF {...pdfProps} />).toBlob();
+			const fullProps: InvoicePDFProps = {
+				...pdfProps,
+				company: { ...pdfProps.company, logo: logoDataUrl },
+				template: { ...pdfProps.template, verificationQrUrl },
+			};
+			const blob = await pdf(<InvoicePDF {...fullProps} />).toBlob();
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = url;
@@ -36,18 +54,14 @@ export function InvoicePDFDownloadButton({ pdfProps }: { pdfProps: InvoicePDFPro
 	}
 
 	return (
-		<button
-			type="button"
+		<Button
+			variant="secondary"
+			size="sm"
 			onClick={handleDownload}
-			disabled={generating}
-			className={buttonStyles({
-				variant: "secondary",
-				size: "sm",
-				className: generating ? "cursor-wait opacity-60" : "",
-			})}
+			loading={generating}
 			aria-label={`${tDetail("downloadInvoicePdf")} — ${pdfProps.invoice.invoice_number}`}
 		>
 			{generating ? tActions("generatingPdf") : `⬇ ${tDetail("downloadInvoicePdf")}`}
-		</button>
+		</Button>
 	);
 }

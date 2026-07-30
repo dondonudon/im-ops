@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { NumericInput } from "@/components/shared/NumericInput";
 import { type LightboxPhoto, PhotoLightbox } from "@/components/shared/PhotoLightbox";
 import { Button, Card, FormError } from "@/components/ui";
+import { batchSignedUrls, type UrlCache } from "@/lib/storage/signedUrls";
 import { createClient } from "@/lib/supabase/client";
 import { resizeImage } from "@/lib/utils";
 
@@ -63,27 +64,18 @@ export function SurveyDetailClient({
 	// Signed URLs for survey media — the bucket is private (no public URLs).
 	const mediaClient = useMemo(() => createClient(), []);
 	const [mediaUrls, setMediaUrls] = useState<Map<string, string>>(new Map());
-	const urlCache = useRef<Map<string, { url: string; expiresAt: number }>>(new Map());
+	const urlCache = useRef<UrlCache>(new Map());
 	useEffect(() => {
 		if (media.length === 0) return;
 		let cancelled = false;
 		async function refresh() {
-			const TTL = 3600;
-			const now = Date.now();
-			const entries = await Promise.all(
-				media.map(async (m) => {
-					const cached = urlCache.current.get(m.storage_path);
-					if (cached && cached.expiresAt > now + 60_000)
-						return [m.storage_path, cached.url] as const;
-					const { data } = await mediaClient.storage
-						.from("survey-media")
-						.createSignedUrl(m.storage_path, TTL);
-					const url = data?.signedUrl ?? "";
-					if (url) urlCache.current.set(m.storage_path, { url, expiresAt: now + TTL * 1000 });
-					return [m.storage_path, url] as const;
-				}),
+			const map = await batchSignedUrls(
+				mediaClient,
+				"survey-media",
+				media.map((m) => m.storage_path),
+				urlCache.current,
 			);
-			if (!cancelled) setMediaUrls(new Map(entries));
+			if (!cancelled) setMediaUrls(map);
 		}
 		refresh();
 		return () => {

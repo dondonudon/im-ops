@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { type LightboxPhoto, PhotoLightbox } from "@/components/shared/PhotoLightbox";
 import { Card } from "@/components/ui";
+import { batchSignedUrls, type UrlCache } from "@/lib/storage/signedUrls";
 import { createClient } from "@/lib/supabase/client";
 import { formatDate } from "@/lib/utils";
 
@@ -55,7 +56,7 @@ export function LeadSurveyReferencePanel({
 
 	// Signed URLs for lead photos
 	const [leadPhotoUrls, setLeadPhotoUrls] = useState<Map<string, string>>(new Map());
-	const urlCache = useRef<Map<string, { url: string; expiresAt: number }>>(new Map());
+	const urlCache = useRef<UrlCache>(new Map());
 	const [showAllLeadPhotos, setShowAllLeadPhotos] = useState(false);
 	const [leadLightboxIdx, setLeadLightboxIdx] = useState<number | null>(null);
 
@@ -79,28 +80,21 @@ export function LeadSurveyReferencePanel({
 	const [surveyLightboxIdx, setSurveyLightboxIdx] = useState<number | null>(null);
 
 	// Signed URLs for survey photos — the bucket is private (no public URLs).
+	// Uses a separate cache ref keyed with a "survey:" prefix to avoid collisions
+	// with the lead-photos cache (same urlCache ref, different bucket).
 	const [surveyPhotoUrls, setSurveyPhotoUrls] = useState<Map<string, string>>(new Map());
+	const surveyUrlCache = useRef<UrlCache>(new Map());
 	useEffect(() => {
 		if (surveyPhotos.length === 0) return;
 		let cancelled = false;
 		async function refresh() {
-			const TTL = 3600;
-			const now = Date.now();
-			const entries = await Promise.all(
-				surveyPhotos.map(async (m) => {
-					const cacheKey = `survey-media:${m.storage_path}`;
-					const cached = urlCache.current.get(cacheKey);
-					if (cached && cached.expiresAt > now + 60_000)
-						return [m.storage_path, cached.url] as const;
-					const { data } = await supabase.storage
-						.from("survey-media")
-						.createSignedUrl(m.storage_path, TTL);
-					const url = data?.signedUrl ?? "";
-					if (url) urlCache.current.set(cacheKey, { url, expiresAt: now + TTL * 1000 });
-					return [m.storage_path, url] as const;
-				}),
+			const map = await batchSignedUrls(
+				supabase,
+				"survey-media",
+				surveyPhotos.map((m) => m.storage_path),
+				surveyUrlCache.current,
 			);
-			if (!cancelled) setSurveyPhotoUrls(new Map(entries));
+			if (!cancelled) setSurveyPhotoUrls(map);
 		}
 		refresh();
 		return () => {
@@ -113,22 +107,13 @@ export function LeadSurveyReferencePanel({
 		if (leadPhotos.length === 0) return;
 		let cancelled = false;
 		async function refresh() {
-			const TTL = 3600;
-			const now = Date.now();
-			const entries = await Promise.all(
-				leadPhotos.map(async (p) => {
-					const cached = urlCache.current.get(p.storage_path);
-					if (cached && cached.expiresAt > now + 60_000)
-						return [p.storage_path, cached.url] as const;
-					const { data } = await supabase.storage
-						.from("lead-photos")
-						.createSignedUrl(p.storage_path, TTL);
-					const url = data?.signedUrl ?? "";
-					if (url) urlCache.current.set(p.storage_path, { url, expiresAt: now + TTL * 1000 });
-					return [p.storage_path, url] as const;
-				}),
+			const map = await batchSignedUrls(
+				supabase,
+				"lead-photos",
+				leadPhotos.map((p) => p.storage_path),
+				urlCache.current,
 			);
-			if (!cancelled) setLeadPhotoUrls(new Map(entries));
+			if (!cancelled) setLeadPhotoUrls(map);
 		}
 		refresh();
 		return () => {

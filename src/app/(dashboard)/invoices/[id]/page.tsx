@@ -1,16 +1,11 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import QRCode from "qrcode";
 import { InvoicePDFDownloadButton } from "@/components/invoices/InvoicePDFDownloadButton";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { BackLink } from "@/components/shared/BackLink";
 import { PendingLink } from "@/components/shared/PendingLink";
 import { Badge, Card, Money, PageHeader, toneFor } from "@/components/ui";
-import {
-	buildCompanySettings,
-	buildInvoiceTemplateSettings,
-	resolveLogoDataUrl,
-} from "@/lib/pdfSettings";
+import { buildCompanySettings, buildInvoiceTemplateSettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
 import { formatCustomerName, formatDate } from "@/lib/utils";
 
@@ -56,15 +51,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const pdfCompany = buildCompanySettings(settingsMap);
-	const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-	const verificationUrl = `${appUrl}/verify/${invoice.verification_token}`;
-	const [logoDataUrl, verificationQrUrl] = await Promise.all([
-		resolveLogoDataUrl(settingsMap.company_logo_url ?? ""),
-		QRCode.toDataURL(verificationUrl, { width: 160, margin: 1 }),
-	]);
-	pdfCompany.logo = logoDataUrl;
 	const pdfTemplate = buildInvoiceTemplateSettings(settingsMap);
-	pdfTemplate.verificationQrUrl = verificationQrUrl;
 
 	type PaymentRow = {
 		id: string;
@@ -139,6 +126,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 				actions={
 					customer && job ? (
 						<InvoicePDFDownloadButton
+							logoUrl={settingsMap.company_logo_url ?? ""}
+							verificationToken={invoice.verification_token}
 							pdfProps={{
 								invoice: {
 									invoice_number: invoice.invoice_number,
@@ -231,6 +220,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 						customerName={customer ? formatCustomerName(customer.prefix, customer.name) : ""}
 						invoiceNumber={invoice.invoice_number}
 						company={pdfCompany}
+						logoUrl={settingsMap.company_logo_url ?? ""}
 						receiptTemplate={{
 							signatureName: pdfTemplate.signatureName,
 							signatureRole: pdfTemplate.signatureRole,
