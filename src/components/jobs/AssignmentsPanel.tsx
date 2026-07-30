@@ -39,7 +39,7 @@ export function AssignmentsPanel({
 	const t = useTranslations("panels.assignments");
 	const tCommonButtons = useTranslations("common.buttons");
 	const tCommonHints = useTranslations("common.hints");
-	const [_isPending, startTransition] = useTransition();
+	const [, startTransition] = useTransition();
 	const [assignments, setAssignments] = useState(initialAssignments);
 	const [showModal, setShowModal] = useState(false);
 	const [overlap, setOverlap] = useState<string | null>(null);
