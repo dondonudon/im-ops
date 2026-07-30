@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { NumericInput } from "@/components/shared/NumericInput";
 import { createClient } from "@/lib/supabase/client";
@@ -26,21 +26,6 @@ function currentYearMonth(): { year: number; month: number } {
 	return { year: now.getFullYear(), month: now.getMonth() + 1 };
 }
 
-const MONTH_NAMES = [
-	"January",
-	"February",
-	"March",
-	"April",
-	"May",
-	"June",
-	"July",
-	"August",
-	"September",
-	"October",
-	"November",
-	"December",
-];
-
 /** Year range: 3 years back to 3 years ahead. */
 function yearOptions(): number[] {
 	const y = new Date().getFullYear();
@@ -52,7 +37,12 @@ const SELECT_CLS =
 
 export function RevenueTargetEditor({ defaultTarget, initialTargets }: Props) {
 	const t = useTranslations("pages.settings.revenueTargets");
+	const locale = useLocale();
 	const router = useRouter();
+
+	const monthNames = Array.from({ length: 12 }, (_, i) =>
+		new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2024, i, 1)),
+	);
 
 	const initMap: Record<string, number> = {};
 	for (const row of initialTargets) {
@@ -102,13 +92,17 @@ export function RevenueTargetEditor({ defaultTarget, initialTargets }: Props) {
 							setSaveState("idle");
 						}}
 						className={SELECT_CLS}
-						aria-label="Month"
+						aria-label={t("monthLabel")}
 					>
-						{MONTH_NAMES.map((name, i) => (
-							<option key={name} value={i + 1}>
-								{name}
-							</option>
-						))}
+						{monthNames.map((name, i) => {
+							const isCurrentMonth =
+								i + 1 === currentYearMonth().month && year === currentYearMonth().year;
+							return (
+								<option key={name} value={i + 1}>
+									{isCurrentMonth ? `${name} (${t("current")})` : name}
+								</option>
+							);
+						})}
 					</select>
 					<select
 						value={year}
@@ -117,7 +111,7 @@ export function RevenueTargetEditor({ defaultTarget, initialTargets }: Props) {
 							setSaveState("idle");
 						}}
 						className={SELECT_CLS}
-						aria-label="Year"
+						aria-label={t("yearLabel")}
 					>
 						{yearOptions().map((y) => (
 							<option key={y} value={y}>

@@ -235,15 +235,11 @@ function SettingRow({ setting }: { setting: Setting }) {
 function GenericSettingRow({ setting }: { setting: Setting }) {
 	const router = useRouter();
 	const tButtons = useTranslations("common.buttons");
+	const tFieldLabels = useTranslations("pages.settings.fieldLabels");
 	const [value, setValue] = useState(setting.value);
 	const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
 	const inputType = inferInputType(setting.key, setting.value);
 
-	/**
-	 * Persist value on blur. No-ops if value is unchanged.
-	 * Security: value is a plain string persisted only to the authenticated
-	 * user's own system_settings row — no injection risk beyond DB-level RLS.
-	 */
 	async function handleSave() {
 		if (value === setting.value) return;
 		setSaveState("saving");
@@ -257,7 +253,9 @@ function GenericSettingRow({ setting }: { setting: Setting }) {
 		setTimeout(() => setSaveState("idle"), 2000);
 	}
 
-	const label = setting.description ?? setting.key;
+	const label = tFieldLabels.has(setting.key as never)
+		? tFieldLabels(setting.key as never)
+		: (setting.description ?? setting.key);
 
 	if (inputType === "textarea") {
 		return (

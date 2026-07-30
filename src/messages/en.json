@@ -467,7 +467,8 @@
 				"leadConversion": "Lead conversion",
 				"totalLeads": "Total leads",
 				"target": "Target",
-				"overTarget": "over target"
+				"overTarget": "over target",
+				"ofRevenue": "of revenue"
 			},
 			"profitByJob": {
 				"title": "Profit by job",
@@ -532,7 +533,9 @@
 				"description": "Set a revenue target for each month. Months without a specific target use the default above.",
 				"current": "This month",
 				"defaultHint": "Default: {amount}",
-				"inputLabel": "Revenue target for {month}"
+				"inputLabel": "Revenue target for {month}",
+				"monthLabel": "Month",
+				"yearLabel": "Year"
 			},
 			"marginTiers": {
 				"upTo": "Up to (IDR)",
@@ -555,6 +558,36 @@
 				"setButton": "Set Signature",
 				"noSignature": "Not set",
 				"cancel": "Cancel"
+			},
+			"fieldLabels": {
+				"crew_day_rate": "Default crew cost per person per day (IDR)",
+				"food_per_crew": "Default food allowance per crew member (IDR)",
+				"default_margin_pct": "Default margin percentage (fallback when no tier matches)",
+				"negotiation_buffer_pct": "Fixed negotiation buffer added to internal target price",
+				"operational_buffer_pct": "Operational buffer added to raw job cost",
+				"margin_tiers": "Tiered margin table: margin rate and minimum profit by adjusted-cost bracket",
+				"price_round_increment": "Round prices up to the nearest this many IDR",
+				"vehicle_rate_pickup": "Pickup truck daily rate (IDR)",
+				"vehicle_rate_box_truck": "Box truck daily rate (IDR)",
+				"min_target_profit": "Minimum acceptable profit per job (IDR)",
+				"invoice_due_days": "Default invoice due days after issue",
+				"gcal_calendar_id": "Google Calendar ID for event sync (leave blank to disable)",
+				"revenue_target_monthly": "Monthly revenue target shown on the dashboard (IDR)",
+				"company_name": "Company name shown on proposals and invoices",
+				"company_tagline": "Tagline shown below the logo on all PDFs",
+				"company_logo_url": "Logo image URL shown at the top of every PDF",
+				"company_address": "Company address shown in the PDF header",
+				"company_phone": "Phone number shown in the PDF header",
+				"company_website": "Website URL shown in the PDF footer",
+				"company_city": "City name used in the document date line",
+				"proposal_included_services": "Included services listed in the proposal body — one service per line",
+				"proposal_signature_name": "Name shown on the proposal signature block",
+				"proposal_signature_role": "Role/title shown on the proposal signature block",
+				"invoice_bank_name": "Bank name for payment transfer instructions",
+				"invoice_bank_account_number": "Bank account number for payment transfer",
+				"invoice_bank_account_holder": "Account holder name for payment transfer",
+				"invoice_signature_name": "Name shown on the invoice signature block",
+				"invoice_signature_role": "Role/title shown on the invoice signature block"
 			}
 		},
 		"verify": {

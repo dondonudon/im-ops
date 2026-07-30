@@ -25,6 +25,7 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 	const router = useRouter();
 	const t = useTranslations("pages.settings.marginTiers");
 	const tButtons = useTranslations("common.buttons");
+	const tFieldLabels = useTranslations("pages.settings.fieldLabels");
 	const [tiers, setTiers] = useState<MarginTier[]>(() => parseMarginTiers(setting.value));
 	const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
 	const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -81,7 +82,9 @@ export function MarginTiersEditor({ setting }: { setting: Setting }) {
 		});
 	}
 
-	const label = setting.description ?? setting.key;
+	const label = tFieldLabels.has(setting.key as never)
+		? tFieldLabels(setting.key as never)
+		: (setting.description ?? setting.key);
 
 	return (
 		<div className="px-4 py-4">

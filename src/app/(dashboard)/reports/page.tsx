@@ -245,7 +245,9 @@ export default async function ReportsPage({
 							{kpi.value}
 						</p>
 						{kpi.sub && (
-							<p className={`text-xs tabular-nums mt-0.5 ${kpi.className}`}>{kpi.sub} of revenue</p>
+							<p className={`text-xs tabular-nums mt-0.5 ${kpi.className}`}>
+								{kpi.sub} {t("kpi.ofRevenue")}
+							</p>
 						)}
 					</Card>
 				))}

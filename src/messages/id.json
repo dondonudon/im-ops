@@ -467,7 +467,8 @@
 				"leadConversion": "Konversi prospek",
 				"totalLeads": "Total prospek",
 				"target": "Target",
-				"overTarget": "di atas target"
+				"overTarget": "di atas target",
+				"ofRevenue": "dari pendapatan"
 			},
 			"profitByJob": {
 				"title": "Keuntungan per pekerjaan",
@@ -532,7 +533,9 @@
 				"description": "Atur target pendapatan untuk setiap bulan. Bulan tanpa target spesifik menggunakan nilai default di atas.",
 				"current": "Bulan ini",
 				"defaultHint": "Default: {amount}",
-				"inputLabel": "Target pendapatan untuk {month}"
+				"inputLabel": "Target pendapatan untuk {month}",
+				"monthLabel": "Bulan",
+				"yearLabel": "Tahun"
 			},
 			"marginTiers": {
 				"upTo": "Hingga (IDR)",
@@ -555,6 +558,36 @@
 				"setButton": "Atur Tanda Tangan",
 				"noSignature": "Belum diatur",
 				"cancel": "Batal"
+			},
+			"fieldLabels": {
+				"crew_day_rate": "Biaya kru default per orang per hari (IDR)",
+				"food_per_crew": "Tunjangan makan per anggota kru (IDR)",
+				"default_margin_pct": "Persentase margin default (cadangan jika tidak ada tier yang cocok)",
+				"negotiation_buffer_pct": "Buffer negosiasi tetap yang ditambahkan ke harga target internal",
+				"operational_buffer_pct": "Buffer operasional yang ditambahkan ke biaya pekerjaan mentah",
+				"margin_tiers": "Tabel margin bertingkat: tarif margin dan profit minimum per kelompok biaya",
+				"price_round_increment": "Bulatkan harga ke kelipatan nilai ini (IDR)",
+				"vehicle_rate_pickup": "Tarif harian pickup (IDR)",
+				"vehicle_rate_box_truck": "Tarif harian box truck (IDR)",
+				"min_target_profit": "Profit minimum yang dapat diterima per pekerjaan (IDR)",
+				"invoice_due_days": "Batas waktu pembayaran faktur default setelah diterbitkan (hari)",
+				"gcal_calendar_id": "ID Google Calendar untuk sinkronisasi acara (kosongkan untuk menonaktifkan)",
+				"revenue_target_monthly": "Target pendapatan bulanan yang ditampilkan di dasbor (IDR)",
+				"company_name": "Nama perusahaan yang ditampilkan di proposal dan faktur",
+				"company_tagline": "Tagline yang ditampilkan di bawah logo pada semua PDF",
+				"company_logo_url": "URL gambar logo yang ditampilkan di bagian atas setiap PDF",
+				"company_address": "Alamat perusahaan yang ditampilkan di header PDF",
+				"company_phone": "Nomor telepon yang ditampilkan di header PDF",
+				"company_website": "URL website yang ditampilkan di footer PDF",
+				"company_city": "Nama kota yang digunakan di baris tanggal dokumen",
+				"proposal_included_services": "Layanan yang disertakan dalam badan proposal — satu layanan per baris",
+				"proposal_signature_name": "Nama yang ditampilkan di blok tanda tangan proposal",
+				"proposal_signature_role": "Jabatan yang ditampilkan di blok tanda tangan proposal",
+				"invoice_bank_name": "Nama bank untuk instruksi transfer pembayaran",
+				"invoice_bank_account_number": "Nomor rekening bank untuk transfer pembayaran",
+				"invoice_bank_account_holder": "Nama pemilik rekening untuk transfer pembayaran",
+				"invoice_signature_name": "Nama yang ditampilkan di blok tanda tangan faktur",
+				"invoice_signature_role": "Jabatan yang ditampilkan di blok tanda tangan faktur"
 			}
 		},
 		"verify": {
