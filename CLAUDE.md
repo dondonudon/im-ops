@@ -26,7 +26,7 @@ React Server Components by default. Use `"use client"` only where interaction or
 - Supabase JS client: `src/lib/supabase/client.ts` (browser) and `src/lib/supabase/server.ts` (server)
 - Full DB types auto-generated into `src/lib/supabase/types.ts`
 - All currency stored as `BIGINT` (IDR, no decimals). Never use `FLOAT` or `DECIMAL` for money.
-- Migrations live in `supabase/migrations/` — 26 files, run in numeric order via Supabase SQL Editor
+- Schema lives in `supabase/migrations/001_consolidated_schema.sql` — single file, full end-state schema, safe to run on a fresh DB
 
 ---
 
@@ -260,7 +260,7 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 - eSign flow live: proposals use eSign exclusively (no handwritten signature pad); public `/verify/[token]` route for recipient verification
 - Revenue targets: monthly targets stored in `system_settings`, surfaced in `/today` and `/money`
 - Job status is now derived (`deriveJobStatus`) from `move_date` — no stored status states
-- Google Maps location input (`LocationInput`) on lead forms; coordinates stored in DB (`migration 020`)
+- Google Maps location input (`LocationInput`) on lead forms; coordinates stored in DB
 - GCal retry button (`GCalRetryButton`) wired on job + survey detail pages
 - Lead + proposal duplication buttons (`LeadDuplicateButton`, `ProposalDuplicateButton`) live on detail pages
 - Remaining: reports metrics gaps, manual dark-mode QA pass

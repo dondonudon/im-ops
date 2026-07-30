@@ -41,7 +41,7 @@ Built around workflows, not modules.
    Optional (Google Maps location input on lead forms):
    - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` — Maps JavaScript API key; input degrades gracefully without it
 
-3. Apply the database migrations in order via the Supabase SQL Editor
+3. Apply the schema via the Supabase SQL Editor — run the single file `supabase/migrations/001_consolidated_schema.sql` in one shot
 
 4. In Supabase Auth, enable the **Google** provider and add `http://localhost:3000/auth/callback` (and your prod URL) as redirect URLs.
 
@@ -150,7 +150,7 @@ src/
 │   └── utils.ts                formatRupiah, formatDate, resizeImage…
 └── middleware.ts               Auth gate
 
-supabase/migrations/            See "Quick start" step 3
+supabase/migrations/            001_consolidated_schema.sql — full end-state schema
 ```
 
 ## Workflow overview
@@ -195,7 +195,7 @@ Lead Intake  →  Survey (optional)  →  Estimation  →  Proposal
 - **Google Calendar** — one-way push for surveys + jobs (color-coded). Auth via a service account key (`GCAL_SERVICE_ACCOUNT_KEY`) — no token expiry. Editing or deleting in GCal does not sync back; IM Ops is the operational truth.
 - **WhatsApp** — deeplinks only (`wa.me/…?text=…`). No WhatsApp Business API. The operator taps a button, the OS opens WhatsApp with a pre-filled message, and the operator sends it from their own account.
 - **PDF** — `@react-pdf/renderer` for both proposals and invoices. Generated client-side, uploaded to Supabase Storage, URL persisted on the record.
-- **Storage buckets** — `lead-photos`, `survey-media`, `proposals`, `invoices`, `receipts` (all behind RLS; see migrations 009 and 014).
+- **Storage buckets** — `lead-photos`, `survey-media`, `proposals`, `invoices`, `job-media`, `receipts` (all behind RLS; `invoices` and `proposals` are private).
 
 ## Conventions
 
