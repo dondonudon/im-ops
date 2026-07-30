@@ -26,7 +26,7 @@ React Server Components by default. Use `"use client"` only where interaction or
 - Supabase JS client: `src/lib/supabase/client.ts` (browser) and `src/lib/supabase/server.ts` (server)
 - Full DB types auto-generated into `src/lib/supabase/types.ts`
 - All currency stored as `BIGINT` (IDR, no decimals). Never use `FLOAT` or `DECIMAL` for money.
-- Schema lives in `supabase/migrations/001_consolidated_schema.sql` — single file, full end-state schema, safe to run on a fresh DB
+- Schema lives in `supabase/migrations/` — numbered SQL files applied in order. The first migration is the consolidated base schema; later files layer changes on top. Running the full set on a fresh DB is safe.
 
 ---
 

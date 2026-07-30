@@ -41,7 +41,7 @@ Built around workflows, not modules.
    Optional (Google Maps location input on lead forms):
    - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` — Maps JavaScript API key; input degrades gracefully without it
 
-3. Apply the schema via the Supabase SQL Editor — run the single file `supabase/migrations/001_consolidated_schema.sql` in one shot
+3. Apply the schema via the Supabase SQL Editor — run the SQL files in `supabase/migrations/` in numeric order (the first is the consolidated base schema)
 
 4. In Supabase Auth, enable the **Google** provider and add `http://localhost:3000/auth/callback` (and your prod URL) as redirect URLs.
 
@@ -150,7 +150,7 @@ src/
 │   └── utils.ts                formatRupiah, formatDate, resizeImage…
 └── middleware.ts               Auth gate
 
-supabase/migrations/            001_consolidated_schema.sql — full end-state schema
+supabase/migrations/            numbered SQL migrations (run in numeric order)
 ```
 
 ## Workflow overview

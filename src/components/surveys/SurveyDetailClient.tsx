@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { NumericInput } from "@/components/shared/NumericInput";
 import { type LightboxPhoto, PhotoLightbox } from "@/components/shared/PhotoLightbox";
 import { Button, Card, FormError } from "@/components/ui";
@@ -59,6 +59,37 @@ export function SurveyDetailClient({
 		Array.isArray(initial.special_items) ? initial.special_items : [],
 	);
 	const [media, setMedia] = useState<MediaRow[]>(initialMedia);
+
+	// Signed URLs for survey media — the bucket is private (no public URLs).
+	const mediaClient = useMemo(() => createClient(), []);
+	const [mediaUrls, setMediaUrls] = useState<Map<string, string>>(new Map());
+	const urlCache = useRef<Map<string, { url: string; expiresAt: number }>>(new Map());
+	useEffect(() => {
+		if (media.length === 0) return;
+		let cancelled = false;
+		async function refresh() {
+			const TTL = 3600;
+			const now = Date.now();
+			const entries = await Promise.all(
+				media.map(async (m) => {
+					const cached = urlCache.current.get(m.storage_path);
+					if (cached && cached.expiresAt > now + 60_000)
+						return [m.storage_path, cached.url] as const;
+					const { data } = await mediaClient.storage
+						.from("survey-media")
+						.createSignedUrl(m.storage_path, TTL);
+					const url = data?.signedUrl ?? "";
+					if (url) urlCache.current.set(m.storage_path, { url, expiresAt: now + TTL * 1000 });
+					return [m.storage_path, url] as const;
+				}),
+			);
+			if (!cancelled) setMediaUrls(new Map(entries));
+		}
+		refresh();
+		return () => {
+			cancelled = true;
+		};
+	}, [media, mediaClient]);
 
 	const [saving, setSaving] = useState(false);
 	const [uploading, setUploading] = useState(false);
@@ -312,22 +343,21 @@ export function SurveyDetailClient({
 						>
 							{(showAllMedia ? media : media.slice(0, 8)).map((m) => {
 								const actualIndex = media.indexOf(m);
-								const supabase = createClient();
-								const { data: urlData } = supabase.storage
-									.from("survey-media")
-									.getPublicUrl(m.storage_path);
+								const url = mediaUrls.get(m.storage_path);
 								return (
 									<li
 										key={m.id}
 										className="relative group rounded-xl overflow-hidden aspect-square bg-subtle"
 									>
-										<Image
-											src={urlData.publicUrl}
-											alt={m.caption ?? t("photoAlt")}
-											fill
-											sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-											className="object-cover transition-transform duration-200 group-hover:scale-105"
-										/>
+										{url && (
+											<Image
+												src={url}
+												alt={m.caption ?? t("photoAlt")}
+												fill
+												sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+												className="object-cover transition-transform duration-200 group-hover:scale-105"
+											/>
+										)}
 										<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
 										<button
 											type="button"
@@ -369,10 +399,8 @@ export function SurveyDetailClient({
 				{/* Lightbox */}
 				{lightboxIndex !== null &&
 					(() => {
-						const supabase = createClient();
 						const lightboxPhotos: LightboxPhoto[] = media.map((m) => ({
-							src: supabase.storage.from("survey-media").getPublicUrl(m.storage_path).data
-								.publicUrl,
+							src: mediaUrls.get(m.storage_path) ?? "",
 							alt: m.caption ?? t("photoAlt"),
 							caption: m.caption,
 						}));

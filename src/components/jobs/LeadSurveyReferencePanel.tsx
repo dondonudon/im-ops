@@ -78,14 +78,34 @@ export function LeadSurveyReferencePanel({
 	const [showAllSurveyPhotos, setShowAllSurveyPhotos] = useState(false);
 	const [surveyLightboxIdx, setSurveyLightboxIdx] = useState<number | null>(null);
 
-	// Public URLs for survey photos — getPublicUrl is synchronous
-	const surveyPhotoUrls = useMemo(() => {
-		const map = new Map<string, string>();
-		for (const m of surveyPhotos) {
-			const { data } = supabase.storage.from("survey-media").getPublicUrl(m.storage_path);
-			map.set(m.storage_path, data.publicUrl);
+	// Signed URLs for survey photos — the bucket is private (no public URLs).
+	const [surveyPhotoUrls, setSurveyPhotoUrls] = useState<Map<string, string>>(new Map());
+	useEffect(() => {
+		if (surveyPhotos.length === 0) return;
+		let cancelled = false;
+		async function refresh() {
+			const TTL = 3600;
+			const now = Date.now();
+			const entries = await Promise.all(
+				surveyPhotos.map(async (m) => {
+					const cacheKey = `survey-media:${m.storage_path}`;
+					const cached = urlCache.current.get(cacheKey);
+					if (cached && cached.expiresAt > now + 60_000)
+						return [m.storage_path, cached.url] as const;
+					const { data } = await supabase.storage
+						.from("survey-media")
+						.createSignedUrl(m.storage_path, TTL);
+					const url = data?.signedUrl ?? "";
+					if (url) urlCache.current.set(cacheKey, { url, expiresAt: now + TTL * 1000 });
+					return [m.storage_path, url] as const;
+				}),
+			);
+			if (!cancelled) setSurveyPhotoUrls(new Map(entries));
 		}
-		return map;
+		refresh();
+		return () => {
+			cancelled = true;
+		};
 	}, [surveyPhotos, supabase]);
 
 	// Fetch signed URLs for lead photos

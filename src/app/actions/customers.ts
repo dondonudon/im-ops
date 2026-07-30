@@ -2,6 +2,7 @@
 
 import type { CustomerDuplicate } from "@/lib/customerDuplicates";
 import { createClient } from "@/lib/supabase/server";
+import { sanitizeSearch } from "@/lib/utils";
 
 function normalizePhone(value: string | null | undefined): string {
 	const digits = (value ?? "").replace(/\D/g, "");
@@ -30,10 +31,18 @@ export async function checkDuplicateCustomer(input: {
 
 	if (!normalizedPhone && !normalizedName) return null;
 
-	// Build a filter that matches either phone or name candidates
+	// Build a filter that matches either phone or name candidates.
+	// The name is interpolated into a PostgREST `.or()` filter string, so it must be
+	// run through sanitizeSearch to neutralize filter-injection chars `(`, `)`, `,`
+	// and escape ILIKE wildcards. (Phone is already digit-normalized, so it's safe.)
 	const filters: string[] = [];
 	if (normalizedPhone) filters.push(`phone.eq.${normalizedPhone}`);
-	if (normalizedName) filters.push(`name.ilike.${normalizedName}`);
+	if (normalizedName) {
+		const safeName = sanitizeSearch(normalizedName);
+		if (safeName) filters.push(`name.ilike.%${safeName}%`);
+	}
+
+	if (filters.length === 0) return null;
 
 	const { data, error } = await supabase
 		.from("customers")

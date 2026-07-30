@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { NumericInput } from "@/components/shared/NumericInput";
 import { Badge, Button, Card, CardHeader, Field, FormError, Input } from "@/components/ui";
 import {
@@ -65,6 +65,38 @@ export function ExpensePanel({
 	const tJobDetail = useTranslations("pages.jobDetail");
 	const [isPending, startTransition] = useTransition();
 	const [expenses, setExpenses] = useState(initial);
+
+	// Signed URLs for receipts — the bucket is private (no public URLs). Keyed by
+	// expense id. New rows store a bare storage path in receipt_url; legacy rows
+	// store a full public URL, so receiptStoragePath() normalizes both.
+	const receiptClient = useMemo(() => createClient(), []);
+	const [receiptUrls, setReceiptUrls] = useState<Map<string, string>>(new Map());
+	const receiptUrlCache = useRef<Map<string, { url: string; expiresAt: number }>>(new Map());
+	useEffect(() => {
+		const withReceipts = expenses.filter((e) => e.receipt_url);
+		if (withReceipts.length === 0) return;
+		let cancelled = false;
+		async function refresh() {
+			const TTL = 3600;
+			const now = Date.now();
+			const entries = await Promise.all(
+				withReceipts.map(async (e) => {
+					const path = receiptStoragePath(e.receipt_url as string);
+					const cached = receiptUrlCache.current.get(path);
+					if (cached && cached.expiresAt > now + 60_000) return [e.id, cached.url] as const;
+					const { data } = await receiptClient.storage.from("receipts").createSignedUrl(path, TTL);
+					const url = data?.signedUrl ?? "";
+					if (url) receiptUrlCache.current.set(path, { url, expiresAt: now + TTL * 1000 });
+					return [e.id, url] as const;
+				}),
+			);
+			if (!cancelled) setReceiptUrls(new Map(entries));
+		}
+		refresh();
+		return () => {
+			cancelled = true;
+		};
+	}, [expenses, receiptClient]);
 	const [form, setForm] = useState({
 		amount: "",
 		category: "Fuel",
@@ -158,17 +190,17 @@ export function ExpensePanel({
 
 			if (editReceiptFile) {
 				if (currentExpense?.receipt_url) {
-					const oldPath = extractStoragePath(currentExpense.receipt_url);
+					const oldPath = receiptStoragePath(currentExpense.receipt_url);
 					if (oldPath) await supabase.storage.from("receipts").remove([oldPath]);
 				}
 				const resized = await resizeImage(editReceiptFile);
-				const path = `${jobId}/${Date.now()}.webp`;
+				const path = `${jobId}/${crypto.randomUUID()}.webp`;
 				const { error: uploadErr } = await supabase.storage.from("receipts").upload(path, resized);
 				if (uploadErr) throw uploadErr;
-				const { data: urlData } = supabase.storage.from("receipts").getPublicUrl(path);
-				receipt_url = urlData.publicUrl;
+				// Store the bare storage path; the bucket is private, reads sign on demand.
+				receipt_url = path;
 			} else if (editReceiptRemove && currentExpense?.receipt_url) {
-				const oldPath = extractStoragePath(currentExpense.receipt_url);
+				const oldPath = receiptStoragePath(currentExpense.receipt_url);
 				if (oldPath) await supabase.storage.from("receipts").remove([oldPath]);
 				receipt_url = null;
 			}
@@ -273,11 +305,11 @@ export function ExpensePanel({
 
 			if (receiptFile) {
 				const resized = await resizeImage(receiptFile);
-				const path = `${jobId}/${Date.now()}.webp`;
+				const path = `${jobId}/${crypto.randomUUID()}.webp`;
 				const { error: uploadErr } = await supabase.storage.from("receipts").upload(path, resized);
 				if (uploadErr) throw uploadErr;
-				const { data: urlData } = supabase.storage.from("receipts").getPublicUrl(path);
-				receipt_url = urlData.publicUrl;
+				// Store the bare storage path; the bucket is private, reads sign on demand.
+				receipt_url = path;
 			}
 
 			const { data, error: insertErr } = await supabase
@@ -477,6 +509,7 @@ export function ExpensePanel({
 						const isPendingItem = e.id.startsWith("pending:");
 						const isEditing = editingId === e.id;
 						const isDeleting = deletingId === e.id;
+						const receiptUrl = receiptUrls.get(e.id);
 
 						if (isEditing) {
 							return (
@@ -571,17 +604,21 @@ export function ExpensePanel({
 											<div className="mb-2 rounded-lg overflow-hidden border border-line bg-subtle">
 												<button
 													type="button"
-													onClick={() => setLightboxUrl(e.receipt_url)}
+													onClick={() => receiptUrl && setLightboxUrl(receiptUrl)}
 													className="block w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 													aria-label={tExpense("viewReceipt")}
 												>
-													<Image
-														src={e.receipt_url}
-														alt={tExpense("viewReceipt")}
-														width={600}
-														height={400}
-														className="w-full max-h-48 object-contain"
-													/>
+													{receiptUrl ? (
+														<Image
+															src={receiptUrl}
+															alt={tExpense("viewReceipt")}
+															width={600}
+															height={400}
+															className="w-full max-h-48 object-contain"
+														/>
+													) : (
+														<div className="w-full h-24 animate-pulse bg-subtle" />
+													)}
 												</button>
 												<div className="flex items-center gap-2 px-3 py-1.5">
 													<span className="text-xs text-ink-faint flex-1">
@@ -664,22 +701,25 @@ export function ExpensePanel({
 								<div className="flex items-start justify-between px-4 py-3 gap-3">
 									<div className="flex items-start gap-3 min-w-0">
 										{/* Receipt thumbnail */}
-										{e.receipt_url && (
-											<button
-												type="button"
-												onClick={() => setLightboxUrl(e.receipt_url)}
-												aria-label={tExpense("viewReceipt")}
-												className="shrink-0 rounded overflow-hidden border border-line w-10 h-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
-											>
-												<Image
-													src={e.receipt_url}
-													alt={tExpense("viewReceipt")}
-													width={40}
-													height={40}
-													className="w-10 h-10 object-cover"
-												/>
-											</button>
-										)}
+										{e.receipt_url &&
+											(receiptUrl ? (
+												<button
+													type="button"
+													onClick={() => setLightboxUrl(receiptUrl)}
+													aria-label={tExpense("viewReceipt")}
+													className="shrink-0 rounded overflow-hidden border border-line w-10 h-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+												>
+													<Image
+														src={receiptUrl}
+														alt={tExpense("viewReceipt")}
+														width={40}
+														height={40}
+														className="w-10 h-10 object-cover"
+													/>
+												</button>
+											) : (
+												<div className="shrink-0 rounded border border-line w-10 h-10 animate-pulse bg-subtle" />
+											))}
 										<div className="min-w-0">
 											<span className="font-medium text-ink">
 												{CATEGORY_KEY_BY_VALUE[e.category]
@@ -829,10 +869,15 @@ function todayISO() {
 	return new Date().toISOString().slice(0, 10);
 }
 
-function extractStoragePath(url: string): string | null {
+/**
+ * Normalizes a stored `receipt_url` to a bucket-relative storage path.
+ * New rows store a bare path (e.g. "<jobId>/<uuid>.webp"); legacy rows store a
+ * full public URL containing "/receipts/". Handles both.
+ */
+function receiptStoragePath(value: string): string {
 	const marker = "/receipts/";
-	const idx = url.indexOf(marker);
-	return idx !== -1 ? url.slice(idx + marker.length) : null;
+	const idx = value.indexOf(marker);
+	return idx !== -1 ? value.slice(idx + marker.length) : value;
 }
 
 function PencilIcon() {
