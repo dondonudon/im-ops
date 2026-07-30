@@ -795,13 +795,17 @@ CREATE INDEX IF NOT EXISTS idx_invoices_number_trgm     ON invoices  USING GIN (
 -- STORAGE BUCKETS + POLICIES
 -- ============================================================
 
+-- All buckets are PRIVATE. Objects hold customer PII (lead/survey home photos,
+-- job media) and financial records (receipts), so they must never be reachable
+-- via the unauthenticated /object/public/ path. Reads go through short-TTL
+-- signed URLs; the authenticated_* RLS policies below gate access.
 INSERT INTO storage.buckets (id, name, public) VALUES
-  ('lead-photos',  'lead-photos',  true),
-  ('survey-media', 'survey-media', true),
+  ('lead-photos',  'lead-photos',  false),
+  ('survey-media', 'survey-media', false),
   ('invoices',     'invoices',     false),
   ('proposals',    'proposals',    false),
-  ('job-media',    'job-media',    true),
-  ('receipts',     'receipts',     true)
+  ('job-media',    'job-media',    false),
+  ('receipts',     'receipts',     false)
 ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
 
 DO $$
