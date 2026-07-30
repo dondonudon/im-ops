@@ -75,10 +75,16 @@ export default async function JobsPage({
 	let jobs: JobRow[] = [];
 	let count: number | null = null;
 	let boardColumns: Map<string, JobRow[]> | null = null;
+	let boardOlderDone = 0;
+	let boardOlderCancelled = 0;
 
 	if (view === "board") {
+		const cutoff = new Date();
+		cutoff.setDate(cutoff.getDate() - 60);
+		const cutoffDate = cutoff.toISOString().slice(0, 10);
+
 		// Each column maps to a different DB query since status is now derived from move_date.
-		const boardQueries = [
+		const [upcoming, todayCol, done, cancelled, olderDone, olderCancelled] = await Promise.all([
 			supabase
 				.from("jobs")
 				.select(BOARD_COLS_SELECT)
@@ -98,17 +104,35 @@ export default async function JobsPage({
 				.select(BOARD_COLS_SELECT)
 				.eq("status", "scheduled")
 				.lt("move_date", today)
+				.gte("move_date", cutoffDate)
 				.order("move_date", { ascending: false })
 				.limit(BOARD_PER_COL),
 			supabase
 				.from("jobs")
 				.select(BOARD_COLS_SELECT)
 				.eq("status", "cancelled")
+				.gte("move_date", cutoffDate)
 				.order("move_date", { ascending: false })
 				.limit(BOARD_PER_COL),
-		];
-		const cols = await Promise.all(boardQueries);
-		boardColumns = new Map(BOARD_STATUSES.map((s, i) => [s, (cols[i].data ?? []) as JobRow[]]));
+			supabase
+				.from("jobs")
+				.select("*", { count: "exact", head: true })
+				.eq("status", "scheduled")
+				.lt("move_date", cutoffDate),
+			supabase
+				.from("jobs")
+				.select("*", { count: "exact", head: true })
+				.eq("status", "cancelled")
+				.lt("move_date", cutoffDate),
+		]);
+		boardColumns = new Map([
+			["upcoming", (upcoming.data ?? []) as JobRow[]],
+			["today", (todayCol.data ?? []) as JobRow[]],
+			["done", (done.data ?? []) as JobRow[]],
+			["cancelled", (cancelled.data ?? []) as JobRow[]],
+		]);
+		boardOlderDone = olderDone.count ?? 0;
+		boardOlderCancelled = olderCancelled.count ?? 0;
 	} else {
 		const from = (page - 1) * PAGE_SIZE;
 		let query = supabase
@@ -215,6 +239,22 @@ export default async function JobsPage({
 											{items.length >= BOARD_PER_COL && "+"}
 										</span>
 									</div>
+									{s === "done" && boardOlderDone > 0 && (
+										<Link
+											href="/jobs?view=list&status=done"
+											className="text-[11px] font-medium text-ink-faint hover:text-ink shrink-0"
+										>
+											+{boardOlderDone} {t("older")}
+										</Link>
+									)}
+									{s === "cancelled" && boardOlderCancelled > 0 && (
+										<Link
+											href="/jobs?view=list&status=cancelled"
+											className="text-[11px] font-medium text-ink-faint hover:text-ink shrink-0"
+										>
+											+{boardOlderCancelled} {t("older")}
+										</Link>
+									)}
 									{colRevenue > 0 && (
 										<span className="text-[11px] font-semibold text-ink-muted tabular-nums shrink-0">
 											{formatRupiah(colRevenue)}

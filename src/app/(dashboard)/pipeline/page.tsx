@@ -1,4 +1,4 @@
-import { CircleSlash } from "lucide-react";
+import { Briefcase, CircleSlash } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import type { Stage } from "@/app/(dashboard)/pipeline/actions";
@@ -23,8 +23,6 @@ function stageOf(status: string): Stage | null {
 			return "estimate";
 		case "proposal_sent":
 			return "proposal";
-		case "converted":
-			return "won";
 		default:
 			return null;
 	}
@@ -59,21 +57,26 @@ export default async function PipelinePage() {
 	const t = await getTranslations("pipeline");
 	const supabase = await createClient();
 
-	const [{ data: leadsData }, { count: lostCount }] = await Promise.all([
-		(() => {
-			const cutoff = new Date();
-			cutoff.setMonth(cutoff.getMonth() - 18);
-			return supabase
-				.from("leads")
-				.select(
-					"id, status, pickup_address, destination_address, destination_address_2, preferred_date, created_at, customers(name, type), proposals(final_price, status)",
-				)
-				.neq("status", "closed_lost")
-				.gte("created_at", cutoff.toISOString())
-				.order("created_at", { ascending: false })
-				.limit(200);
-		})(),
+	const cutoff = new Date();
+	cutoff.setDate(cutoff.getDate() - 60);
+
+	const [{ data: leadsData }, { count: lostCount }, { count: wonCount }] = await Promise.all([
+		supabase
+			.from("leads")
+			.select(
+				"id, status, pickup_address, destination_address, destination_address_2, preferred_date, created_at, customers(name, type), proposals(final_price, status)",
+			)
+			.neq("status", "closed_lost")
+			.neq("status", "converted")
+			.gte("created_at", cutoff.toISOString())
+			.order("created_at", { ascending: false })
+			.limit(200),
 		supabase.from("leads").select("*", { count: "exact", head: true }).eq("status", "closed_lost"),
+		supabase
+			.from("leads")
+			.select("*", { count: "exact", head: true })
+			.eq("status", "converted")
+			.gte("created_at", cutoff.toISOString()),
 	]);
 
 	const leads = (leadsData ?? []) as LeadRow[];
@@ -83,7 +86,6 @@ export default async function PipelinePage() {
 		survey: [],
 		estimate: [],
 		proposal: [],
-		won: [],
 	};
 	for (const lead of leads) {
 		const stage = stageOf(lead.status);
@@ -109,14 +111,27 @@ export default async function PipelinePage() {
 				title={t("title")}
 				subtitle={t("subtitle", { count: leads.length })}
 				actions={
-					(lostCount ?? 0) > 0 ? (
-						<Link
-							href="/leads?status=closed_lost"
-							className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-ink"
-						>
-							<CircleSlash size={13} />
-							{t("lostCount", { count: lostCount ?? 0 })}
-						</Link>
+					(lostCount ?? 0) > 0 || (wonCount ?? 0) > 0 ? (
+						<div className="flex items-center gap-3">
+							{(wonCount ?? 0) > 0 && (
+								<Link
+									href="/jobs"
+									className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-ink"
+								>
+									<Briefcase size={13} />
+									{t("wonCount", { count: wonCount ?? 0 })}
+								</Link>
+							)}
+							{(lostCount ?? 0) > 0 && (
+								<Link
+									href="/leads?status=closed_lost"
+									className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-ink"
+								>
+									<CircleSlash size={13} />
+									{t("lostCount", { count: lostCount ?? 0 })}
+								</Link>
+							)}
+						</div>
 					) : undefined
 				}
 			/>

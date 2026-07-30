@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-export type Stage = "new" | "survey" | "estimate" | "proposal" | "won";
+export type Stage = "new" | "survey" | "estimate" | "proposal";
 
 export type AdvanceResult =
 	| { ok: true; status: string }
 	| {
 			ok: false;
-			reason: "needs_survey" | "needs_proposal" | "needs_job" | "error";
+			reason: "needs_survey" | "needs_proposal" | "error";
 	  };
 
 /**
@@ -36,21 +36,11 @@ export async function advanceLead(leadId: string, toStage: Stage): Promise<Advan
 	if (leadErr || !lead) return { ok: false, reason: "error" };
 
 	const proposals = proposalsData ?? [];
-	const proposalIds = proposals.map((p) => p.id);
 	const hasNonTerminalProposal = proposals.some((p) =>
 		["draft", "sent", "negotiating", "approved"].includes(p.status),
 	);
 
-	let jobCount = 0;
-	if (proposalIds.length > 0) {
-		const { count } = await supabase
-			.from("jobs")
-			.select("*", { count: "exact", head: true })
-			.in("proposal_id", proposalIds);
-		jobCount = count ?? 0;
-	}
-
-	let newStatus: "new" | "survey_scheduled" | "estimating" | "proposal_sent" | "converted";
+	let newStatus: "new" | "survey_scheduled" | "estimating" | "proposal_sent";
 	switch (toStage) {
 		case "new":
 			newStatus = "new";
@@ -90,12 +80,6 @@ export async function advanceLead(leadId: string, toStage: Stage): Promise<Advan
 		case "proposal": {
 			if (!hasNonTerminalProposal) return { ok: false, reason: "needs_proposal" };
 			newStatus = "proposal_sent";
-			break;
-		}
-
-		case "won": {
-			if (jobCount === 0) return { ok: false, reason: "needs_job" };
-			newStatus = "converted";
 			break;
 		}
 

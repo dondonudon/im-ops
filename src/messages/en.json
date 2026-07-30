@@ -44,8 +44,9 @@
 	},
 	"pipeline": {
 		"title": "Pipeline",
-		"subtitle": "{count} active deal(s) in the funnel",
+		"subtitle": "{count} active deal(s) in the last 60 days",
 		"lostCount": "{count} lost",
+		"wonCount": "{count} converted",
 		"pipelineValue": "Pipeline value",
 		"empty": "No active deals.",
 		"emptyHint": "New leads will appear here as they come in.",
@@ -55,13 +56,11 @@
 			"new": "New",
 			"survey": "Survey",
 			"estimate": "Estimate",
-			"proposal": "Proposal",
-			"won": "Won"
+			"proposal": "Proposal"
 		},
 		"notices": {
 			"needs_survey": "Schedule a survey from the lead first.",
 			"needs_proposal": "Create a proposal for this lead first.",
-			"needs_job": "Convert the approved proposal to a job first.",
 			"error": "Couldn't move that deal. Please try again."
 		}
 	},
@@ -380,7 +379,8 @@
 			"viewList": "List",
 			"viewBoard": "Board",
 			"filterFrom": "From",
-			"filterTo": "To"
+			"filterTo": "To",
+			"older": "older"
 		},
 		"proposals": {
 			"title": "Proposals",

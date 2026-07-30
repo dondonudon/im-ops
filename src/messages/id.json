@@ -44,8 +44,9 @@
 	},
 	"pipeline": {
 		"title": "Pipeline",
-		"subtitle": "{count} transaksi aktif dalam funnel",
+		"subtitle": "{count} transaksi aktif (60 hari terakhir)",
 		"lostCount": "{count} hilang",
+		"wonCount": "{count} terkonversi",
 		"pipelineValue": "Nilai pipeline",
 		"empty": "Belum ada transaksi aktif.",
 		"emptyHint": "Prospek baru akan muncul di sini.",
@@ -55,13 +56,11 @@
 			"new": "Baru",
 			"survey": "Survei",
 			"estimate": "Estimasi",
-			"proposal": "Proposal",
-			"won": "Menang"
+			"proposal": "Proposal"
 		},
 		"notices": {
 			"needs_survey": "Jadwalkan survei dari prospek terlebih dahulu.",
 			"needs_proposal": "Buat proposal untuk prospek ini terlebih dahulu.",
-			"needs_job": "Konversi proposal yang disetujui menjadi pekerjaan dahulu.",
 			"error": "Gagal memindahkan transaksi. Coba lagi."
 		}
 	},
@@ -380,7 +379,8 @@
 			"viewList": "Daftar",
 			"viewBoard": "Papan",
 			"filterFrom": "Dari",
-			"filterTo": "Sampai"
+			"filterTo": "Sampai",
+			"older": "lainnya"
 		},
 		"proposals": {
 			"title": "Proposal",
