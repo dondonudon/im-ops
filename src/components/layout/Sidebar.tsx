@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useNavFeedback } from "@/lib/useNavFeedback";
 import { cn } from "@/lib/utils";
@@ -97,11 +98,18 @@ export function Sidebar({
 	const t = useTranslations("nav");
 	const tTopbar = useTranslations("topbar");
 	const { clicked, onNavClick } = useNavFeedback();
+	const [loggingOut, setLoggingOut] = useState(false);
 
 	async function handleLogout() {
-		const supabase = createClient();
-		await supabase.auth.signOut();
-		router.push("/login");
+		if (loggingOut) return;
+		setLoggingOut(true);
+		try {
+			const supabase = createClient();
+			await supabase.auth.signOut();
+			router.push("/login");
+		} finally {
+			setLoggingOut(false);
+		}
 	}
 
 	function NavLink({ item }: { item: NavItem }) {
@@ -205,15 +213,20 @@ export function Sidebar({
 				<button
 					type="button"
 					onClick={handleLogout}
+					disabled={loggingOut}
 					title={collapsed ? t("signOut") : undefined}
 					className={cn(
-						"flex items-center rounded-lg text-sm font-medium text-ink-muted hover:bg-subtle hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] w-full",
+						"flex items-center rounded-lg text-sm font-medium text-ink-muted hover:bg-subtle hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] w-full disabled:opacity-50 disabled:pointer-events-none",
 						collapsed
 							? "md:justify-center md:w-10 md:h-10 md:mx-auto gap-2.5 px-3 py-2"
 							: "gap-2.5 px-3 py-2",
 					)}
 				>
-					<LogOut size={16} aria-hidden="true" />
+					{loggingOut ? (
+						<Loader2 size={16} className="animate-spin shrink-0" aria-hidden="true" />
+					) : (
+						<LogOut size={16} aria-hidden="true" />
+					)}
 					<span className={cn(collapsed && "md:hidden")}>{t("signOut")}</span>
 				</button>
 			</div>

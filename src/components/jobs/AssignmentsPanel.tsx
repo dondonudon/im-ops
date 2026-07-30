@@ -1,4 +1,5 @@
 "use client";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -38,11 +39,13 @@ export function AssignmentsPanel({
 	const t = useTranslations("panels.assignments");
 	const tCommonButtons = useTranslations("common.buttons");
 	const tCommonHints = useTranslations("common.hints");
-	const [isPending, startTransition] = useTransition();
+	const [_isPending, startTransition] = useTransition();
 	const [assignments, setAssignments] = useState(initialAssignments);
 	const [showModal, setShowModal] = useState(false);
 	const [overlap, setOverlap] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [adding, setAdding] = useState(false);
+	const [removingId, setRemovingId] = useState<string | null>(null);
 
 	const [form, setForm] = useState({
 		type: "fleet" as "fleet" | "crew",
@@ -55,60 +58,71 @@ export function AssignmentsPanel({
 		if (!form.resourceId) return;
 		setOverlap(null);
 		setError(null);
-
-		const supabase = createClient();
-
-		// Check overlap if we have a move date
-		if (moveDate) {
-			const { data: conflicts } = await supabase.rpc("check_resource_overlap", {
-				p_type: form.type,
-				p_id: form.resourceId,
-				p_date: moveDate,
-			});
-			if (conflicts && (conflicts as unknown[]).length > 0) {
-				setOverlap(
-					t("overlapWarning", {
-						type: form.type === "fleet" ? t("fleetLabel") : t("crewLabel"),
-						date: moveDate,
-					}),
-				);
-				return;
+		setAdding(true);
+		try {
+			const supabase = createClient();
+			if (moveDate) {
+				const { data: conflicts } = await supabase.rpc("check_resource_overlap", {
+					p_type: form.type,
+					p_id: form.resourceId,
+					p_date: moveDate,
+				});
+				if (conflicts && (conflicts as unknown[]).length > 0) {
+					setOverlap(
+						t("overlapWarning", {
+							type: form.type === "fleet" ? t("fleetLabel") : t("crewLabel"),
+							date: moveDate,
+						}),
+					);
+					return;
+				}
 			}
+			await commitAdd();
+		} finally {
+			setAdding(false);
 		}
-
-		await commitAdd();
 	}
 
 	async function commitAdd() {
-		const supabase = createClient();
-		const { data, error: err } = await supabase
-			.from("job_assignments")
-			.insert({
-				job_id: jobId,
-				assignment_type: form.type,
-				fleet_id: form.type === "fleet" ? form.resourceId : null,
-				crew_id: form.type === "crew" ? form.resourceId : null,
-				role: form.role.trim() || null,
-			})
-			.select("id, assignment_type, role, fleet(name), crew(name)")
-			.single();
+		setAdding(true);
+		try {
+			const supabase = createClient();
+			const { data, error: err } = await supabase
+				.from("job_assignments")
+				.insert({
+					job_id: jobId,
+					assignment_type: form.type,
+					fleet_id: form.type === "fleet" ? form.resourceId : null,
+					crew_id: form.type === "crew" ? form.resourceId : null,
+					role: form.role.trim() || null,
+				})
+				.select("id, assignment_type, role, fleet(name), crew(name)")
+				.single();
 
-		if (err) {
-			setError(err.message);
-			return;
+			if (err) {
+				setError(err.message);
+				return;
+			}
+			setAssignments((p) => [...p, data as Assignment]);
+			setOverlap(null);
+			setShowModal(false);
+			setForm({ type: "fleet", resourceId: "", role: "" });
+			startTransition(() => router.refresh());
+		} finally {
+			setAdding(false);
 		}
-		setAssignments((p) => [...p, data as Assignment]);
-		setOverlap(null);
-		setShowModal(false);
-		setForm({ type: "fleet", resourceId: "", role: "" });
-		startTransition(() => router.refresh());
 	}
 
 	async function handleRemove(assignmentId: string) {
-		const supabase = createClient();
-		await supabase.from("job_assignments").delete().eq("id", assignmentId);
-		setAssignments((p) => p.filter((a) => a.id !== assignmentId));
-		startTransition(() => router.refresh());
+		setRemovingId(assignmentId);
+		try {
+			const supabase = createClient();
+			await supabase.from("job_assignments").delete().eq("id", assignmentId);
+			setAssignments((p) => p.filter((a) => a.id !== assignmentId));
+			startTransition(() => router.refresh());
+		} finally {
+			setRemovingId(null);
+		}
 	}
 
 	const options = form.type === "fleet" ? fleetList : crewList;
@@ -144,11 +158,15 @@ export function AssignmentsPanel({
 							<button
 								type="button"
 								onClick={() => handleRemove(a.id)}
-								disabled={isPending}
+								disabled={removingId === a.id}
 								aria-label={t("removeAria", { name: name ?? "" })}
-								className="text-danger hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded text-xs disabled:opacity-40 disabled:pointer-events-none"
+								className="text-danger hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded text-xs disabled:opacity-40 disabled:pointer-events-none flex items-center gap-1"
 							>
-								{t("remove")}
+								{removingId === a.id ? (
+									<Loader2 size={12} className="animate-spin" aria-hidden="true" />
+								) : (
+									t("remove")
+								)}
 							</button>
 						</div>
 					);
@@ -175,7 +193,13 @@ export function AssignmentsPanel({
 							>
 								{overlap}
 								<div className="mt-2 flex gap-2">
-									<Button type="button" variant="subtle" size="sm" onClick={commitAdd}>
+									<Button
+										type="button"
+										variant="subtle"
+										size="sm"
+										loading={adding}
+										onClick={commitAdd}
+									>
 										{tCommonButtons("addAnyway")}
 									</Button>
 									<Button type="button" variant="ghost" size="sm" onClick={() => setOverlap(null)}>
@@ -250,7 +274,7 @@ export function AssignmentsPanel({
 								<div className="flex gap-2">
 									<Button
 										type="submit"
-										loading={isPending}
+										loading={adding}
 										variant="primary"
 										size="md"
 										className="flex-1"

@@ -1,15 +1,15 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { Button } from "@/components/ui";
 
 import { createClient } from "@/lib/supabase/client";
 
-/**
- * Login page — Google OAuth only.
- * Accessible by unauthenticated users.
- */
 export default function LoginPage() {
+	const [loading, setLoading] = useState(false);
+
 	async function handleGoogleLogin() {
+		setLoading(true);
 		const supabase = createClient();
 		await supabase.auth.signInWithOAuth({
 			provider: "google",
@@ -17,6 +17,7 @@ export default function LoginPage() {
 				redirectTo: `${window.location.origin}/auth/callback`,
 			},
 		});
+		// stays true until OAuth redirect navigates away
 	}
 
 	return (
@@ -37,6 +38,7 @@ export default function LoginPage() {
 					<Button
 						type="button"
 						onClick={handleGoogleLogin}
+						loading={loading}
 						variant="secondary"
 						size="lg"
 						className="w-full"

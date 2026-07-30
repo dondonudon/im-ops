@@ -1,5 +1,5 @@
 "use client";
-import { Upload, X, ZoomIn } from "lucide-react";
+import { Loader2, Upload, X, ZoomIn } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
@@ -36,6 +36,7 @@ export function LeadPhotoGallery({
 	const tErrors = useTranslations("common.errors");
 	const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
 	const [uploading, setUploading] = useState(false);
+	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 	const [showAll, setShowAll] = useState(false);
@@ -116,9 +117,14 @@ export function LeadPhotoGallery({
 	}
 
 	async function handleDelete(photo: Photo) {
-		await supabase.storage.from("lead-photos").remove([photo.storage_path]);
-		await supabase.from("lead_photos").delete().eq("id", photo.id);
-		setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+		setDeletingId(photo.id);
+		try {
+			await supabase.storage.from("lead-photos").remove([photo.storage_path]);
+			await supabase.from("lead_photos").delete().eq("id", photo.id);
+			setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+		} finally {
+			setDeletingId(null);
+		}
 	}
 
 	return (
@@ -201,10 +207,15 @@ export function LeadPhotoGallery({
 											<button
 												type="button"
 												onClick={() => handleDelete(photo)}
-												className="absolute top-1.5 right-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-opacity z-10"
+												disabled={deletingId === photo.id}
+												className="absolute top-1.5 right-1.5 rounded-full bg-black/60 p-1 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-opacity z-10 disabled:opacity-70"
 												aria-label={t("deletePhoto")}
 											>
-												<X size={12} aria-hidden="true" />
+												{deletingId === photo.id ? (
+													<Loader2 size={12} className="animate-spin" aria-hidden="true" />
+												) : (
+													<X size={12} aria-hidden="true" />
+												)}
 											</button>
 										</>
 									) : (

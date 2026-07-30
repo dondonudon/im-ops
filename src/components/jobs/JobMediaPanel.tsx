@@ -30,6 +30,7 @@ export function JobMediaPanel({
 	const tErrors = useTranslations("errors");
 	const [media, setMedia] = useState<MediaRow[]>(initialMedia);
 	const [uploading, setUploading] = useState(false);
+	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 	const [showAll, setShowAll] = useState(false);
@@ -171,9 +172,14 @@ export function JobMediaPanel({
 	}
 
 	async function removeMedia(id: string, storagePath: string) {
-		await supabase.storage.from("job-media").remove([storagePath]);
-		await supabase.from("job_media").delete().eq("id", id);
-		setMedia((prev) => prev.filter((m) => m.id !== id));
+		setDeletingId(id);
+		try {
+			await supabase.storage.from("job-media").remove([storagePath]);
+			await supabase.from("job_media").delete().eq("id", id);
+			setMedia((prev) => prev.filter((m) => m.id !== id));
+		} finally {
+			setDeletingId(null);
+		}
 	}
 
 	const visiblePhotos = showAll ? photos : photos.slice(0, 8);
@@ -251,10 +257,15 @@ export function JobMediaPanel({
 										<button
 											type="button"
 											onClick={() => removeMedia(m.id, m.storage_path)}
+											disabled={deletingId === m.id}
 											aria-label={t("deleteFile")}
-											className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white z-10"
+											className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white z-10 disabled:opacity-70"
 										>
-											<Trash2 size={11} aria-hidden="true" />
+											{deletingId === m.id ? (
+												<Loader2 size={11} className="animate-spin" aria-hidden="true" />
+											) : (
+												<Trash2 size={11} aria-hidden="true" />
+											)}
 										</button>
 									</li>
 								);
@@ -294,10 +305,15 @@ export function JobMediaPanel({
 										<button
 											type="button"
 											onClick={() => removeMedia(m.id, m.storage_path)}
+											disabled={deletingId === m.id}
 											aria-label={t("deleteFile")}
-											className="shrink-0 text-ink-faint hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+											className="shrink-0 text-ink-faint hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded disabled:opacity-50 disabled:pointer-events-none"
 										>
-											<Trash2 size={14} aria-hidden="true" />
+											{deletingId === m.id ? (
+												<Loader2 size={14} className="animate-spin" aria-hidden="true" />
+											) : (
+												<Trash2 size={14} aria-hidden="true" />
+											)}
 										</button>
 									</li>
 								);

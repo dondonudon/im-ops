@@ -85,6 +85,7 @@ export function SurveyDetailClient({
 
 	const [saving, setSaving] = useState(false);
 	const [uploading, setUploading] = useState(false);
+	const [deletingMediaId, setDeletingMediaId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [markingDone, setMarkingDone] = useState(false);
 	const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -175,10 +176,15 @@ export function SurveyDetailClient({
 	}
 
 	async function removeMedia(mediaId: string, storagePath: string) {
-		const supabase = createClient();
-		await supabase.storage.from("survey-media").remove([storagePath]);
-		await supabase.from("survey_media").delete().eq("id", mediaId);
-		setMedia((prev) => prev.filter((m) => m.id !== mediaId));
+		setDeletingMediaId(mediaId);
+		try {
+			const supabase = createClient();
+			await supabase.storage.from("survey-media").remove([storagePath]);
+			await supabase.from("survey_media").delete().eq("id", mediaId);
+			setMedia((prev) => prev.filter((m) => m.id !== mediaId));
+		} finally {
+			setDeletingMediaId(null);
+		}
 	}
 
 	// ── Mark as Done ───────────────────────────────────────────────────────
@@ -365,10 +371,15 @@ export function SurveyDetailClient({
 										<button
 											type="button"
 											onClick={() => removeMedia(m.id, m.storage_path)}
+											disabled={deletingMediaId === m.id}
 											aria-label={tPhotos("deletePhoto")}
-											className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white z-10"
+											className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white z-10 disabled:opacity-70"
 										>
-											<Trash2 size={11} aria-hidden="true" />
+											{deletingMediaId === m.id ? (
+												<Loader2 size={11} className="animate-spin" aria-hidden="true" />
+											) : (
+												<Trash2 size={11} aria-hidden="true" />
+											)}
 										</button>
 									</li>
 								);

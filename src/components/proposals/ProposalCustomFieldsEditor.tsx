@@ -84,7 +84,7 @@ export function ProposalCustomFieldsEditor({
 				</Field>
 
 				<div className="flex items-center gap-3 pt-1">
-					<Button onClick={handleSave} disabled={isPending} size="sm">
+					<Button onClick={handleSave} loading={isPending} size="sm">
 						{isPending ? "Menyimpan..." : "Simpan Kustomisasi"}
 					</Button>
 					{saved && <span className="text-sm text-success-text">Tersimpan</span>}
