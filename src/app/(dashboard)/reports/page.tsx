@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { ProfitBreakdownCard } from "@/components/reports/ProfitBreakdownCard";
 import {
 	Card,
 	CardHeader,
@@ -103,14 +104,20 @@ export default async function ReportsPage({
 	const completedJobIds = (monthJobsData ?? [])
 		.filter((j) => (j.move_date ?? "") <= todayStr)
 		.map((j) => j.id);
-	const { data: profitRows } =
+	const { data: profitRowsRaw } =
 		completedJobIds.length > 0
 			? await supabase
 					.from("job_profit_summary")
 					.select("job_id, job_number, revenue, actual_spend, current_profit")
 					.in("job_id", completedJobIds)
-					.order("current_profit", { ascending: false })
 			: { data: [] };
+
+	// Sort by move_date descending (latest first); monthJobsMap is populated above
+	const profitRows = (profitRowsRaw ?? []).sort((a, b) => {
+		const da = monthJobsMap.get(a.job_id ?? "") ?? "";
+		const db = monthJobsMap.get(b.job_id ?? "") ?? "";
+		return db.localeCompare(da);
+	});
 
 	const expenseByCategory: Record<string, number> = {};
 	for (const e of monthlyExpenses ?? []) {
@@ -131,6 +138,32 @@ export default async function ReportsPage({
 		.reduce((s, j) => s + (j.revenue ?? 0), 0);
 	// Use job_profit_summary so totalProfit matches the sum of individual job rows
 	const totalProfit = (profitRows ?? []).reduce((s, r) => s + (r.current_profit ?? 0), 0);
+
+	// Period breakdown: 1–15 vs 16–end of month
+	const [ymYear, ymMonth] = selectedMonth.split("-").map(Number);
+	const lastDay = new Date(ymYear, ymMonth, 0).getDate();
+
+	const period1Jobs = (profitRows ?? []).filter((r) => {
+		const date = monthJobsMap.get(r.job_id ?? "");
+		return date ? Number(date.split("-")[2]) <= 15 : false;
+	});
+	const period2Jobs = (profitRows ?? []).filter((r) => {
+		const date = monthJobsMap.get(r.job_id ?? "");
+		return date ? Number(date.split("-")[2]) >= 16 : false;
+	});
+
+	const period1 = {
+		profit: period1Jobs.reduce((s, r) => s + (r.current_profit ?? 0), 0),
+		revenue: period1Jobs.reduce((s, r) => s + (r.revenue ?? 0), 0),
+		cost: period1Jobs.reduce((s, r) => s + (r.actual_spend ?? 0), 0),
+		count: period1Jobs.length,
+	};
+	const period2 = {
+		profit: period2Jobs.reduce((s, r) => s + (r.current_profit ?? 0), 0),
+		revenue: period2Jobs.reduce((s, r) => s + (r.revenue ?? 0), 0),
+		cost: period2Jobs.reduce((s, r) => s + (r.actual_spend ?? 0), 0),
+		count: period2Jobs.length,
+	};
 
 	const revenueTarget =
 		revenueTargetRow?.target_amount ??
@@ -211,16 +244,16 @@ export default async function ReportsPage({
 					)}
 				</Card>
 
+				<ProfitBreakdownCard
+					totalProfit={totalProfit}
+					completedRevenue={completedRevenue}
+					period1={period1}
+					period2={period2}
+					selectedMonth={selectedMonth}
+					lastDay={lastDay}
+				/>
+
 				{[
-					{
-						label: t("kpi.totalProfit"),
-						value: formatRupiah(totalProfit),
-						className: totalProfit >= 0 ? "text-success" : "text-danger",
-						sub:
-							completedRevenue > 0
-								? `${Math.round((totalProfit / completedRevenue) * 100)}%`
-								: null,
-					},
 					{
 						label: t("kpi.leadConversion"),
 						value: `${conversionRate}%`,

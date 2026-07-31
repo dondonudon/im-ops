@@ -495,6 +495,19 @@
 				"totalCount": "{count} total",
 				"empty": "No lost or expired proposals.",
 				"noReason": "No reason given"
+			},
+			"profitBreakdown": {
+				"title": "Profit by period",
+				"clickHint": "Tap to see period breakdown",
+				"ariaCard": "Total profit — tap to see period breakdown",
+				"close": "Close",
+				"period1": "1–15 {month}",
+				"period2": "16–{lastDay} {month}",
+				"profit": "Profit",
+				"revenue": "Revenue",
+				"cost": "Cost",
+				"jobs": "Jobs",
+				"totalProfit": "Total profit"
 			}
 		},
 		"settings": {
