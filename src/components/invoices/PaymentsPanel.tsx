@@ -284,6 +284,7 @@ export function PaymentsPanel({
 								template: {
 									...receiptTemplate,
 									verificationQrUrl: "",
+									verificationUrl: "",
 								},
 							}}
 							verificationToken={p.verification_token}

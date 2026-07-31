@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 export interface PdfAssets {
 	logoDataUrl: string;
 	verificationQrUrl: string;
+	verificationUrl: string;
 }
 
 /**
@@ -21,7 +22,7 @@ export async function getPdfAssets(logoUrl: string, verificationToken: string): 
 	const {
 		data: { user },
 	} = await supabase.auth.getUser();
-	if (!user) return { logoDataUrl: "", verificationQrUrl: "" };
+	if (!user) return { logoDataUrl: "", verificationQrUrl: "", verificationUrl: "" };
 
 	const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 	const verificationUrl = `${appUrl}/verify/${verificationToken}`;
@@ -33,7 +34,7 @@ export async function getPdfAssets(logoUrl: string, verificationToken: string): 
 
 	const verificationQrUrl = await QRCode.toDataURL(verificationUrl, { width: 160, margin: 1 });
 
-	return { logoDataUrl, verificationQrUrl };
+	return { logoDataUrl, verificationQrUrl, verificationUrl };
 }
 
 /**

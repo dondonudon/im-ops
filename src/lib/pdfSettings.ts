@@ -23,6 +23,8 @@ export interface ProposalTemplateSettings {
 	signatureRole: string;
 	/** Base64 data URL of the QR code. Generated server-side from the proposal's verification_token. */
 	verificationQrUrl: string;
+	/** Verification page URL encoded by the QR code. Used as the clickable link target in the PDF. */
+	verificationUrl: string;
 }
 
 /** Invoice-specific template content. */
@@ -34,6 +36,8 @@ export interface InvoiceTemplateSettings {
 	signatureRole: string;
 	/** Base64 data URL of the QR code. Generated server-side from the invoice's verification_token. */
 	verificationQrUrl: string;
+	/** Verification page URL encoded by the QR code. Used as the clickable link target in the PDF. */
+	verificationUrl: string;
 }
 
 /** Receipt-specific template content. verificationQrUrl generated client-side per payment. */
@@ -42,6 +46,8 @@ export interface ReceiptTemplateSettings {
 	signatureRole: string;
 	/** Base64 data URL of the QR code. Generated client-side in PaymentReceiptDownloadButton. */
 	verificationQrUrl: string;
+	/** Verification page URL encoded by the QR code. Used as the clickable link target in the PDF. */
+	verificationUrl: string;
 }
 
 const DEFAULTS: Record<string, string> = {
@@ -91,7 +97,8 @@ export function buildProposalTemplateSettings(
 			.filter(Boolean),
 		signatureName: get(map, "proposal_signature_name"),
 		signatureRole: get(map, "proposal_signature_role"),
-		verificationQrUrl: "", // filled in by page after QR generation
+		verificationQrUrl: "", // filled in by download button
+		verificationUrl: "", // filled in by download button
 	};
 }
 
@@ -153,6 +160,7 @@ export function buildInvoiceTemplateSettings(map: Record<string, string>): Invoi
 		bankAccountHolder: get(map, "invoice_bank_account_holder"),
 		signatureName: get(map, "invoice_signature_name"),
 		signatureRole: get(map, "invoice_signature_role"),
-		verificationQrUrl: "", // filled in by page after QR generation
+		verificationQrUrl: "", // filled in by download button
+		verificationUrl: "", // filled in by download button
 	};
 }

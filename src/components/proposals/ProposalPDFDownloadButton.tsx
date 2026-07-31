@@ -16,7 +16,7 @@ export function ProposalPDFDownloadButton({
 }: {
 	pdfProps: Omit<ProposalPDFProps, "company" | "template"> & {
 		company: Omit<ProposalPDFProps["company"], "logo">;
-		template: Omit<ProposalPDFProps["template"], "verificationQrUrl">;
+		template: Omit<ProposalPDFProps["template"], "verificationQrUrl" | "verificationUrl">;
 	};
 	logoUrl: string;
 	verificationToken: string;
@@ -30,15 +30,16 @@ export function ProposalPDFDownloadButton({
 		if (generating) return;
 		setGenerating(true);
 		try {
-			const [{ pdf }, { ProposalPDF }, { logoDataUrl, verificationQrUrl }] = await Promise.all([
-				import("@react-pdf/renderer"),
-				import("./ProposalPDF"),
-				getPdfAssets(logoUrl, verificationToken),
-			]);
+			const [{ pdf }, { ProposalPDF }, { logoDataUrl, verificationQrUrl, verificationUrl }] =
+				await Promise.all([
+					import("@react-pdf/renderer"),
+					import("./ProposalPDF"),
+					getPdfAssets(logoUrl, verificationToken),
+				]);
 			const fullProps: ProposalPDFProps = {
 				...pdfProps,
 				company: { ...pdfProps.company, logo: logoDataUrl },
-				template: { ...pdfProps.template, verificationQrUrl },
+				template: { ...pdfProps.template, verificationQrUrl, verificationUrl },
 			};
 			const blob = await pdf(<ProposalPDF {...fullProps} />).toBlob();
 			const url = URL.createObjectURL(blob);

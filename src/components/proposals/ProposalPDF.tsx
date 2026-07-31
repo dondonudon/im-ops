@@ -2,6 +2,7 @@
 import {
 	Document,
 	Font,
+	Link,
 	Page,
 	Image as PdfImage,
 	StyleSheet,
@@ -125,6 +126,7 @@ export interface ProposalPDFProps {
 		signatureName: string;
 		signatureRole: string;
 		verificationQrUrl: string;
+		verificationUrl: string;
 	};
 	customFields?: ProposalCustomFields;
 }
@@ -292,7 +294,9 @@ export function ProposalPDF({
 						<Text style={styles.signCompany}>{company.name.toUpperCase()}</Text>
 						{template.verificationQrUrl ? (
 							<>
-								<PdfImage src={template.verificationQrUrl} style={styles.qrSeal} />
+								<Link src={template.verificationUrl}>
+									<PdfImage src={template.verificationQrUrl} style={styles.qrSeal} />
+								</Link>
 								<Text style={styles.qrSealLabel}>Pindai untuk verifikasi</Text>
 							</>
 						) : null}

@@ -47,7 +47,7 @@ export function PaymentReceiptDownloadButton({
 			const props: PaymentReceiptProps = {
 				...receiptProps,
 				company: { ...receiptProps.company, logo: logoDataUrl },
-				template: { ...receiptProps.template, verificationQrUrl },
+				template: { ...receiptProps.template, verificationQrUrl, verificationUrl },
 			};
 
 			const blob = await pdf(<PaymentReceiptPDF {...props} />).toBlob();
@@ -70,15 +70,16 @@ export function PaymentReceiptDownloadButton({
 			className={buttonStyles({
 				variant: "ghost",
 				size: "icon",
-				className: generating ? "cursor-wait opacity-40 pointer-events-none" : "",
+				className: generating ? "cursor-wait pointer-events-none" : "",
 			})}
 			aria-label={tPanel("printReceipt")}
 			title={tPanel("printReceipt")}
 		>
 			{generating ? (
-				<span className="animate-pulse">
-					<Printer size={14} aria-hidden="true" className="opacity-40" />
-				</span>
+				<span
+					className="block size-[14px] animate-spin rounded-full border-2 border-current border-t-transparent"
+					aria-hidden="true"
+				/>
 			) : (
 				<Printer size={14} aria-hidden="true" />
 			)}

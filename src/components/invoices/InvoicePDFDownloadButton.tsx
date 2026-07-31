@@ -16,7 +16,7 @@ export function InvoicePDFDownloadButton({
 }: {
 	pdfProps: Omit<InvoicePDFProps, "company" | "template"> & {
 		company: Omit<InvoicePDFProps["company"], "logo">;
-		template: Omit<InvoicePDFProps["template"], "verificationQrUrl">;
+		template: Omit<InvoicePDFProps["template"], "verificationQrUrl" | "verificationUrl">;
 	};
 	logoUrl: string;
 	verificationToken: string;
@@ -31,15 +31,16 @@ export function InvoicePDFDownloadButton({
 		if (generating) return;
 		setGenerating(true);
 		try {
-			const [{ pdf }, { InvoicePDF }, { logoDataUrl, verificationQrUrl }] = await Promise.all([
-				import("@react-pdf/renderer"),
-				import("./InvoicePDF"),
-				getPdfAssets(logoUrl, verificationToken),
-			]);
+			const [{ pdf }, { InvoicePDF }, { logoDataUrl, verificationQrUrl, verificationUrl }] =
+				await Promise.all([
+					import("@react-pdf/renderer"),
+					import("./InvoicePDF"),
+					getPdfAssets(logoUrl, verificationToken),
+				]);
 			const fullProps: InvoicePDFProps = {
 				...pdfProps,
 				company: { ...pdfProps.company, logo: logoDataUrl },
-				template: { ...pdfProps.template, verificationQrUrl },
+				template: { ...pdfProps.template, verificationQrUrl, verificationUrl },
 			};
 			const blob = await pdf(<InvoicePDF {...fullProps} />).toBlob();
 			const url = URL.createObjectURL(blob);
