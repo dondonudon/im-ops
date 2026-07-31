@@ -154,7 +154,29 @@ sanitizeSearch(query)
 
 // Resize before upload (≤1600px WebP, ~300KB)
 const resized = await resizeImage(file)
+
+// Today's date in Jakarta time (use this — never new Date().toISOString().slice(0,10))
+todayInJakarta()  // → "2026-07-31"
 ```
+
+---
+
+## Timezone — MUST follow
+
+The server runs in UTC. The business timezone is **Asia/Jakarta (UTC+7)**. At 1 AM Jakarta time the server clock still reads the previous day.
+
+**Rule: never use UTC-based methods to derive a calendar date on the server.**
+
+| ❌ Wrong (UTC) | ✅ Right (Jakarta) |
+|---|---|
+| `new Date().toISOString().slice(0, 10)` | `todayInJakarta()` from `@/lib/utils` |
+| `new Date().getFullYear()` / `.getMonth()` / `.getDate()` | parse `todayInJakarta().split("-")` |
+| `someDate.toISOString().slice(0, 10)` for a window boundary | `someDate.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })` |
+| `new Date().toLocaleDateString(locale, { … })` without `timeZone` | add `timeZone: "Asia/Jakarta"` to the options |
+
+**Client components are exempt** — the browser runs in the user's local timezone (Jakarta), so `new Date().toLocaleDateString("en-CA")` (no `timeZone` arg) is correct there.
+
+**UTC is correct** for full-timestamp writes (`created_at`, `updated_at`, `approved_at`, etc.) — use `.toISOString()` for those.
 
 ---
 

@@ -20,7 +20,14 @@ import {
 } from "@/components/ui";
 import { PAGE_SIZE } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
-import { cn, deriveJobStatus, formatJobSchedule, formatRupiah, sanitizeSearch } from "@/lib/utils";
+import {
+	cn,
+	deriveJobStatus,
+	formatJobSchedule,
+	formatRupiah,
+	sanitizeSearch,
+	todayInJakarta,
+} from "@/lib/utils";
 
 const STATUS_OPTS = ["", "scheduled", "upcoming", "today", "done", "cancelled"] as const;
 
@@ -71,7 +78,7 @@ export default async function JobsPage({
 	const tStatus = await getTranslations("status.job");
 
 	const page = Math.max(1, Number(rawPage) || 1);
-	const today = new Date().toISOString().slice(0, 10);
+	const today = todayInJakarta();
 	let jobs: JobRow[] = [];
 	let count: number | null = null;
 	let boardColumns: Map<string, JobRow[]> | null = null;
@@ -81,7 +88,7 @@ export default async function JobsPage({
 	if (view === "board") {
 		const cutoff = new Date();
 		cutoff.setDate(cutoff.getDate() - 60);
-		const cutoffDate = cutoff.toISOString().slice(0, 10);
+		const cutoffDate = cutoff.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 
 		// Each column maps to a different DB query since status is now derived from move_date.
 		const [upcoming, todayCol, done, cancelled, olderDone, olderCancelled] = await Promise.all([

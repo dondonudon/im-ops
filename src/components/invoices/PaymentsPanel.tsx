@@ -297,7 +297,7 @@ export function PaymentsPanel({
 }
 
 function todayISO() {
-	return new Date().toISOString().slice(0, 10);
+	return new Date().toLocaleDateString("en-CA");
 }
 
 function defaultAmountForType(type: string, total: number, outstanding: number): string {

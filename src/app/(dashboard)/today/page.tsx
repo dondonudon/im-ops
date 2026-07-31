@@ -30,27 +30,26 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { deriveJobStatus, formatDate, formatRupiah } from "@/lib/utils";
 
-function localISO(d: Date) {
-	return [
-		d.getFullYear(),
-		String(d.getMonth() + 1).padStart(2, "0"),
-		String(d.getDate()).padStart(2, "0"),
-	].join("-");
-}
-function startOfMonth() {
-	const d = new Date();
-	return localISO(new Date(d.getFullYear(), d.getMonth(), 1));
-}
-function startOfNextMonth() {
-	const d = new Date();
-	return localISO(new Date(d.getFullYear(), d.getMonth() + 1, 1));
-}
-function endOfMonth() {
-	const d = new Date();
-	return localISO(new Date(d.getFullYear(), d.getMonth() + 1, 0));
+const TZ = "Asia/Jakarta";
+
+function jakartaParts(): [number, number] {
+	const [y, m] = new Date().toLocaleDateString("en-CA", { timeZone: TZ }).split("-").map(Number);
+	return [y, m];
 }
 function todayISO() {
-	return localISO(new Date());
+	return new Date().toLocaleDateString("en-CA", { timeZone: TZ });
+}
+function startOfMonth() {
+	const [y, m] = jakartaParts();
+	return `${y}-${String(m).padStart(2, "0")}-01`;
+}
+function startOfNextMonth() {
+	const [y, m] = jakartaParts();
+	return m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
+}
+function endOfMonth() {
+	const [y, m] = jakartaParts();
+	return new Date(Date.UTC(y, m, 0)).toLocaleDateString("en-CA", { timeZone: TZ });
 }
 
 const MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -219,6 +218,7 @@ export default async function TodayPage() {
 		weekday: "long",
 		month: "long",
 		day: "numeric",
+		timeZone: TZ,
 	});
 
 	return (
@@ -403,8 +403,8 @@ async function MoneyCardSection() {
 		supabase
 			.from("revenue_targets")
 			.select("target_amount")
-			.eq("year", new Date().getFullYear())
-			.eq("month", new Date().getMonth() + 1)
+			.eq("year", jakartaParts()[0])
+			.eq("month", jakartaParts()[1])
 			.maybeSingle(),
 		supabase
 			.from("system_settings")
@@ -413,7 +413,7 @@ async function MoneyCardSection() {
 			.maybeSingle(),
 	]);
 
-	const todayStr = new Date().toISOString().slice(0, 10);
+	const todayStr = todayISO();
 	const monthRevenue = (monthJobs ?? []).reduce((s, j) => s + (j.revenue ?? 0), 0);
 	const monthExpenses = (monthlyExp ?? []).reduce((s, i) => s + (i.amount ?? 0), 0);
 	const completedRevenue = (monthJobs ?? [])

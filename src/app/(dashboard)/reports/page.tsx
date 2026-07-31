@@ -18,8 +18,7 @@ import { formatRupiah } from "@/lib/utils";
 
 function parseMonth(raw?: string): string {
 	if (raw && /^\d{4}-\d{2}$/.test(raw)) return raw;
-	const d = new Date();
-	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+	return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }).slice(0, 7);
 }
 
 function monthRange(ym: string): { start: string; end: string } {
@@ -99,7 +98,7 @@ export default async function ReportsPage({
 	]);
 
 	// job_profit_summary has no date column — filter by completed month job IDs
-	const todayStr = new Date().toISOString().slice(0, 10);
+	const todayStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 	const monthJobsMap = new Map((monthJobsData ?? []).map((j) => [j.id, j.move_date]));
 	const completedJobIds = (monthJobsData ?? [])
 		.filter((j) => (j.move_date ?? "") <= todayStr)
@@ -141,7 +140,7 @@ export default async function ReportsPage({
 	const isOverTarget = revenuePercent > 100;
 
 	const aging = { current: 0, "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
-	const today = new Date();
+	const today = new Date(todayStr);
 	for (const inv of outstandingInvoices ?? []) {
 		const outstanding = (inv.total_amount ?? 0) - (inv.paid_amount ?? 0);
 		if (outstanding <= 0) continue;

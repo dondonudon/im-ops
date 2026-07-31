@@ -284,7 +284,7 @@ export async function syncAllToCalendar(): Promise<{
 	if (!user) throw new Error("Unauthorized");
 	const cutoff = new Date();
 	cutoff.setDate(cutoff.getDate() - 30);
-	const cutoffISO = cutoff.toISOString().slice(0, 10);
+	const cutoffISO = cutoff.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 
 	const [{ data: jobs }, { data: surveys }] = await Promise.all([
 		supabase.from("jobs").select("id").gte("move_date", cutoffISO).neq("status", "cancelled"),

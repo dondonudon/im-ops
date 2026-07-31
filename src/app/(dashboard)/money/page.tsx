@@ -15,8 +15,7 @@ import { formatDate, formatRupiah } from "@/lib/utils";
 
 function parseMonth(raw?: string): string {
 	if (raw && /^\d{4}-\d{2}$/.test(raw)) return raw;
-	const d = new Date();
-	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+	return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }).slice(0, 7);
 }
 
 function monthRange(ym: string): { start: string; end: string } {
@@ -51,7 +50,7 @@ export default async function MoneyPage({
 	const tInv = await getTranslations("status.invoice");
 	const supabase = await createClient();
 
-	const todayStr = new Date().toISOString().slice(0, 10);
+	const todayStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 
 	const [
 		{ data: arTotals },

@@ -14,8 +14,8 @@ export default async function CalendarPage() {
 	windowStart.setMonth(windowStart.getMonth() - 3);
 	const windowEnd = new Date(now);
 	windowEnd.setMonth(windowEnd.getMonth() + 6);
-	const startDate = windowStart.toISOString().slice(0, 10);
-	const endDate = windowEnd.toISOString().slice(0, 10);
+	const startDate = windowStart.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+	const endDate = windowEnd.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 
 	const [{ data: jobs }, { data: surveys }] = await Promise.all([
 		supabase

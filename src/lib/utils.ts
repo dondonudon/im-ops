@@ -245,12 +245,16 @@ export function formatCustomerName(prefix: string | null | undefined, name: stri
 	return prefix ? `${prefix}. ${name}` : name;
 }
 
+export function todayInJakarta(): string {
+	return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+}
+
 export type DerivedJobStatus = "upcoming" | "today" | "done" | "cancelled";
 
 export function deriveJobStatus(moveDate: string | null, dbStatus: string): DerivedJobStatus {
 	if (dbStatus === "cancelled") return "cancelled";
 	if (!moveDate) return "upcoming";
-	const today = new Date().toISOString().slice(0, 10);
+	const today = todayInJakarta();
 	if (moveDate < today) return "done";
 	if (moveDate === today) return "today";
 	return "upcoming";
