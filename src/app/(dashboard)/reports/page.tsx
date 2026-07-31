@@ -72,12 +72,16 @@ export default async function ReportsPage({
 			.select("category, amount")
 			.gte("incurred_at", monthStart)
 			.lt("incurred_at", monthEnd),
-		// Leads created in this month
+		// Leads created in this month — terminal statuses excluded so the funnel only shows
+		// open pipeline. converted is counted via jobs.move_date; lost/expired already appear
+		// in the "Lost proposals" section below.
 		supabase
 			.from("leads")
 			.select("status")
 			.gte("created_at", monthStart)
-			.lt("created_at", monthEnd),
+			.lt("created_at", monthEnd)
+			.neq("status", "converted")
+			.neq("status", "closed_lost"),
 		// AR aging is always current state, not month-filtered
 		supabase
 			.from("invoices")
@@ -147,8 +151,11 @@ export default async function ReportsPage({
 	for (const lead of leadConversion ?? []) {
 		funnelCounts[lead.status] = (funnelCounts[lead.status] ?? 0) + 1;
 	}
+	// Use jobs with move_date in this month as "converted" so it matches the profit table.
+	// Lost leads are not shown here — they already appear in the "Lost proposals" section.
+	const convertedLeads = (monthJobsData ?? []).length;
+	if (convertedLeads > 0) funnelCounts.converted = convertedLeads;
 	const totalLeads = Object.values(funnelCounts).reduce((s, c) => s + c, 0);
-	const convertedLeads = funnelCounts.converted ?? 0;
 	const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
 
 	const totalRevenue = (monthJobsData ?? []).reduce((s, j) => s + (j.revenue ?? 0), 0);
