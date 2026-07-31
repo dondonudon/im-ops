@@ -626,7 +626,7 @@
 			"destination2": "Tujuan kedua",
 			"leadType": "Tipe prospek",
 			"channel": "Kanal",
-			"preferredDate": "Tanggal pilihan: {date}",
+			"preferredDate": "Tanggal pilihan",
 			"createdOn": "Dibuat {date}",
 			"lifecycle": "Alur transaksi",
 			"stageIntake": "Prospek masuk",

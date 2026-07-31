@@ -9,6 +9,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { SectionTabs } from "@/components/layout/SectionTabs";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
+import { cn } from "@/lib/utils";
 
 const QuickLeadModal = dynamic(
 	() => import("@/components/leads/QuickLeadModal").then((m) => ({ default: m.QuickLeadModal })),
@@ -102,7 +103,11 @@ export function DashboardShell({
 					collapsed={collapsed}
 					onMobileMenuOpen={() => setMobileOpen(true)}
 				/>
-				<main id="main-content" className="flex-1 overflow-y-auto p-4 pb-24 md:p-6" tabIndex={-1}>
+				<main
+					id="main-content"
+					className={cn("flex-1 overflow-y-auto p-4 pb-24 md:p-6", fab && "md:pb-20")}
+					tabIndex={-1}
+				>
 					<SectionTabs />
 					{children}
 				</main>

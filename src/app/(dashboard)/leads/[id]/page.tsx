@@ -187,6 +187,12 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 										{lead.origin_channel ? tChannel(lead.origin_channel as never) : "—"}
 									</p>
 								</div>
+								<div>
+									<p className="text-ink-muted">{t("preferredDate")}</p>
+									<p className="font-medium mt-0.5 text-ink">
+										{lead.preferred_date ? formatDate(lead.preferred_date) : "—"}
+									</p>
+								</div>
 							</div>
 							{lead.notes && (
 								<div className="text-sm mt-3 pb-2">
