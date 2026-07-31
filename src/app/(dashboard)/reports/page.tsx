@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ProfitBreakdownCard } from "@/components/reports/ProfitBreakdownCard";
+import { YearlyProfitChart } from "@/components/reports/YearlyProfitChart";
 import {
 	Card,
 	CardHeader,
@@ -39,6 +40,11 @@ export default async function ReportsPage({
 	const selectedMonth = parseMonth(rawMonth);
 	const { start: monthStart, end: monthEnd } = monthRange(selectedMonth);
 
+	const yearStr = selectedMonth.split("-")[0];
+	const yearStart = `${yearStr}-01-01`;
+	const yearEnd = `${Number(yearStr) + 1}-01-01`;
+	const todayStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+
 	const supabase = await createClient();
 	const t = await getTranslations("pages.reports");
 	const tLeadStatus = await getTranslations("status.lead");
@@ -52,6 +58,8 @@ export default async function ReportsPage({
 		{ data: lostProposals },
 		{ data: revenueTargetRow },
 		{ data: defaultTargetRow },
+		{ data: yearJobsData },
+		{ data: yearExpData },
 	] = await Promise.all([
 		// Jobs scheduled in this month (move_date) for revenue KPI + profit table
 		supabase
@@ -96,10 +104,21 @@ export default async function ReportsPage({
 			.select("value")
 			.eq("key", "revenue_target_monthly")
 			.maybeSingle(),
+		// Yearly jobs — for annual profit chart
+		supabase
+			.from("jobs")
+			.select("revenue, move_date")
+			.gte("move_date", yearStart)
+			.lt("move_date", yearEnd),
+		// Yearly expenses — for annual profit chart
+		supabase
+			.from("expenses")
+			.select("amount, incurred_at")
+			.gte("incurred_at", yearStart)
+			.lt("incurred_at", yearEnd),
 	]);
 
 	// job_profit_summary has no date column — filter by completed month job IDs
-	const todayStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 	const monthJobsMap = new Map((monthJobsData ?? []).map((j) => [j.id, j.move_date]));
 	const completedJobIds = (monthJobsData ?? [])
 		.filter((j) => (j.move_date ?? "") <= todayStr)
@@ -198,6 +217,26 @@ export default async function ReportsPage({
 		lostReasons[key] = (lostReasons[key] ?? 0) + 1;
 	}
 	const totalLost = Object.values(lostReasons).reduce((s, v) => s + v, 0);
+
+	// Yearly profit data for chart — one entry per month
+	const yearlyProfitData = Array.from({ length: 12 }, (_, i) => {
+		const m = i + 1;
+		const monthStr = `${yearStr}-${String(m).padStart(2, "0")}`;
+		const revenue = (yearJobsData ?? [])
+			.filter((j) => j.move_date?.startsWith(monthStr) && (j.move_date ?? "") <= todayStr)
+			.reduce((s, j) => s + (j.revenue ?? 0), 0);
+		const expenses = (yearExpData ?? [])
+			.filter((e) => e.incurred_at?.startsWith(monthStr))
+			.reduce((s, e) => s + (e.amount ?? 0), 0);
+		return {
+			month: monthStr,
+			revenue,
+			expenses,
+			profit: revenue - expenses,
+			isFuture: monthStr > todayStr.slice(0, 7),
+			isSelected: monthStr === selectedMonth,
+		};
+	});
 
 	return (
 		<div className="space-y-8">
@@ -357,6 +396,7 @@ export default async function ReportsPage({
 				</Card>
 
 				<div className="space-y-6">
+					<YearlyProfitChart data={yearlyProfitData} year={Number(yearStr)} />
 					<Card>
 						<CardHeader title={t("expensesThisMonth")} />
 						<div className="p-5">

@@ -508,6 +508,9 @@
 				"cost": "Biaya",
 				"jobs": "Pekerjaan",
 				"totalProfit": "Total keuntungan"
+			},
+			"yearlyProfit": {
+				"title": "Keuntungan {year}"
 			}
 		},
 		"settings": {

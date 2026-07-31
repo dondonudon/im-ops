@@ -508,6 +508,9 @@
 				"cost": "Cost",
 				"jobs": "Jobs",
 				"totalProfit": "Total profit"
+			},
+			"yearlyProfit": {
+				"title": "Profit {year}"
 			}
 		},
 		"settings": {
