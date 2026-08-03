@@ -51,6 +51,10 @@ const AREAS: { test: (p: string) => boolean; tabs: Tab[] }[] = [
 			{ href: "/crew", key: "crew", match: (p) => p.startsWith("/crew") },
 		],
 	},
+	{
+		test: (p) => p.startsWith("/growth"),
+		tabs: [{ href: "/growth/seo", key: "seo", match: (p) => p.startsWith("/growth/seo") }],
+	},
 ];
 
 export function SectionTabs() {

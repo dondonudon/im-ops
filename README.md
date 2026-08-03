@@ -41,6 +41,12 @@ Built around workflows, not modules.
    Optional (Google Maps location input on lead forms):
    - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` — Maps JavaScript API key; input degrades gracefully without it
 
+   Optional (Growth › SEO — Google Search Console dashboard):
+   - `GSC_SERVICE_ACCOUNT_KEY` — read-only GSC service account JSON (single line)
+   - `GSC_SITE_URL` — the property to query, e.g. `sc-domain:indo-mover.com`
+   - `SUPABASE_SERVICE_ROLE_KEY` — **server-only**; the SEO sync uses it to bypass RLS. Never expose to the client.
+   - `CRON_SECRET` — bearer secret for the daily Vercel cron (`/api/cron/seo-sync`)
+
 3. Apply the schema via the Supabase SQL Editor — run the SQL files in `supabase/migrations/` in numeric order (the first is the consolidated base schema)
 
 4. In Supabase Auth, enable the **Google** provider and add `http://localhost:3000/auth/callback` (and your prod URL) as redirect URLs.
@@ -66,12 +72,13 @@ Built around workflows, not modules.
 | `npm test`           | Vitest — run unit tests |
 | `npm run test:watch` | Vitest — watch mode |
 | `npm run test:coverage` | Vitest — run with coverage report |
+| `npm run seo:backfill -- --start=YYYY-MM-DD --end=YYYY-MM-DD` | Backfill historical Search Console data (needs `tsx` + SEO env; `--force` to redo months) |
 
 Biome (`biome.json`) owns formatting and general linting. `next lint` is kept alongside it for Next.js-specific rules (Image, Link, a11y helpers) that Biome doesn't cover.
 
 ## Routes
 
-> UI/UX is organized around a flat workflow nav — **Today · Pipeline · Jobs · Calendar · Money · Directory · Settings** — with sub-tabs grouping the underlying routes. Routes stay backward-compatible (the URLs below still resolve).
+> UI/UX is organized around a flat workflow nav — **Today · Pipeline · Jobs · Calendar · Money · Directory · Growth · Settings** — with sub-tabs grouping the underlying routes. Routes stay backward-compatible (the URLs below still resolve).
 
 ```
 /login                          Google OAuth entry
@@ -114,6 +121,10 @@ Biome (`biome.json`) owns formatting and general linting. `next lint` is kept al
 /invoices/[id]                  Detail + payment recording + PDF download
 
 /reports                        Sales / operational / financial summary   (Money tab)
+
+/growth                         Redirects to /growth/seo   (Growth tab)
+/growth/seo                     Search Console SEO dashboard (KPIs, keywords, trends, opportunities)
+
 /settings                       system_settings editor (pricing, margins, etc.)
 ```
 
@@ -193,6 +204,7 @@ Lead Intake  →  Survey (optional)  →  Estimation  →  Proposal
 ## Integrations
 
 - **Google Calendar** — one-way push for surveys + jobs (color-coded). Auth via a service account key (`GCAL_SERVICE_ACCOUNT_KEY`) — no token expiry. Editing or deleting in GCal does not sync back; IM Ops is the operational truth.
+- **Google Search Console** — internal SEO analytics at `/growth/seo`: KPI cards, target-keyword tracking, position trend chart, top queries/pages, and opportunity signals. Read-only service account; a daily Vercel cron (`vercel.json`) plus a local backfill (`npm run seo:backfill`) populate the `seo_*` tables. Requires migrations `003`/`004`. Design + as-built notes: `docs/seo-dashboard-plan.md`.
 - **WhatsApp** — deeplinks only (`wa.me/…?text=…`). No WhatsApp Business API. The operator taps a button, the OS opens WhatsApp with a pre-filled message, and the operator sends it from their own account.
 - **PDF** — `@react-pdf/renderer` for both proposals and invoices. Generated client-side, uploaded to Supabase Storage, URL persisted on the record.
 - **Storage buckets** — `lead-photos`, `survey-media`, `proposals`, `invoices`, `job-media`, `receipts` (all behind RLS; `invoices` and `proposals` are private).

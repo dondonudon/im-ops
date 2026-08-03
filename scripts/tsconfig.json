@@ -1,0 +1,10 @@
+{
+	"//": "Runtime tsconfig for `tsx` when running local scripts (e.g. seo:backfill). It aliases the `server-only` bare specifier — which Next resolves at build time but plain Node/tsx cannot — to a no-op stub, so server-only modules (the SEO client + admin client) can be imported by a standalone script. The root tsconfig is unchanged, so Next's real client/server guard is preserved. Typechecking still uses the root tsconfig.",
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"paths": {
+			"@/*": ["../src/*"],
+			"server-only": ["../src/test/server-only-stub.ts"]
+		}
+	}
+}

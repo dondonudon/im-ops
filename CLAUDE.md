@@ -87,7 +87,11 @@ These are enforced at the DB level and in app logic:
 | `src/lib/supabase/types.ts` | Full DB type definitions — regenerate after schema changes |
 | `src/lib/supabase/client.ts` | Browser client (for Client Components) |
 | `src/lib/supabase/server.ts` | Server client (for Server Components + Actions) |
+| `src/lib/supabase/admin.ts` | Service-role client — **bypasses RLS**; `server-only`; SEO sync path only (see Growth/SEO) |
 | `src/lib/supabase/queries.ts` | Shared query helpers used across Server Components + Actions |
+| `src/lib/search-console/` | GSC client, two-dataset sync, dashboard queries, aggregation, opportunity engine (all `server-only` where they touch secrets) |
+| `src/app/api/cron/seo-sync/route.ts` | Daily GSC sync cron (bearer `CRON_SECRET`); `/api/cron` is exempt in middleware |
+| `vercel.json` | Vercel cron schedule (daily SEO sync) |
 | `src/lib/pdfSettings.ts` | PDF document defaults (fonts, margins, signature/eSign settings) |
 | `src/lib/estimation/engine.ts` | ENGINE_VERSION 2.5.1 — cost + margin calculation, tiered margin table |
 | `src/lib/gcal/sync.ts` | Google Calendar push sync (never blocks) |
@@ -199,12 +203,15 @@ Do not change the engine without updating ENGINE_VERSION.
 
 ## Navigation / IA
 
-Flat top-level nav: **Today · Pipeline · Jobs · Calendar · Money · Directory · Settings**
+Flat top-level nav: **Today · Pipeline · Jobs · Calendar · Money · Directory · Growth · Settings**
 
 - `Sidebar` (desktop) + `BottomNav` (mobile, `md:hidden`) — both in `src/components/layout/`
-- Sub-tabs (Pipeline, Money, Directory) handled by `SectionTabs` within each page
+- Sub-tabs (Pipeline, Money, Directory, Growth) handled by `SectionTabs` within each page
 - `/today` is the operator triage cockpit — this is the post-login landing page
 - `/dashboard` redirects to `/today` (legacy URL compatibility)
+- **Growth** is the marketing/growth area (SEO now; attribution later). `/growth`
+  redirects to `/growth/seo`. Not in `BottomNav` (low-frequency). See the SEO
+  section below and `docs/seo-dashboard-plan.md`.
 
 ---
 
@@ -226,7 +233,11 @@ npm run test:watch    # watch mode
 npm run test:coverage # with coverage
 ```
 
-Tests live in `src/lib/__tests__/`. Current coverage: `utils.test.ts`, `customerDuplicates.test.ts`.
+Tests live in `src/lib/__tests__/`. Coverage includes `utils.test.ts`,
+`customerDuplicates.test.ts`, and the Search Console suite (`searchConsole*.test.ts`
+— client, sync, dates, metrics, normalize, aggregate, opportunities, cron route).
+Server-only modules are testable because `vitest.config.ts` aliases `server-only`
+to a stub (see the SEO section).
 
 ---
 
@@ -236,6 +247,32 @@ Tests live in `src/lib/__tests__/`. Current coverage: `utils.test.ts`, `customer
 - `gcal_calendar_id` must be set in `system_settings` table; calendar must be shared with service account email
 - One-way push only — IM Ops is the source of truth; edits in GCal don't sync back
 - Failure path: logs error, returns `null`, record saved without `gcal_event_id`
+
+---
+
+## Google Search Console (Growth › SEO)
+
+Internal SEO analytics at `/growth/seo`. Full design + as-built notes in
+`docs/seo-dashboard-plan.md` — read it before touching this area. Key points:
+
+- **Data flow:** GSC API → daily Vercel cron (`/api/cron/seo-sync`) → Supabase
+  (`seo_*` tables) → Server Component dashboard. Historical load via the local
+  `npm run seo:backfill` script. No SERP scraping.
+- **Auth:** dedicated read-only service account, `GSC_SERVICE_ACCOUNT_KEY` +
+  `GSC_SITE_URL` (mirrors the gcal auth pattern). Cron protected by `CRON_SECRET`.
+- **Service-role client (`src/lib/supabase/admin.ts`)** — the app's ONLY RLS
+  bypass. Import it *only* from the sync path (sync service, cron route, backfill
+  script). Never from a user-facing Server Component or anything under
+  `src/components/`. It's guarded by `import "server-only"`.
+- **`server-only` gotcha:** the bare specifier is only bundled inside `next`, so
+  plain Node/tsx/vitest can't resolve it. It's aliased to a no-op stub in
+  `vitest.config.ts` (tests) and `scripts/tsconfig.json` (the `tsx` backfill).
+  Next's real guard is untouched. Don't remove those aliases.
+- **Tables:** `seo_properties`, `seo_target_keywords`, `seo_query_daily`,
+  `seo_page_query_daily`, `seo_sync_runs` (migrations `003`/`004`). Metric + sync
+  tables are authenticated-read-only; writes go through the service role.
+- **Timezone:** all sync/dashboard windows derive from `todayInJakarta()` — never
+  UTC. Dashboard reads paginate past PostgREST's 1000-row cap (no aggregate RPCs).
 
 ---
 
@@ -276,7 +313,14 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 
 ---
 
-## Active development context (as of 2026-07)
+## Active development context (as of 2026-08)
+
+- **Growth › SEO dashboard shipped** (`/growth/seo`): GSC integration, daily cron,
+  backfill, KPI cards, keyword table, position trend chart (inline SVG), top
+  queries/pages, opportunity engine, manual refresh. First service-role usage in
+  the app. Remaining: deployment-gated (Vercel env + cron), and an eventual
+  Settings UI to manage target keywords. See `docs/seo-dashboard-plan.md`.
+
 
 - Phase 1 UX redesign complete: semantic token system, drag-to-advance pipeline, `/today` cockpit, mobile bottom-nav, AR aging in `/money`
 - eSign flow live: proposals use eSign exclusively (no handwritten signature pad); public `/verify/[token]` route for recipient verification

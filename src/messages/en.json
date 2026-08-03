@@ -15,6 +15,8 @@
 		"crew": "Crew",
 		"invoices": "Invoices",
 		"reports": "Reports",
+		"growth": "Growth",
+		"seo": "SEO",
 		"settings": "Settings",
 		"signOut": "Sign out",
 		"groups": {
@@ -357,6 +359,131 @@
 		}
 	},
 	"pages": {
+		"seo": {
+			"title": "SEO Performance",
+			"subtitle": "Google Search Console data for {site}",
+			"range": {
+				"label": "Date range",
+				"28d": "Last 28 days",
+				"3m": "Last 3 months"
+			},
+			"kpi": {
+				"clicks": "Organic clicks",
+				"impressions": "Impressions",
+				"ctr": "CTR",
+				"position": "Avg position",
+				"vsPrevious": "vs previous period",
+				"new": "New",
+				"improvedBy": "Improved {value}",
+				"declinedBy": "Declined {value}",
+				"noChange": "No change",
+				"noData": "No data"
+			},
+			"keywords": {
+				"title": "Target keywords",
+				"keyword": "Keyword",
+				"targetPage": "Target page",
+				"clicks": "Clicks",
+				"impressions": "Impressions",
+				"ctr": "CTR",
+				"position": "Position",
+				"change": "Change",
+				"status": "Status",
+				"empty": "No target keywords configured yet.",
+				"noData": "No data"
+			},
+			"status": {
+				"top3": "Top 3",
+				"page1": "Page 1",
+				"nearPage1": "Near page 1",
+				"needsWork": "Needs work",
+				"noData": "No data"
+			},
+			"sync": {
+				"title": "Data sync",
+				"lastUpdated": "Last updated {time}",
+				"dataThrough": "Data through {date}",
+				"healthy": "Healthy",
+				"running": "Sync running…",
+				"partial": "Partial sync",
+				"failed": "Last sync failed",
+				"failedReason": "Reason: {code}",
+				"never": "No data synced yet. Run the backfill or wait for the daily sync.",
+				"historicalNote": "Previously synced data remains available."
+			},
+			"trend": {
+				"title": "Keyword position trend",
+				"selectLabel": "Keyword",
+				"caption": "Average Google position over time — lower is better",
+				"pageOne": "Page 1",
+				"position": "Position",
+				"clicks": "Clicks",
+				"impressions": "Impressions",
+				"empty": "No trend data for this keyword yet."
+			},
+			"topQueries": {
+				"title": "Top queries",
+				"query": "Query",
+				"clicks": "Clicks",
+				"impressions": "Impressions",
+				"ctr": "CTR",
+				"position": "Position",
+				"change": "Change",
+				"empty": "No query data yet."
+			},
+			"refresh": {
+				"button": "Refresh",
+				"hint": "Search Console data lags ~2 days; refresh fetches what's currently available.",
+				"done": "Refreshed.",
+				"throttled": "Just synced — try again in a few minutes.",
+				"running": "A sync is already running.",
+				"error": "Refresh failed. Check the sync status."
+			},
+			"topPages": {
+				"title": "Top pages",
+				"page": "Page",
+				"clicks": "Clicks",
+				"impressions": "Impressions",
+				"ctr": "CTR",
+				"position": "Position",
+				"queries": "Queries",
+				"topQuery": "Top query",
+				"empty": "No page data yet."
+			},
+			"opportunities": {
+				"title": "SEO opportunities",
+				"empty": "No opportunities detected in this period.",
+				"priority": { "high": "High", "medium": "Medium", "low": "Low" },
+				"near_page_one": {
+					"label": "Near page one",
+					"evidence": "Position {position} with {impressions} impressions.",
+					"recommendation": "Improve the existing ranking page before creating a new one."
+				},
+				"low_ctr": {
+					"label": "Low CTR",
+					"evidence": "Position {position}, {impressions} impressions, CTR {ctr}.",
+					"recommendation": "Refine the page title and meta description to match search intent."
+				},
+				"unexpected_page": {
+					"label": "Unexpected page",
+					"evidence": "Ranks mainly on {page} ({share}), not the target page {targetPage}.",
+					"recommendation": "Confirm the intended target page and strengthen internal links."
+				},
+				"cannibalization": {
+					"label": "Possible page overlap",
+					"evidence": "Split between {page} ({share}) and {otherPage} ({otherShare}).",
+					"recommendation": "Consider consolidating or clearly differentiating the pages."
+				},
+				"declining_keyword": {
+					"label": "Declining",
+					"evidence": "Dropped {delta} positions to {position} ({impressions} impressions).",
+					"recommendation": "Review recent content and indexing before rewriting."
+				}
+			},
+			"empty": {
+				"noProperty": "No SEO property configured yet. Seed one to start tracking Search Console data."
+			}
+		},
 		"leads": {
 			"title": "Leads",
 			"searchPlaceholder": "Search customer or address…",

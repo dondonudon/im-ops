@@ -15,6 +15,8 @@
 		"crew": "Kru",
 		"invoices": "Faktur",
 		"reports": "Laporan",
+		"growth": "Pertumbuhan",
+		"seo": "SEO",
 		"settings": "Pengaturan",
 		"signOut": "Keluar",
 		"groups": {
@@ -357,6 +359,131 @@
 		}
 	},
 	"pages": {
+		"seo": {
+			"title": "Performa SEO",
+			"subtitle": "Data Google Search Console untuk {site}",
+			"range": {
+				"label": "Rentang tanggal",
+				"28d": "28 hari terakhir",
+				"3m": "3 bulan terakhir"
+			},
+			"kpi": {
+				"clicks": "Klik organik",
+				"impressions": "Tayangan",
+				"ctr": "RKT",
+				"position": "Posisi rata-rata",
+				"vsPrevious": "vs periode sebelumnya",
+				"new": "Baru",
+				"improvedBy": "Naik {value}",
+				"declinedBy": "Turun {value}",
+				"noChange": "Tidak berubah",
+				"noData": "Tidak ada data"
+			},
+			"keywords": {
+				"title": "Kata kunci target",
+				"keyword": "Kata kunci",
+				"targetPage": "Halaman target",
+				"clicks": "Klik",
+				"impressions": "Tayangan",
+				"ctr": "RKT",
+				"position": "Posisi",
+				"change": "Perubahan",
+				"status": "Status",
+				"empty": "Belum ada kata kunci target yang diatur.",
+				"noData": "Tidak ada data"
+			},
+			"status": {
+				"top3": "3 Teratas",
+				"page1": "Halaman 1",
+				"nearPage1": "Mendekati halaman 1",
+				"needsWork": "Perlu perbaikan",
+				"noData": "Tidak ada data"
+			},
+			"sync": {
+				"title": "Sinkronisasi data",
+				"lastUpdated": "Diperbarui {time}",
+				"dataThrough": "Data hingga {date}",
+				"healthy": "Sehat",
+				"running": "Sinkronisasi berjalan…",
+				"partial": "Sinkronisasi sebagian",
+				"failed": "Sinkronisasi terakhir gagal",
+				"failedReason": "Alasan: {code}",
+				"never": "Belum ada data tersinkron. Jalankan backfill atau tunggu sinkronisasi harian.",
+				"historicalNote": "Data yang sudah tersinkron tetap tersedia."
+			},
+			"trend": {
+				"title": "Tren posisi kata kunci",
+				"selectLabel": "Kata kunci",
+				"caption": "Posisi rata-rata Google dari waktu ke waktu — makin rendah makin baik",
+				"pageOne": "Halaman 1",
+				"position": "Posisi",
+				"clicks": "Klik",
+				"impressions": "Tayangan",
+				"empty": "Belum ada data tren untuk kata kunci ini."
+			},
+			"topQueries": {
+				"title": "Kueri teratas",
+				"query": "Kueri",
+				"clicks": "Klik",
+				"impressions": "Tayangan",
+				"ctr": "RKT",
+				"position": "Posisi",
+				"change": "Perubahan",
+				"empty": "Belum ada data kueri."
+			},
+			"refresh": {
+				"button": "Segarkan",
+				"hint": "Data Search Console tertunda ~2 hari; menyegarkan mengambil data yang tersedia saat ini.",
+				"done": "Disegarkan.",
+				"throttled": "Baru saja disinkronkan — coba lagi beberapa menit lagi.",
+				"running": "Sinkronisasi sedang berjalan.",
+				"error": "Gagal menyegarkan. Periksa status sinkronisasi."
+			},
+			"topPages": {
+				"title": "Halaman teratas",
+				"page": "Halaman",
+				"clicks": "Klik",
+				"impressions": "Tayangan",
+				"ctr": "RKT",
+				"position": "Posisi",
+				"queries": "Kueri",
+				"topQuery": "Kueri utama",
+				"empty": "Belum ada data halaman."
+			},
+			"opportunities": {
+				"title": "Peluang SEO",
+				"empty": "Tidak ada peluang terdeteksi pada periode ini.",
+				"priority": { "high": "Tinggi", "medium": "Sedang", "low": "Rendah" },
+				"near_page_one": {
+					"label": "Mendekati halaman satu",
+					"evidence": "Posisi {position} dengan {impressions} tayangan.",
+					"recommendation": "Tingkatkan halaman yang sudah ada sebelum membuat halaman baru."
+				},
+				"low_ctr": {
+					"label": "RKT rendah",
+					"evidence": "Posisi {position}, {impressions} tayangan, RKT {ctr}.",
+					"recommendation": "Perbaiki judul dan deskripsi meta agar sesuai maksud pencarian."
+				},
+				"unexpected_page": {
+					"label": "Halaman tak terduga",
+					"evidence": "Terutama muncul di {page} ({share}), bukan halaman target {targetPage}.",
+					"recommendation": "Pastikan halaman target sudah benar dan perkuat tautan internal."
+				},
+				"cannibalization": {
+					"label": "Kemungkinan tumpang tindih halaman",
+					"evidence": "Terbagi antara {page} ({share}) dan {otherPage} ({otherShare}).",
+					"recommendation": "Pertimbangkan menggabungkan atau membedakan halaman dengan jelas."
+				},
+				"declining_keyword": {
+					"label": "Menurun",
+					"evidence": "Turun {delta} posisi ke {position} ({impressions} tayangan).",
+					"recommendation": "Tinjau konten dan pengindeksan terbaru sebelum menulis ulang."
+				}
+			},
+			"empty": {
+				"noProperty": "Belum ada properti SEO yang diatur. Tambahkan satu untuk mulai melacak data Search Console."
+			}
+		},
 		"leads": {
 			"title": "Prospek",
 			"searchPlaceholder": "Cari pelanggan atau alamat…",

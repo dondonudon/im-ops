@@ -853,6 +853,209 @@ export type Database = {
 				};
 				Relationships: [];
 			};
+			seo_properties: {
+				Row: {
+					id: string;
+					site_url: string;
+					display_name: string;
+					is_active: boolean;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					site_url: string;
+					display_name: string;
+					is_active?: boolean;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					site_url?: string;
+					display_name?: string;
+					is_active?: boolean;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Relationships: [];
+			};
+			seo_target_keywords: {
+				Row: {
+					id: string;
+					property_id: string;
+					keyword: string;
+					target_page: string | null;
+					priority: number;
+					is_active: boolean;
+					notes: string | null;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					property_id: string;
+					keyword: string;
+					target_page?: string | null;
+					priority?: number;
+					is_active?: boolean;
+					notes?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					property_id?: string;
+					keyword?: string;
+					target_page?: string | null;
+					priority?: number;
+					is_active?: boolean;
+					notes?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "seo_target_keywords_property_id_fkey";
+						columns: ["property_id"];
+						isOneToOne: false;
+						referencedRelation: "seo_properties";
+						referencedColumns: ["id"];
+					},
+				];
+			};
+			seo_query_daily: {
+				Row: {
+					property_id: string;
+					metric_date: string;
+					query: string;
+					clicks: number;
+					impressions: number;
+					position: number;
+					synced_at: string;
+				};
+				Insert: {
+					property_id: string;
+					metric_date: string;
+					query: string;
+					clicks?: number;
+					impressions?: number;
+					position?: number;
+					synced_at?: string;
+				};
+				Update: {
+					property_id?: string;
+					metric_date?: string;
+					query?: string;
+					clicks?: number;
+					impressions?: number;
+					position?: number;
+					synced_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "seo_query_daily_property_id_fkey";
+						columns: ["property_id"];
+						isOneToOne: false;
+						referencedRelation: "seo_properties";
+						referencedColumns: ["id"];
+					},
+				];
+			};
+			seo_page_query_daily: {
+				Row: {
+					property_id: string;
+					metric_date: string;
+					page: string;
+					query: string;
+					clicks: number;
+					impressions: number;
+					position: number;
+					synced_at: string;
+				};
+				Insert: {
+					property_id: string;
+					metric_date: string;
+					page: string;
+					query: string;
+					clicks?: number;
+					impressions?: number;
+					position?: number;
+					synced_at?: string;
+				};
+				Update: {
+					property_id?: string;
+					metric_date?: string;
+					page?: string;
+					query?: string;
+					clicks?: number;
+					impressions?: number;
+					position?: number;
+					synced_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "seo_page_query_daily_property_id_fkey";
+						columns: ["property_id"];
+						isOneToOne: false;
+						referencedRelation: "seo_properties";
+						referencedColumns: ["id"];
+					},
+				];
+			};
+			seo_sync_runs: {
+				Row: {
+					id: string;
+					property_id: string;
+					sync_type: "scheduled" | "manual" | "backfill";
+					status: "running" | "success" | "partial" | "failed";
+					start_date: string;
+					end_date: string;
+					started_at: string;
+					completed_at: string | null;
+					query_rows_synced: number;
+					page_query_rows_synced: number;
+					error_message: string | null;
+					metadata: Json;
+				};
+				Insert: {
+					id?: string;
+					property_id: string;
+					sync_type: "scheduled" | "manual" | "backfill";
+					status: "running" | "success" | "partial" | "failed";
+					start_date: string;
+					end_date: string;
+					started_at?: string;
+					completed_at?: string | null;
+					query_rows_synced?: number;
+					page_query_rows_synced?: number;
+					error_message?: string | null;
+					metadata?: Json;
+				};
+				Update: {
+					id?: string;
+					property_id?: string;
+					sync_type?: "scheduled" | "manual" | "backfill";
+					status?: "running" | "success" | "partial" | "failed";
+					start_date?: string;
+					end_date?: string;
+					started_at?: string;
+					completed_at?: string | null;
+					query_rows_synced?: number;
+					page_query_rows_synced?: number;
+					error_message?: string | null;
+					metadata?: Json;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "seo_sync_runs_property_id_fkey";
+						columns: ["property_id"];
+						isOneToOne: false;
+						referencedRelation: "seo_properties";
+						referencedColumns: ["id"];
+					},
+				];
+			};
 		};
 		Views: {
 			job_profit_summary: {

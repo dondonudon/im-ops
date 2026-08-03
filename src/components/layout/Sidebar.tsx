@@ -7,6 +7,7 @@ import {
 	Loader2,
 	LogOut,
 	Settings,
+	TrendingUp,
 	Truck,
 	Users,
 	Wallet,
@@ -20,7 +21,15 @@ import { createClient } from "@/lib/supabase/client";
 import { useNavFeedback } from "@/lib/useNavFeedback";
 import { cn } from "@/lib/utils";
 
-type NavKey = "today" | "pipeline" | "jobs" | "calendar" | "money" | "directory" | "settings";
+type NavKey =
+	| "today"
+	| "pipeline"
+	| "jobs"
+	| "calendar"
+	| "money"
+	| "directory"
+	| "growth"
+	| "settings";
 
 type NavItem = {
 	href: string;
@@ -76,6 +85,12 @@ const NAV_ITEMS: NavItem[] = [
 		key: "directory",
 		icon: Users,
 		match: (p) => p.startsWith("/customers") || p.startsWith("/fleet") || p.startsWith("/crew"),
+	},
+	{
+		href: "/growth",
+		key: "growth",
+		icon: TrendingUp,
+		match: (p) => p.startsWith("/growth"),
 	},
 ];
 

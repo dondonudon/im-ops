@@ -18,6 +18,10 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "./src"),
+			// The real `server-only` package throws outside a server bundle, which
+			// breaks the node test env. Alias it to a no-op so server-only modules
+			// can be unit-tested.
+			"server-only": path.resolve(__dirname, "./src/test/server-only-stub.ts"),
 		},
 	},
 });

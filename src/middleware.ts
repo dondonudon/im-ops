@@ -96,14 +96,17 @@ export async function middleware(request: NextRequest) {
 
 	const { pathname } = request.nextUrl;
 
-	// Allow public routes
+	// Allow public routes. `/api/cron` is exempt from the Supabase session gate
+	// because it is invoked by Vercel Cron (no user session) and enforces its own
+	// CRON_SECRET bearer check inside the route handler.
 	if (
 		pathname === "/" ||
 		pathname.startsWith("/login") ||
 		pathname.startsWith("/auth") ||
 		pathname.startsWith("/privacy") ||
 		pathname.startsWith("/terms") ||
-		pathname.startsWith("/verify")
+		pathname.startsWith("/verify") ||
+		pathname.startsWith("/api/cron")
 	) {
 		return supabaseResponse;
 	}
