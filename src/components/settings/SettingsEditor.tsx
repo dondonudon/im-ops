@@ -94,7 +94,7 @@ function inferInputType(key: string, value: string): "textarea" | "number" | "te
 	if (value.includes("\n") || /_terms$|_note$|_tagline$|_services$/.test(key)) {
 		return "textarea";
 	}
-	if (/_rate|_pct$|_days$|_fee$|_per_|_buffer_pct$|_target|_profit$|_increment$/.test(key)) {
+	if (/_rate|_pct$|_days$|_fee$|_per_|_buffer_pct$|_target|_profit$|_increment$|_cost$/.test(key)) {
 		return "number";
 	}
 	return "text";

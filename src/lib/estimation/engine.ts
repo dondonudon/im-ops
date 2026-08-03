@@ -1,7 +1,7 @@
 // MarginCalc pricing logic ported from https://github.com/dondonudon/MarginCalc
 // Engine version must be bumped when pricing logic changes.
 
-export const ENGINE_VERSION = "2.5.1";
+export const ENGINE_VERSION = "2.5.2";
 
 export type VehicleType = "pickup" | "box_truck";
 
@@ -50,6 +50,8 @@ export interface EstimationSettings {
 	vehicle_rate_box_truck: number;
 	crew_day_rate: number;
 	food_per_crew: number;
+	travel_cost_per_crew: number; // default day rate for origin crew on out-of-town jobs
+	spot_hire_cost: number; // default day rate per spot-hire helper at destination
 	operational_buffer_pct: number; // e.g. 10 → 10%
 	negotiation_buffer_pct: number; // e.g. 3  → 3%
 	min_target_profit: number;
@@ -203,6 +205,8 @@ export function parseSettings(rows: Array<{ key: string; value: string }>): Esti
 		vehicle_rate_box_truck: map.vehicle_rate_box_truck ?? 800_000,
 		crew_day_rate: map.crew_day_rate ?? 175_000,
 		food_per_crew: map.food_per_crew ?? 35_000,
+		travel_cost_per_crew: map.travel_cost_per_crew ?? 1_200_000,
+		spot_hire_cost: map.spot_hire_cost ?? 100_000,
 		operational_buffer_pct: map.operational_buffer_pct ?? 10,
 		negotiation_buffer_pct: map.negotiation_buffer_pct ?? 3,
 		min_target_profit: map.min_target_profit ?? 500_000,

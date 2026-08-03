@@ -712,6 +712,8 @@
 			"fieldLabels": {
 				"crew_day_rate": "Default crew cost per person per day (IDR)",
 				"food_per_crew": "Default food allowance per crew member (IDR)",
+				"travel_cost_per_crew": "Default day rate for origin crew on out-of-town jobs (IDR)",
+				"spot_hire_cost": "Default day rate per spot-hire helper at destination (IDR)",
 				"default_margin_pct": "Default margin percentage (fallback when no tier matches)",
 				"negotiation_buffer_pct": "Fixed negotiation buffer added to internal target price",
 				"operational_buffer_pct": "Operational buffer added to raw job cost",

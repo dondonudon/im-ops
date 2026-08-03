@@ -56,9 +56,9 @@ export function EstimationForm({
 		days: 1,
 		meals_count: 3,
 		travel_crew_count: 0,
-		travel_cost_per_crew: 1_200_000,
+		travel_cost_per_crew: settings.travel_cost_per_crew,
 		spot_hire_count: 0,
-		spot_hire_cost: 100_000,
+		spot_hire_cost: settings.spot_hire_cost,
 	};
 
 	const [inputs, setInputs] = useState<EstimationInputs>(() => {
@@ -75,9 +75,9 @@ export function EstimationForm({
 			packing_cost: saved.packing_cost ?? 0,
 			days: saved.days ?? 1,
 			travel_crew_count: saved.travel_crew_count ?? 0,
-			travel_cost_per_crew: saved.travel_cost_per_crew ?? 1_200_000,
+			travel_cost_per_crew: saved.travel_cost_per_crew ?? settings.travel_cost_per_crew,
 			spot_hire_count: saved.spot_hire_count ?? 0,
-			spot_hire_cost: saved.spot_hire_cost ?? 100_000,
+			spot_hire_cost: saved.spot_hire_cost ?? settings.spot_hire_cost,
 		};
 	});
 

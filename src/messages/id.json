@@ -712,6 +712,8 @@
 			"fieldLabels": {
 				"crew_day_rate": "Biaya kru default per orang per hari (IDR)",
 				"food_per_crew": "Tunjangan makan per anggota kru (IDR)",
+				"travel_cost_per_crew": "Tarif harian default kru asal pada pekerjaan luar kota (IDR)",
+				"spot_hire_cost": "Tarif harian default per helper spot-hire di tujuan (IDR)",
 				"default_margin_pct": "Persentase margin default (cadangan jika tidak ada tier yang cocok)",
 				"negotiation_buffer_pct": "Buffer negosiasi tetap yang ditambahkan ke harga target internal",
 				"operational_buffer_pct": "Buffer operasional yang ditambahkan ke biaya pekerjaan mentah",
