@@ -203,7 +203,15 @@ Do not change the engine without updating ENGINE_VERSION.
 
 ## Navigation / IA
 
-Flat top-level nav: **Today · Pipeline · Jobs · Calendar · Money · Directory · Growth · Settings**
+Top-level nav, split into two tiers in the sidebar by a divider:
+- **Operations** (daily, labeled): **Today · Pipeline · Jobs · Calendar · Money · Directory**
+- Low-frequency (unlabeled, below the divider): **Growth · Settings**
+
+Order is unchanged from the original flat list. Only the Operations tier gets a
+`SectionLabel` heading (`nav.sections.operations`); the bottom tier is left
+unlabeled on purpose — Growth (monitoring) and Settings (config) don't share a
+function, so the divider signals "secondary" without a misleading label.
+`BottomNav` carries only the Operations tier.
 
 - `Sidebar` (desktop) + `BottomNav` (mobile, `md:hidden`) — both in `src/components/layout/`
 - Sub-tabs (Pipeline, Money, Directory, Growth) handled by `SectionTabs` within each page

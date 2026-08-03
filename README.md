@@ -78,7 +78,7 @@ Biome (`biome.json`) owns formatting and general linting. `next lint` is kept al
 
 ## Routes
 
-> UI/UX is organized around a flat workflow nav — **Today · Pipeline · Jobs · Calendar · Money · Directory · Growth · Settings** — with sub-tabs grouping the underlying routes. Routes stay backward-compatible (the URLs below still resolve).
+> UI/UX is organized around a workflow nav split into two tiers — an **Operations** group (Today · Pipeline · Jobs · Calendar · Money · Directory) and, below a divider, the low-frequency Growth · Settings — with sub-tabs grouping the underlying routes. Routes stay backward-compatible (the URLs below still resolve).
 
 ```
 /login                          Google OAuth entry

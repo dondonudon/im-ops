@@ -25,7 +25,10 @@
 			"resources": "Sumber Daya",
 			"finance": "Keuangan"
 		},
-		"overview": "Ringkasan"
+		"overview": "Ringkasan",
+		"sections": {
+			"operations": "Operasional"
+		}
 	},
 	"topbar": {
 		"searchPlaceholder": "Cari…",
@@ -453,7 +456,11 @@
 			"opportunities": {
 				"title": "Peluang SEO",
 				"empty": "Tidak ada peluang terdeteksi pada periode ini.",
-				"priority": { "high": "Tinggi", "medium": "Sedang", "low": "Rendah" },
+				"priority": {
+					"high": "Tinggi",
+					"medium": "Sedang",
+					"low": "Rendah"
+				},
 				"near_page_one": {
 					"label": "Mendekati halaman satu",
 					"evidence": "Posisi {position} dengan {impressions} tayangan.",

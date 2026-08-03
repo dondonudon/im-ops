@@ -43,8 +43,12 @@ type NavItem = {
  * Flattened, workflow-based navigation (see imops_redesign_plan_1.md §2.2).
  * Pipeline / Money / Directory each own an area; their sub-screens are reached
  * via the SectionTabs bar, not separate sidebar entries.
+ *
+ * Two tiers, split by a divider: PRIMARY is the daily operational funnel
+ * (Today → Directory); SECONDARY is low-frequency / back-office (Growth,
+ * Settings) so those don't read as tacked onto the end of the daily list.
  */
-const NAV_ITEMS: NavItem[] = [
+const PRIMARY_NAV_ITEMS: NavItem[] = [
 	{
 		href: "/today",
 		key: "today",
@@ -86,13 +90,39 @@ const NAV_ITEMS: NavItem[] = [
 		icon: Users,
 		match: (p) => p.startsWith("/customers") || p.startsWith("/fleet") || p.startsWith("/crew"),
 	},
+];
+
+const SECONDARY_NAV_ITEMS: NavItem[] = [
 	{
 		href: "/growth",
 		key: "growth",
 		icon: TrendingUp,
 		match: (p) => p.startsWith("/growth"),
 	},
+	{
+		href: "/settings",
+		key: "settings",
+		icon: Settings,
+		match: (p) => p.startsWith("/settings"),
+	},
 ];
+
+/**
+ * Muted tier heading above each nav group. Hidden when the rail is collapsed on
+ * desktop (no room for text); still shown in the mobile drawer.
+ */
+function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean }) {
+	return (
+		<p
+			className={cn(
+				"px-3 pt-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-faint select-none",
+				collapsed && "md:hidden",
+			)}
+		>
+			{label}
+		</p>
+	);
+}
 
 /**
  * Sidebar navigation — light token chrome, cobalt active state, collapsible on
@@ -162,13 +192,6 @@ export function Sidebar({
 		);
 	}
 
-	const settingsItem: NavItem = {
-		href: "/settings",
-		key: "settings",
-		icon: Settings,
-		match: (p) => p.startsWith("/settings"),
-	};
-
 	return (
 		<aside
 			className={cn(
@@ -214,13 +237,16 @@ export function Sidebar({
 				)}
 				aria-label="Primary"
 			>
-				{NAV_ITEMS.map((item) => (
+				<SectionLabel label={t("sections.operations")} collapsed={collapsed} />
+				{PRIMARY_NAV_ITEMS.map((item) => (
 					<NavLink key={item.href} item={item} />
 				))}
 
-				<div className={cn("my-3 border-t border-line", collapsed ? "mx-0" : "mx-0")} />
+				<div className="my-3 border-t border-line" />
 
-				<NavLink item={settingsItem} />
+				{SECONDARY_NAV_ITEMS.map((item) => (
+					<NavLink key={item.href} item={item} />
+				))}
 			</nav>
 
 			{/* Bottom: sign out */}

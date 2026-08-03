@@ -25,7 +25,10 @@
 			"resources": "Resources",
 			"finance": "Finance"
 		},
-		"overview": "Overview"
+		"overview": "Overview",
+		"sections": {
+			"operations": "Operations"
+		}
 	},
 	"topbar": {
 		"searchPlaceholder": "Search…",
@@ -453,7 +456,11 @@
 			"opportunities": {
 				"title": "SEO opportunities",
 				"empty": "No opportunities detected in this period.",
-				"priority": { "high": "High", "medium": "Medium", "low": "Low" },
+				"priority": {
+					"high": "High",
+					"medium": "Medium",
+					"low": "Low"
+				},
 				"near_page_one": {
 					"label": "Near page one",
 					"evidence": "Position {position} with {impressions} impressions.",
