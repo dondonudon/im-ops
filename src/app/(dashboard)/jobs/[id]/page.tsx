@@ -2,8 +2,9 @@ import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { GenerateInvoiceButton } from "@/components/invoices/GenerateInvoiceButton";
+import { type InvoiceRow, JobInvoicesPanel } from "@/components/invoices/JobInvoicesPanel";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
+import { JobAdjustmentsPanel } from "@/components/jobs/JobAdjustmentsPanel";
 import { JobCancelButton } from "@/components/jobs/JobCancelButton";
 import { JobMediaPanel } from "@/components/jobs/JobMediaPanel";
 import { LeadSurveyReferencePanel } from "@/components/jobs/LeadSurveyReferencePanel";
@@ -11,6 +12,7 @@ import { TimelineLogEventButton } from "@/components/jobs/TimelineLogEventButton
 import { BackLink } from "@/components/shared/BackLink";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
+import { billableLeaves } from "@/lib/invoices";
 import { buildCompanySettings, buildInvoiceTemplateSettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
 import { deriveJobStatus, formatDate, formatJobSchedule, formatRupiah } from "@/lib/utils";
@@ -23,7 +25,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 	const tCommon = await getTranslations("common.buttons");
 	const tLabels = await getTranslations("common.labels");
 	const tAssign = await getTranslations("panels.assignments");
-	const tPay = await getTranslations("panels.payments");
 	const tCategory = await getTranslations("entity.expenseCategory");
 
 	// Phase 1: job + settings fetched in parallel.
@@ -75,11 +76,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		{ data: assignments },
 		{ data: expenses },
 		{ data: timeline },
-		{ data: invoice },
+		{ data: invoices },
 		{ data: payments },
 		{ data: jobMedia },
 		{ data: leadPhotos },
 		{ data: surveys },
+		{ data: adjustments },
 	] = await Promise.all([
 		proposalId
 			? supabase
@@ -106,12 +108,14 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 			.order("occurred_at"),
 		supabase
 			.from("invoices")
-			.select("id, invoice_number, status, total_amount, paid_amount")
+			.select(
+				"id, invoice_number, label, status, total_amount, paid_amount, parent_invoice_id, due_date",
+			)
 			.eq("job_id", id)
-			.maybeSingle(),
+			.order("created_at", { ascending: true }),
 		supabase
 			.from("payments")
-			.select("id, payment_type, method, amount, paid_at, notes, verification_token")
+			.select("id, payment_type, method, amount, paid_at, notes, verification_token, invoice_id")
 			.eq("job_id", id)
 			.order("paid_at"),
 		supabase
@@ -135,6 +139,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 					.eq("lead_id", leadId)
 					.order("scheduled_at", { ascending: false })
 			: Promise.resolve({ data: null, error: null }),
+		supabase
+			.from("job_adjustments")
+			.select("id, amount, reason, adjusted_at")
+			.eq("job_id", id)
+			.order("adjusted_at"),
 	]);
 
 	const pdfCompany = buildCompanySettings(settingsMap);
@@ -159,6 +168,18 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 	const totalExpenses = (expenses ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
 	const profit = (job.revenue ?? 0) - totalExpenses;
 	const derivedStatus = deriveJobStatus(job.move_date, job.status);
+
+	const invoiceList = (invoices ?? []) as InvoiceRow[];
+	// Leaves the job-level payment recorder may target: standalone/child invoices,
+	// never a master that already has children (payments must land on a leaf).
+	const leafInvoices = billableLeaves(invoiceList)
+		.filter((i) => i.status !== "cancelled")
+		.map((i) => ({
+			id: i.id,
+			invoice_number: i.invoice_number,
+			label: i.label,
+			total_amount: i.total_amount,
+		}));
 
 	return (
 		<div className="space-y-6">
@@ -299,6 +320,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							{t("logExpense")}
 						</Link>
 					</Card>
+
+					{/* Charges & adjustments — job.revenue = base_revenue + Σ these */}
+					<JobAdjustmentsPanel
+						jobId={id}
+						baseRevenue={job.base_revenue ?? 0}
+						adjustments={adjustments ?? []}
+					/>
 
 					{/* Estimation vs Actual */}
 					<Card className="p-5 space-y-3">
@@ -456,55 +484,23 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 						)}
 					</Card>
 
-					{/* Invoice */}
-					<Card className="p-5 space-y-3">
-						<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
-							{t("invoice")}
-						</h2>
-						{invoice ? (
-							<div className="space-y-2 text-sm">
-								<p className="font-mono text-xs">{invoice.invoice_number}</p>
-								<div className="flex justify-between">
-									<span className="text-ink-muted">{tLabels("total")}</span>
-									<span className="tabular-nums font-medium">
-										{formatRupiah(invoice.total_amount)}
-									</span>
-								</div>
-								<div className="flex justify-between">
-									<span className="text-ink-muted">{tPay("paid")}</span>
-									<span className="tabular-nums text-success">
-										{formatRupiah(invoice.paid_amount ?? 0)}
-									</span>
-								</div>
-								<Link
-									href={`/invoices/${invoice.id}`}
-									className={buttonStyles({
-										variant: "secondary",
-										size: "md",
-										className: "w-full",
-									})}
-								>
-									{t("manageInvoice")}
-								</Link>
-							</div>
-						) : (
-							<GenerateInvoiceButton jobId={id} jobRevenue={job.revenue ?? 0} />
-						)}
-					</Card>
+					{/* Invoices — one grand-total (master) + N termin children */}
+					<JobInvoicesPanel jobId={id} jobRevenue={job.revenue ?? 0} invoices={invoiceList} />
 
-					{/* Payments — recordable even before an invoice exists (e.g. DP) */}
+					{/* Payments — recordable even before an invoice exists (e.g. DP). Targets a
+					    specific termin (leaf) or stays job-level when none is selected. */}
 					<Card className="p-5 space-y-3">
 						<h2 className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
 							{t("payments")}
 						</h2>
 						<PaymentsPanel
 							jobId={id}
-							totalAmount={invoice?.total_amount ?? job.revenue ?? 0}
+							totalAmount={job.revenue ?? 0}
 							payments={payments ?? []}
-							invoiceStatus={invoice?.status ?? null}
+							invoiceStatus={null}
+							leafInvoices={leafInvoices}
 							jobNumber={job.job_number}
 							customerName={customer?.name ?? ""}
-							invoiceNumber={invoice?.invoice_number ?? null}
 							company={pdfCompany}
 							logoUrl={logoUrl}
 							receiptTemplate={{

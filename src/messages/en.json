@@ -888,7 +888,8 @@
 			"notes": "Notes",
 			"total": "Total",
 			"downloadInvoicePdf": "Download Invoice PDF",
-			"backToList": "Invoices"
+			"backToList": "Invoices",
+			"terminBreakdown": "Termin breakdown"
 		},
 		"estimation": {
 			"newTitle": "New Estimation",
@@ -989,6 +990,7 @@
 			"endTime": "End time",
 			"endDateHint": "(blank = same day)",
 			"revenue": "Revenue (Rp)",
+			"contractedAmount": "Contracted amount (Rp)",
 			"notes": "Notes",
 			"editTitle": "Edit Job",
 			"backToJob": "Back to Job",
@@ -1146,7 +1148,12 @@
 			"history": "History",
 			"noPayments": "No payments yet.",
 			"via": "via {method}",
-			"printReceipt": "Print Receipt"
+			"printReceipt": "Print Receipt",
+			"applyTo": "Apply to",
+			"jobLevel": "Job-level (no invoice)",
+			"appliesTo": "Applies to: {target}",
+			"attachExisting": "Attach existing payment",
+			"attach": "Attach"
 		},
 		"photos": {
 			"title": "Photos",
@@ -1193,6 +1200,28 @@
 			"showMore": "Show {count} more",
 			"showLess": "Show less",
 			"unsupportedFile": "{name} is not a supported file type."
+		},
+		"adjustments": {
+			"title": "Charges & adjustments",
+			"contractedAmount": "Contracted amount",
+			"currentTotal": "Current total",
+			"add": "+ Add charge/adjustment",
+			"kind": "Type",
+			"charge": "Charge (+)",
+			"discount": "Discount (−)",
+			"amount": "Amount",
+			"reason": "Reason"
+		},
+		"jobInvoices": {
+			"title": "Invoices",
+			"createMaster": "Create grand-total invoice",
+			"addTermin": "+ Add termin",
+			"master": "Master",
+			"termin": "Termin",
+			"labelField": "Label",
+			"amount": "Amount",
+			"dueDate": "Due date",
+			"sumWarning": "Termin total ({sum}) ≠ master total ({total})"
 		}
 	},
 	"modals": {
@@ -1361,7 +1390,8 @@
 			"crew_added": "Additional crew added",
 			"job_completed": "Job completed",
 			"custom": "Custom note",
-			"note": "Note"
+			"note": "Note",
+			"revenue_adjusted": "Revenue adjusted"
 		}
 	},
 	"offline": {

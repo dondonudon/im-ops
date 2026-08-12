@@ -45,7 +45,7 @@ export default async function InvoicesPage({
 
 	let query = supabase.from("invoices").select(
 		`
-      id, invoice_number, status, total_amount, paid_amount, due_date, created_at,
+      id, invoice_number, label, parent_invoice_id, status, total_amount, paid_amount, due_date, created_at,
       jobs(
         job_number,
         proposals(leads(customers(name)))
@@ -112,6 +112,9 @@ export default async function InvoicesPage({
 										>
 											{inv.invoice_number}
 										</PendingLink>
+										{inv.label && (
+											<span className="ml-2 font-sans text-ink-faint">{inv.label}</span>
+										)}
 									</TD>
 									<TD>{customerName}</TD>
 									<TD align="right">
@@ -162,7 +165,10 @@ export default async function InvoicesPage({
 						>
 							<div className="flex items-start justify-between mb-2">
 								<div>
-									<p className="font-mono text-xs text-ink-faint">{inv.invoice_number}</p>
+									<p className="font-mono text-xs text-ink-faint">
+										{inv.invoice_number}
+										{inv.label ? ` · ${inv.label}` : ""}
+									</p>
 									<p className="font-semibold text-ink mt-0.5">{customerName}</p>
 								</div>
 								<Badge tone={toneFor("invoice", inv.status)} dot>

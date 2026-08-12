@@ -31,10 +31,9 @@ type Payment = {
 	amount: number;
 	paid_at: string | null;
 	method: string | null;
-	jobs: {
-		job_number: string;
-		invoices: { invoice_number: string }[];
-	} | null;
+	invoice_id: string | null;
+	jobs: { job_number: string } | null;
+	invoices: { invoice_number: string; label: string | null } | null;
 };
 
 export default async function MoneyPage({
@@ -73,7 +72,9 @@ export default async function MoneyPage({
 		// Recent payments in the selected month
 		supabase
 			.from("payments")
-			.select("id, amount, paid_at, method, jobs(job_number, invoices(invoice_number))")
+			.select(
+				"id, amount, paid_at, method, invoice_id, jobs(job_number), invoices(invoice_number, label)",
+			)
 			.gte("paid_at", monthStart)
 			.lt("paid_at", monthEnd)
 			.order("paid_at", { ascending: false })
@@ -228,7 +229,8 @@ export default async function MoneyPage({
 										<div className="flex-1 min-w-0">
 											<Money value={p.amount} className="text-[13px] font-semibold" />
 											<p className="text-xs text-ink-faint truncate">
-												{p.jobs?.invoices?.[0]?.invoice_number ?? p.jobs?.job_number ?? "—"}
+												{p.invoices?.invoice_number ?? p.jobs?.job_number ?? "—"}
+												{p.invoices?.label ? ` (${p.invoices.label})` : ""}
 												{p.method ? ` · ${p.method}` : ""}
 											</p>
 										</div>

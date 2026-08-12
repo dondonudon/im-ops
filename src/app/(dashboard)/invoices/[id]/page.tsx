@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { AttachablePayments } from "@/components/invoices/AttachablePayments";
 import { InvoicePDFDownloadButton } from "@/components/invoices/InvoicePDFDownloadButton";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { BackLink } from "@/components/shared/BackLink";
@@ -22,8 +23,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         *,
         jobs(
           id, job_number, move_date,
-          proposals(leads(id, pickup_address, destination_address, destination_address_2, customers(id, prefix, name, phone, email, type, company_name, address))),
-          payments(id, payment_type, method, amount, paid_at, notes, verification_token)
+          proposals(leads(id, pickup_address, destination_address, destination_address_2, customers(id, prefix, name, phone, email, type, company_name, address)))
         )
       `)
 			.eq("id", id)
@@ -49,6 +49,42 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
 	if (!invoice) notFound();
 
+	// Children (termin) of this invoice, this invoice's own payments, and any
+	// job-level payments not yet attached to a termin (reassignment candidates).
+	const [
+		{ data: children },
+		{ data: ownPayments },
+		{ data: unassignedPayments },
+		{ data: parent },
+	] = await Promise.all([
+		supabase
+			.from("invoices")
+			.select("id, invoice_number, label, status, total_amount, paid_amount, due_date")
+			.eq("parent_invoice_id", id)
+			.order("created_at", { ascending: true }),
+		supabase
+			.from("payments")
+			.select("id, payment_type, method, amount, paid_at, notes, verification_token")
+			.eq("invoice_id", id)
+			.order("paid_at"),
+		supabase
+			.from("payments")
+			.select("id, payment_type, method, amount, paid_at, notes, verification_token")
+			.eq("job_id", invoice.job_id)
+			.is("invoice_id", null)
+			.order("paid_at"),
+		invoice.parent_invoice_id
+			? supabase
+					.from("invoices")
+					.select("invoice_number")
+					.eq("id", invoice.parent_invoice_id)
+					.maybeSingle()
+			: Promise.resolve({ data: null }),
+	]);
+
+	const isMaster = (children ?? []).length > 0;
+	const parentNumber = (parent as { invoice_number: string } | null)?.invoice_number ?? null;
+
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const pdfCompany = buildCompanySettings(settingsMap);
 	const pdfTemplate = buildInvoiceTemplateSettings(settingsMap);
@@ -67,7 +103,6 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 		id: string;
 		job_number: string;
 		move_date: string | null;
-		payments: PaymentRow[];
 		proposals: {
 			leads: {
 				id: string;
@@ -88,9 +123,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 		} | null;
 	} | null;
 
-	const payments: PaymentRow[] = (job?.payments ?? [])
-		.filter((p): p is PaymentRow => p.paid_at != null)
-		.sort((a, b) => a.paid_at.localeCompare(b.paid_at));
+	const payments: PaymentRow[] = ((ownPayments ?? []) as PaymentRow[]).filter(
+		(p) => p.paid_at != null,
+	);
 
 	const lead = job?.proposals?.leads ?? null;
 	const customer = lead?.customers ?? null;
@@ -103,6 +138,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 				title={
 					<span className="flex items-center gap-3">
 						<span className="font-mono">{invoice.invoice_number}</span>
+						{invoice.label && <span className="text-ink-muted text-sm">{invoice.label}</span>}
 						<Badge tone={toneFor("invoice", invoice.status)} dot>
 							{tStatus(invoice.status as never)}
 						</Badge>
@@ -134,6 +170,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 									total_amount: invoice.total_amount,
 									notes: invoice.notes ?? null,
 									created_at: invoice.created_at,
+									label: invoice.label ?? null,
+									parentNumber,
 								},
 								customer: {
 									prefix: customer.prefix,
@@ -209,13 +247,47 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 					</Card>
 				</div>
 
-				{/* Right: payments */}
-				<div className="xl:col-span-1">
+				{/* Right: termin breakdown (master) or payments (leaf) */}
+				<div className="xl:col-span-1 space-y-4">
+					{isMaster && (
+						<Card className="divide-y divide-line">
+							<p className="px-4 py-2 text-xs font-semibold text-ink-muted uppercase tracking-wide">
+								{t("terminBreakdown")}
+							</p>
+							{(children ?? []).map((c) => (
+								<div
+									key={c.id}
+									className="flex items-center justify-between gap-2 px-4 py-3 text-sm"
+								>
+									<div className="min-w-0">
+										<div className="flex items-center gap-2">
+											<span className="text-xs text-ink-muted">{c.label ?? "—"}</span>
+											<Badge tone={toneFor("invoice", c.status)}>
+												{tStatus(c.status as never)}
+											</Badge>
+										</div>
+										<PendingLink
+											href={`/invoices/${c.id}`}
+											className="font-mono text-xs text-primary-text hover:underline"
+										>
+											{c.invoice_number}
+										</PendingLink>
+									</div>
+									<div className="text-right shrink-0">
+										<Money value={c.total_amount} className="block font-medium" />
+										<Money value={c.paid_amount} tone="positive" className="block text-xs" />
+									</div>
+								</div>
+							))}
+						</Card>
+					)}
 					<PaymentsPanel
 						jobId={invoice.job_id}
 						totalAmount={invoice.total_amount}
 						payments={payments ?? []}
 						invoiceStatus={invoice.status}
+						invoiceId={isMaster ? undefined : invoice.id}
+						readOnly={isMaster}
 						jobNumber={job?.job_number ?? ""}
 						customerName={customer ? formatCustomerName(customer.prefix, customer.name) : ""}
 						invoiceNumber={invoice.invoice_number}
@@ -226,6 +298,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 							signatureRole: pdfTemplate.signatureRole,
 						}}
 					/>
+					{!isMaster && (unassignedPayments ?? []).length > 0 && (
+						<AttachablePayments
+							jobId={invoice.job_id}
+							invoiceId={invoice.id}
+							payments={(unassignedPayments ?? []) as never}
+						/>
+					)}
 				</div>
 			</div>
 		</div>

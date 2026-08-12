@@ -61,7 +61,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 		supabase
 			.from("jobs")
 			.select(
-				"job_number, status, move_date, move_time, move_end_date, move_end_time, revenue, notes, proposals(leads(id, pickup_address, destination_address, destination_address_2, customers(name)))",
+				"job_number, status, move_date, move_time, move_end_date, move_end_time, base_revenue, notes, proposals(leads(id, pickup_address, destination_address, destination_address_2, customers(name)))",
 			)
 			.eq("id", id)
 			.single()
@@ -96,7 +96,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 						0,
 						5,
 					),
-					revenue: data.revenue != null ? String(data.revenue) : "",
+					revenue: data.base_revenue != null ? String(data.base_revenue) : "",
 					notes: data.notes ?? "",
 					pickup_address: lead?.pickup_address ?? "",
 					destination_address: lead?.destination_address ?? "",
@@ -131,7 +131,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 						move_time: form.move_time || null,
 						move_end_date: form.move_end_date || null,
 						move_end_time: form.move_end_time || null,
-						revenue: revenueNum ?? 0,
+						base_revenue: revenueNum ?? 0,
 						notes: form.notes.trim() || null,
 					})
 					.eq("id", id),
@@ -355,8 +355,8 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 						)}
 					</fieldset>
 
-					{/* Revenue */}
-					<Field label={t("revenue")} htmlFor="revenue">
+					{/* Contracted amount (base_revenue; job.revenue is derived from this + adjustments) */}
+					<Field label={t("contractedAmount")} htmlFor="revenue">
 						<NumericInput
 							id="revenue"
 							value={Number(form.revenue) || 0}

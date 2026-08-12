@@ -888,7 +888,8 @@
 			"notes": "Catatan",
 			"total": "Total",
 			"downloadInvoicePdf": "Unduh PDF Faktur",
-			"backToList": "Tagihan"
+			"backToList": "Tagihan",
+			"terminBreakdown": "Rincian termin"
 		},
 		"estimation": {
 			"newTitle": "Estimasi Baru",
@@ -989,6 +990,7 @@
 			"endTime": "Waktu selesai",
 			"endDateHint": "(kosongkan jika hari yang sama)",
 			"revenue": "Pendapatan (Rp)",
+			"contractedAmount": "Jumlah kontrak (Rp)",
 			"notes": "Catatan",
 			"editTitle": "Edit Pekerjaan",
 			"backToJob": "Kembali ke Pekerjaan",
@@ -1146,7 +1148,12 @@
 			"history": "Riwayat",
 			"noPayments": "Belum ada pembayaran.",
 			"via": "via {method}",
-			"printReceipt": "Cetak Kwitansi"
+			"printReceipt": "Cetak Kwitansi",
+			"applyTo": "Terapkan ke",
+			"jobLevel": "Tingkat pekerjaan (tanpa faktur)",
+			"appliesTo": "Diterapkan ke: {target}",
+			"attachExisting": "Lampirkan pembayaran",
+			"attach": "Lampirkan"
 		},
 		"photos": {
 			"title": "Foto",
@@ -1193,6 +1200,28 @@
 			"showMore": "Tampilkan {count} lainnya",
 			"showLess": "Tampilkan lebih sedikit",
 			"unsupportedFile": "{name} bukan tipe file yang didukung."
+		},
+		"adjustments": {
+			"title": "Biaya & penyesuaian",
+			"contractedAmount": "Jumlah kontrak",
+			"currentTotal": "Total terkini",
+			"add": "+ Tambah biaya/penyesuaian",
+			"kind": "Jenis",
+			"charge": "Biaya (+)",
+			"discount": "Diskon (−)",
+			"amount": "Jumlah",
+			"reason": "Alasan"
+		},
+		"jobInvoices": {
+			"title": "Faktur",
+			"createMaster": "Buat faktur total",
+			"addTermin": "+ Tambah termin",
+			"master": "Master",
+			"termin": "Termin",
+			"labelField": "Label",
+			"amount": "Jumlah",
+			"dueDate": "Jatuh tempo",
+			"sumWarning": "Jumlah termin ({sum}) ≠ total master ({total})"
 		}
 	},
 	"modals": {
@@ -1361,7 +1390,8 @@
 			"crew_added": "Kru tambahan",
 			"job_completed": "Pekerjaan selesai",
 			"custom": "Catatan",
-			"note": "Catatan"
+			"note": "Catatan",
+			"revenue_adjusted": "Penyesuaian pendapatan"
 		}
 	},
 	"offline": {

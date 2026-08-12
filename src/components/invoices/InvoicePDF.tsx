@@ -120,6 +120,10 @@ export interface InvoicePDFProps {
 		total_amount: number;
 		notes: string | null;
 		created_at: string;
+		/** Termin label, e.g. "DP" / "Pelunasan" (optional). */
+		label?: string | null;
+		/** Master invoice number this termin belongs to (optional). */
+		parentNumber?: string | null;
 	};
 	customer: {
 		prefix: string | null;
@@ -185,7 +189,13 @@ export function InvoicePDF({ invoice, customer, lead, company, template }: Invoi
 				{/* Invoice title + number */}
 				<View style={styles.invoiceTitleBlock}>
 					<Text style={styles.invoiceTitle}>INVOICE</Text>
-					<Text style={styles.invoiceNumber}>No : {invoice.invoice_number}</Text>
+					<Text style={styles.invoiceNumber}>
+						No : {invoice.invoice_number}
+						{invoice.label ? ` · ${invoice.label}` : ""}
+					</Text>
+					{invoice.parentNumber ? (
+						<Text style={styles.invoiceNumber}>Termin dari {invoice.parentNumber}</Text>
+					) : null}
 				</View>
 
 				{/* Date */}

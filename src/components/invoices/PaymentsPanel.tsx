@@ -20,16 +20,28 @@ type Payment = {
 	verification_token: string;
 };
 
+export type LeafInvoice = {
+	id: string;
+	invoice_number: string;
+	label: string | null;
+	total_amount: number;
+};
+
 const PAYMENT_TYPES = ["down_payment", "partial", "final", "refund"];
 const PAYMENT_METHODS = ["cash", "transfer"];
 
 /**
  * Displays payment history and a "Record Payment" form.
  *
- * Payments are FK'd to jobs (not invoices) so a down payment can be taken
- * before an invoice is generated. `totalAmount` is the target the panel
- * compares against — usually the invoice total, or the job revenue if no
- * invoice exists yet. `invoiceStatus` may be `null` when there's no invoice.
+ * Payments are job-level (FK'd to jobs) but may carry an optional `invoice_id`
+ * linking them to a specific termin invoice. Target resolution:
+ *  - `invoiceId` set → fixed target (invoice-detail leaf view), no picker.
+ *  - otherwise `leafInvoices` drives a smart target: 0 → job-level (invoice_id
+ *    NULL, the pre-invoice DP); 1 → auto-target it; 2+ → an "Apply to" picker.
+ * `totalAmount`/`payments` are whatever the caller passes (job-level on the job
+ * page, per-invoice on the invoice page); the picker only sets the new payment's
+ * `invoice_id`, it does not change the summary. `readOnly` hides the form (master
+ * view). `invoiceStatus` may be `null`.
  */
 export function PaymentsPanel({
 	jobId,
@@ -39,6 +51,9 @@ export function PaymentsPanel({
 	jobNumber,
 	customerName,
 	invoiceNumber,
+	invoiceId,
+	leafInvoices,
+	readOnly = false,
 	company,
 	logoUrl,
 	receiptTemplate,
@@ -50,6 +65,12 @@ export function PaymentsPanel({
 	jobNumber: string;
 	customerName: string;
 	invoiceNumber?: string | null;
+	/** Fixed target invoice (invoice-detail leaf view). Takes precedence over leafInvoices. */
+	invoiceId?: string;
+	/** Selectable targets (job page). Drives the smart-target picker. */
+	leafInvoices?: LeafInvoice[];
+	/** Hide the record-payment form (master view / rollup). */
+	readOnly?: boolean;
 	company: CompanySettings;
 	/** Raw logo URL — forwarded to the receipt button for deferred base64 resolution. */
 	logoUrl: string;
@@ -65,6 +86,13 @@ export function PaymentsPanel({
 	const [isPending, startTransition] = useTransition();
 	const [payments, setPayments] = useState(initial);
 	const [showForm, setShowForm] = useState(false);
+	const leaves = leafInvoices ?? [];
+	// Smart target: fixed invoiceId wins; else auto-select the sole leaf; else the
+	// first leaf when a picker is shown; else "" = job-level (invoice_id NULL).
+	const initialTarget = invoiceId ?? (leaves.length >= 1 ? leaves[0].id : "");
+	const [targetId, setTargetId] = useState<string>(initialTarget);
+	const showPicker = !invoiceId && leaves.length >= 2;
+	const soleLeaf = !invoiceId && leaves.length === 1 ? leaves[0] : null;
 	const [form, setForm] = useState({
 		payment_type: "down_payment",
 		method: "transfer",
@@ -98,6 +126,7 @@ export function PaymentsPanel({
 				.from("payments")
 				.insert({
 					job_id: jobId,
+					invoice_id: (invoiceId ?? targetId) || null,
 					payment_type: form.payment_type as "down_payment" | "partial" | "final" | "refund",
 					method: form.method as "cash" | "transfer",
 					amount: amt,
@@ -153,7 +182,7 @@ export function PaymentsPanel({
 			</div>
 
 			{/* Record payment button */}
-			{!isFullyPaid && invoiceStatus !== "cancelled" && (
+			{!readOnly && !isFullyPaid && invoiceStatus !== "cancelled" && (
 				<Button
 					type="button"
 					variant={showForm ? "secondary" : "primary"}
@@ -166,13 +195,35 @@ export function PaymentsPanel({
 			)}
 
 			{/* Payment form */}
-			{showForm && (
+			{!readOnly && showForm && (
 				<form
 					onSubmit={handleSubmit}
 					className="rounded-xl border border-line p-4 space-y-3"
 					autoComplete="off"
 				>
 					{error && <FormError>{error}</FormError>}
+					{/* Smart target: picker for 2+ leaves, read-only line for the sole leaf */}
+					{showPicker && (
+						<Field label={tPanel("applyTo")} htmlFor="pt-target">
+							<Select id="pt-target" value={targetId} onChange={(e) => setTargetId(e.target.value)}>
+								{leaves.map((l) => (
+									<option key={l.id} value={l.id}>
+										{l.label ? `${l.label} — ${l.invoice_number}` : l.invoice_number}
+									</option>
+								))}
+								<option value="">{tPanel("jobLevel")}</option>
+							</Select>
+						</Field>
+					)}
+					{soleLeaf && (
+						<p className="text-xs text-ink-muted">
+							{tPanel("appliesTo", {
+								target: soleLeaf.label
+									? `${soleLeaf.label} — ${soleLeaf.invoice_number}`
+									: soleLeaf.invoice_number,
+							})}
+						</p>
+					)}
 					<div className="grid grid-cols-2 gap-3">
 						<Field label={tForm("type")} htmlFor="pt-type">
 							<Select

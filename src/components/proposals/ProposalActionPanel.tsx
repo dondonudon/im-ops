@@ -547,7 +547,7 @@ function ConvertToJobModal({
 					move_time: moveTime || null,
 					move_end_date: moveEndDate || null,
 					move_end_time: moveEndTime || null,
-					revenue: revenue,
+					base_revenue: revenue,
 				})
 				.select("id")
 				.single();

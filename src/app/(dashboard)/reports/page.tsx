@@ -82,11 +82,12 @@ export default async function ReportsPage({
 			.lt("created_at", monthEnd)
 			.neq("status", "converted")
 			.neq("status", "closed_lost"),
-		// AR aging is always current state, not month-filtered
+		// AR aging is always current state, not month-filtered. Read the leaf-filtered
+		// invoice_outstanding view so a master + its termin aren't double-counted.
 		supabase
-			.from("invoices")
-			.select("invoice_number, total_amount, paid_amount, due_date, status")
-			.in("status", ["sent", "partially_paid", "overdue"])
+			.from("invoice_outstanding")
+			.select("outstanding, due_date")
+			.gt("outstanding", 0)
 			.limit(500),
 		// Proposals lost/expired this month, filtered by closed_at
 		supabase
@@ -204,7 +205,7 @@ export default async function ReportsPage({
 	const aging = { current: 0, "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
 	const today = new Date(todayStr);
 	for (const inv of outstandingInvoices ?? []) {
-		const outstanding = (inv.total_amount ?? 0) - (inv.paid_amount ?? 0);
+		const outstanding = inv.outstanding ?? 0;
 		if (outstanding <= 0) continue;
 		if (!inv.due_date) {
 			aging.current += outstanding;

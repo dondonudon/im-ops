@@ -443,6 +443,7 @@ export type Database = {
 					move_time: string | null;
 					move_end_date: string | null;
 					move_end_time: string | null;
+					base_revenue: number;
 					revenue: number;
 					gcal_event_id: string | null;
 					notes: string | null;
@@ -458,7 +459,8 @@ export type Database = {
 					move_time?: string | null;
 					move_end_date?: string | null;
 					move_end_time?: string | null;
-					revenue: number;
+					base_revenue?: number;
+					revenue?: number;
 					gcal_event_id?: string | null;
 					notes?: string | null;
 					created_by?: string | null;
@@ -473,6 +475,7 @@ export type Database = {
 					move_time?: string | null;
 					move_end_date?: string | null;
 					move_end_time?: string | null;
+					base_revenue?: number;
 					revenue?: number;
 					gcal_event_id?: string | null;
 					notes?: string | null;
@@ -679,6 +682,7 @@ export type Database = {
 				Row: {
 					id: string;
 					job_id: string;
+					invoice_id: string | null;
 					amount: number;
 					payment_type: "down_payment" | "partial" | "final" | "refund";
 					method: "cash" | "transfer" | null;
@@ -690,6 +694,7 @@ export type Database = {
 				Insert: {
 					id?: string;
 					job_id: string;
+					invoice_id?: string | null;
 					amount: number;
 					payment_type: "down_payment" | "partial" | "final" | "refund";
 					method?: "cash" | "transfer" | null;
@@ -701,6 +706,7 @@ export type Database = {
 				Update: {
 					id?: string;
 					job_id?: string;
+					invoice_id?: string | null;
 					amount?: number;
 					payment_type?: "down_payment" | "partial" | "final" | "refund";
 					method?: "cash" | "transfer" | null;
@@ -717,12 +723,21 @@ export type Database = {
 						referencedRelation: "jobs";
 						referencedColumns: ["id"];
 					},
+					{
+						foreignKeyName: "payments_invoice_id_fkey";
+						columns: ["invoice_id"];
+						isOneToOne: false;
+						referencedRelation: "invoices";
+						referencedColumns: ["id"];
+					},
 				];
 			};
 			invoices: {
 				Row: {
 					id: string;
 					job_id: string;
+					parent_invoice_id: string | null;
+					label: string | null;
 					invoice_number: string;
 					total_amount: number;
 					paid_amount: number;
@@ -736,6 +751,8 @@ export type Database = {
 				Insert: {
 					id?: string;
 					job_id: string;
+					parent_invoice_id?: string | null;
+					label?: string | null;
 					invoice_number: string;
 					total_amount: number;
 					paid_amount?: number;
@@ -748,6 +765,8 @@ export type Database = {
 				Update: {
 					id?: string;
 					job_id?: string;
+					parent_invoice_id?: string | null;
+					label?: string | null;
 					invoice_number?: string;
 					total_amount?: number;
 					paid_amount?: number;
@@ -760,6 +779,51 @@ export type Database = {
 				Relationships: [
 					{
 						foreignKeyName: "invoices_job_id_fkey";
+						columns: ["job_id"];
+						isOneToOne: false;
+						referencedRelation: "jobs";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "invoices_parent_invoice_id_fkey";
+						columns: ["parent_invoice_id"];
+						isOneToOne: false;
+						referencedRelation: "invoices";
+						referencedColumns: ["id"];
+					},
+				];
+			};
+			job_adjustments: {
+				Row: {
+					id: string;
+					job_id: string;
+					amount: number;
+					reason: string;
+					adjusted_at: string;
+					created_by: string | null;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					job_id: string;
+					amount: number;
+					reason: string;
+					adjusted_at?: string;
+					created_by?: string | null;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					job_id?: string;
+					amount?: number;
+					reason?: string;
+					adjusted_at?: string;
+					created_by?: string | null;
+					created_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "job_adjustments_job_id_fkey";
 						columns: ["job_id"];
 						isOneToOne: false;
 						referencedRelation: "jobs";
@@ -1077,7 +1141,7 @@ export type Database = {
 					total_amount: number;
 					paid: number;
 					outstanding: number;
-					due_at: string | null;
+					due_date: string | null;
 					effective_status: string;
 				};
 				Relationships: [];

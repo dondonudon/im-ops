@@ -11,21 +11,24 @@ export default async function ExpensesPage({ params }: { params: Promise<{ id: s
 	const t = await getTranslations("pages.jobDetail");
 	const tExpense = await getTranslations("forms.expense");
 
-	const [{ data: job }, { data: expenses }, { data: invoice }] = await Promise.all([
+	const [{ data: job }, { data: expenses }, { data: invoices }] = await Promise.all([
 		supabase.from("jobs").select("id, job_number, status").eq("id", id).single(),
 		supabase
 			.from("expenses")
 			.select("id, category, description, amount, incurred_at, receipt_url")
 			.eq("job_id", id)
 			.order("incurred_at", { ascending: false }),
-		supabase.from("invoices").select("status").eq("job_id", id).maybeSingle(),
+		// A job may now have many invoices (master + termin) — fetch the list, not maybeSingle.
+		supabase.from("invoices").select("status").eq("job_id", id),
 	]);
 
 	if (!job) notFound();
 
+	const anyInvoicePaid = (invoices ?? []).some((i) => i.status === "paid");
+
 	let lockReason: string | null = null;
 	if (job.status === "cancelled") lockReason = tExpense("lockedJobCancelled");
-	else if (invoice?.status === "paid") lockReason = tExpense("lockedInvoicePaid");
+	else if (anyInvoicePaid) lockReason = tExpense("lockedInvoicePaid");
 
 	return (
 		<div className="space-y-6 max-w-lg">
