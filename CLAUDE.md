@@ -71,11 +71,13 @@ These are enforced at the DB level and in app logic:
 
 1. **Lead status mirrors reality.** `converted` ⟺ a job exists; `proposal_sent` ⟺ at least one non-terminal proposal.
 2. **Proposals lock on approval.** `final_price`, `proposal_number`, and the estimation snapshot become immutable once `status = 'approved'`.
-3. **Job revenue locked at conversion.** Copied from `proposal.final_price` at the moment of job creation — never recalculated from proposal edits afterward.
-4. **One job per proposal.** `jobs.proposal_id` has a unique constraint.
-5. **Estimations store a `settings_snapshot`.** The JSONB snapshot captures `system_settings` at estimation time so historical pricing stays explainable.
-6. **Invoice status starts at `sent`** (no draft state). Lifecycle: `sent` → `partially_paid` / `paid` / `overdue` / `cancelled`. The `update_invoice_status` trigger auto-advances status when payments are recorded.
-7. **Calendar failures are non-fatal.** `lib/gcal/sync.ts` always returns `null` on failure; records are created without `gcal_event_id`. Never let a gcal error block a write.
+3. **Job base revenue locked at conversion.** `jobs.base_revenue` is copied from `proposal.final_price` at job creation and never touched again. `jobs.revenue` is derived by a BEFORE trigger: `base_revenue + Σ job_adjustments.amount` (signed — charges positive, discounts negative). Write `base_revenue`; read `revenue` for totals.
+4. **One active master invoice per job.** Enforced by a partial unique index on `invoices(job_id) WHERE parent_invoice_id IS NULL AND status <> 'cancelled'`. A job may have one master (grand total) plus N children (termin — DP, Pelunasan, …). Children carry `parent_invoice_id = master.id`. Payments attach to **leaf** invoices only (children when any exist, else the master itself). Master `paid_amount` is derived by trigger rollup — never paid directly. Views and AR functions must use leaf-only filters to avoid double-counting master + children; the `invoice_outstanding` view and `get_invoice_status_breakdown()` / `get_ar_totals()` RPCs already do this.
+
+5. **One job per proposal.** `jobs.proposal_id` has a unique constraint.
+6. **Estimations store a `settings_snapshot`.** The JSONB snapshot captures `system_settings` at estimation time so historical pricing stays explainable.
+7. **Invoice status starts at `sent`** (no draft state). Lifecycle: `sent` → `partially_paid` / `paid` / `overdue` / `cancelled`. The `update_invoice_status` trigger auto-advances status when payments are recorded; on a child invoice the trigger also rolls up `paid_amount` and status to the master.
+8. **Calendar failures are non-fatal.** `lib/gcal/sync.ts` always returns `null` on failure; records are created without `gcal_event_id`. Never let a gcal error block a write.
 
 ---
 
@@ -95,6 +97,7 @@ These are enforced at the DB level and in app logic:
 | `src/lib/pdfSettings.ts` | PDF document defaults (fonts, margins, signature/eSign settings) |
 | `src/lib/estimation/engine.ts` | ENGINE_VERSION 2.5.1 — cost + margin calculation, tiered margin table |
 | `src/lib/gcal/sync.ts` | Google Calendar push sync (never blocks) |
+| `src/lib/invoices.ts` | Pure helpers: `deriveJobRevenue`, `splitSumStatus`, `deriveInvoiceStatus`, `rollupMasterPaid`, `billableLeaves` |
 | `src/lib/utils.ts` | `formatRupiah`, `parseRupiah`, `formatDate`, `cn`, `resizeImage`, `sanitizeSearch` |
 | `src/lib/env.ts` | Startup env var validation (checks Supabase vars on import) |
 | `src/app/globals.css` | CSS custom properties for all semantic tokens |
@@ -242,8 +245,9 @@ npm run test:coverage # with coverage
 ```
 
 Tests live in `src/lib/__tests__/`. Coverage includes `utils.test.ts`,
-`customerDuplicates.test.ts`, and the Search Console suite (`searchConsole*.test.ts`
-— client, sync, dates, metrics, normalize, aggregate, opportunities, cron route).
+`customerDuplicates.test.ts`, `invoices.test.ts` (split-invoice pure helpers),
+and the Search Console suite (`searchConsole*.test.ts` — client, sync, dates,
+metrics, normalize, aggregate, opportunities, cron route).
 Server-only modules are testable because `vitest.config.ts` aliases `server-only`
 to a stub (see the SEO section).
 
@@ -314,7 +318,6 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 
 ## Known gaps (not yet implemented)
 
-- `payments` is FK'd to `invoices.id` — down payments before invoice generation aren't supported
 - `/estimations/[id]` (edit existing) — only `/estimations/new` exists
 - `next-pwa` installed but service worker + offline expense queue not wired
 - Reports missing: avg discount, lost-reason breakdown, AR aging detail, fleet/crew utilization
@@ -322,6 +325,13 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 ---
 
 ## Active development context (as of 2026-08)
+
+- **Split invoices + job change-orders shipped** (migrations `006`/`007`): payable
+  master + termin-children invoice model per job; `job_adjustments` with derived
+  `jobs.revenue`; `JobInvoicesPanel`, `JobAdjustmentsPanel`, `AttachablePayments`
+  components; smart-target `PaymentsPanel` (0/1/2+ leaves); master/leaf invoice
+  detail split; leaf-only AR de-dup in views + RPCs. **Migrations must be applied
+  to Supabase before deploying this code.** See `docs/split-invoices-and-change-orders-plan.md`.
 
 - **Growth › SEO dashboard shipped** (`/growth/seo`): GSC integration, daily cron,
   backfill, KPI cards, keyword table, position trend chart (inline SVG), top
