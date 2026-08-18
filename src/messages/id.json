@@ -588,9 +588,7 @@
 			"title": "Kalender",
 			"legend": {
 				"survey": "Survei",
-				"upcoming": "Mendatang",
-				"today": "Hari ini",
-				"done": "Selesai"
+				"job": "Pekerjaan"
 			}
 		},
 		"reports": {

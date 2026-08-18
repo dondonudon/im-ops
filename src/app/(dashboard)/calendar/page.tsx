@@ -3,7 +3,6 @@ import { CalendarView } from "@/components/calendar/CalendarView";
 import { SyncAllButton } from "@/components/calendar/SyncAllButton";
 import { PageHeader } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
-import { deriveJobStatus } from "@/lib/utils";
 
 export default async function CalendarPage() {
 	const supabase = await createClient();
@@ -100,9 +99,7 @@ export default async function CalendarPage() {
 					<div className="flex flex-wrap items-center justify-end gap-2">
 						<div className="flex items-center gap-3 text-xs text-ink-muted">
 							<LegendDot color="#eddb15" label={t("legend.survey")} />
-							<LegendDot color="#22c55e" label={t("legend.upcoming")} />
-							<LegendDot color="#0ea5e9" label={t("legend.today")} />
-							<LegendDot color="#64748b" label={t("legend.done")} />
+							<LegendDot color="#22c55e" label={t("legend.job")} />
 						</div>
 						<SyncAllButton />
 					</div>
@@ -126,15 +123,6 @@ function LegendDot({ color, label }: { color: string; label: string }) {
 	);
 }
 
-function jobStatusColor(moveDate: string | null, dbStatus: string): string {
-	switch (deriveJobStatus(moveDate, dbStatus)) {
-		case "today":
-			return "#0ea5e9";
-		case "done":
-			return "#64748b";
-		case "cancelled":
-			return "#ef4444";
-		default: // upcoming
-			return "#22c55e";
-	}
+function jobStatusColor(_moveDate: string | null, dbStatus: string): string {
+	return dbStatus === "cancelled" ? "#ef4444" : "#22c55e";
 }

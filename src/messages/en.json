@@ -588,9 +588,7 @@
 			"title": "Calendar",
 			"legend": {
 				"survey": "Survey",
-				"upcoming": "Upcoming",
-				"today": "Today",
-				"done": "Done"
+				"job": "Job"
 			}
 		},
 		"reports": {
