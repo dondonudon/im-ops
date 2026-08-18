@@ -83,7 +83,7 @@ export default async function CalendarPage() {
 				subtitle: "Survey",
 				start: s.scheduled_at as string,
 				endInclusive: (s.scheduled_at as string).slice(0, 10),
-				color: s.conducted_at ? "#94a3b8" : "#eddb15",
+				color: "#eddb15",
 				status: s.conducted_at ? "done" : "scheduled",
 				synced: Boolean(s.gcal_event_id),
 				url: `/leads/${lead?.id ?? ""}`,
