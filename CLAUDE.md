@@ -24,7 +24,10 @@ React Server Components by default. Use `"use client"` only where interaction or
 
 ### Data layer
 - Supabase JS client: `src/lib/supabase/client.ts` (browser) and `src/lib/supabase/server.ts` (server)
-- Full DB types auto-generated into `src/lib/supabase/types.ts`
+- Full DB types live in `src/lib/supabase/types.ts` — **hand-maintained, not generated.**
+  It encodes CHECK constraints as literal unions (`type: "individual" | "corporate"`),
+  which `supabase gen types` would flatten to `string`. Edit it by hand after a
+  schema change; don't add a codegen script.
 - All currency stored as `BIGINT` (IDR, no decimals). Never use `FLOAT` or `DECIMAL` for money.
 - Schema lives in `supabase/migrations/` — numbered SQL files applied in order. The first migration is the consolidated base schema; later files layer changes on top. Running the full set on a fresh DB is safe.
 
@@ -86,7 +89,7 @@ These are enforced at the DB level and in app logic:
 | File | Role |
 |---|---|
 | `src/middleware.ts` | Auth gate + CSP headers (nonce-based strict-dynamic in prod, wasm-unsafe-eval for react-pdf) |
-| `src/lib/supabase/types.ts` | Full DB type definitions — regenerate after schema changes |
+| `src/lib/supabase/types.ts` | Full DB type definitions — hand-edit after schema changes (not codegen) |
 | `src/lib/supabase/client.ts` | Browser client (for Client Components) |
 | `src/lib/supabase/server.ts` | Server client (for Server Components + Actions) |
 | `src/lib/supabase/admin.ts` | Service-role client — **bypasses RLS**; `server-only`; SEO sync path only (see Growth/SEO) |

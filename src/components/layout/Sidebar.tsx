@@ -82,7 +82,11 @@ const PRIMARY_NAV_ITEMS: NavItem[] = [
 		href: "/money",
 		key: "money",
 		icon: Wallet,
-		match: (p) => p.startsWith("/money") || p.startsWith("/invoices") || p.startsWith("/reports"),
+		match: (p) =>
+			p.startsWith("/money") ||
+			p.startsWith("/invoices") ||
+			p.startsWith("/expenses") ||
+			p.startsWith("/reports"),
 	},
 	{
 		href: "/customers",

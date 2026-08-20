@@ -28,7 +28,8 @@
 		"overview": "Overview",
 		"sections": {
 			"operations": "Operations"
-		}
+		},
+		"expenses": "Expenses"
 	},
 	"topbar": {
 		"searchPlaceholder": "Search…",
@@ -910,6 +911,16 @@
 			"saveSurveyNotes": "Save survey notes",
 			"markAsDone": "Mark as Done",
 			"markedAsCompleted": "Survey marked as completed"
+		},
+		"expenses": {
+			"title": "Operational expenses",
+			"subtitle": "Overhead not tied to any single job",
+			"operationalTotal": "Operational",
+			"operationalTotalSub": "{count} entries this month",
+			"jobTotal": "Job expenses",
+			"jobTotalSub": "Logged on jobs",
+			"combinedTotal": "Total spend",
+			"combinedTotalSub": "Operational + job"
 		}
 	},
 	"forms": {
@@ -1220,6 +1231,20 @@
 			"amount": "Amount",
 			"dueDate": "Due date",
 			"sumWarning": "Termin total ({sum}) ≠ master total ({total})"
+		},
+		"operationalExpenses": {
+			"title": "Operational expenses",
+			"add": "+ Add expense",
+			"amount": "Amount",
+			"date": "Date",
+			"category": "Category",
+			"description": "Description",
+			"descriptionPlaceholder": "e.g. Bubble wrap bulk buy",
+			"receipt": "Receipt",
+			"receiptHint": "Optional. Photo is resized before upload.",
+			"viewReceipt": "View receipt",
+			"total": "Total",
+			"empty": "No operational expenses this month"
 		}
 	},
 	"modals": {
@@ -1373,7 +1398,10 @@
 			"other": "Other",
 			"vehicle_rental": "Vehicle rental",
 			"crew_payment": "Crew payment",
-			"miscellaneous": "Miscellaneous"
+			"miscellaneous": "Miscellaneous",
+			"marketing": "Marketing",
+			"utilities": "Utilities",
+			"office_supplies": "Office supplies"
 		},
 		"eventType": {
 			"job_started": "Job started",
@@ -1430,7 +1458,11 @@
 		"aging31": "31–60 days",
 		"aging60": "60+ days",
 		"viewInvoices": "All invoices",
-		"viewReports": "Full report →"
+		"viewReports": "Full report →",
+		"jobGrossProfit": "Job gross profit",
+		"jobGrossProfitSub": "Revenue less job costs",
+		"operatingProfit": "Operating profit",
+		"operatingProfitSub": "After {amount} overhead"
 	},
 	"pagination": {
 		"showing": "{from}–{to} of {total}",

@@ -28,7 +28,8 @@
 		"overview": "Ringkasan",
 		"sections": {
 			"operations": "Operasional"
-		}
+		},
+		"expenses": "Biaya"
 	},
 	"topbar": {
 		"searchPlaceholder": "Cari…",
@@ -910,6 +911,16 @@
 			"saveSurveyNotes": "Simpan catatan survei",
 			"markAsDone": "Tandai Selesai",
 			"markedAsCompleted": "Survei ditandai selesai"
+		},
+		"expenses": {
+			"title": "Biaya operasional",
+			"subtitle": "Overhead yang tidak terkait job tertentu",
+			"operationalTotal": "Operasional",
+			"operationalTotalSub": "{count} entri bulan ini",
+			"jobTotal": "Biaya job",
+			"jobTotalSub": "Dicatat di job",
+			"combinedTotal": "Total pengeluaran",
+			"combinedTotalSub": "Operasional + job"
 		}
 	},
 	"forms": {
@@ -1220,6 +1231,20 @@
 			"amount": "Jumlah",
 			"dueDate": "Jatuh tempo",
 			"sumWarning": "Jumlah termin ({sum}) ≠ total master ({total})"
+		},
+		"operationalExpenses": {
+			"title": "Biaya operasional",
+			"add": "+ Tambah biaya",
+			"amount": "Jumlah",
+			"date": "Tanggal",
+			"category": "Kategori",
+			"description": "Keterangan",
+			"descriptionPlaceholder": "mis. Beli bubble wrap borongan",
+			"receipt": "Struk",
+			"receiptHint": "Opsional. Foto dikecilkan sebelum diunggah.",
+			"viewReceipt": "Lihat struk",
+			"total": "Total",
+			"empty": "Belum ada biaya operasional bulan ini"
 		}
 	},
 	"modals": {
@@ -1373,7 +1398,10 @@
 			"other": "Lainnya",
 			"vehicle_rental": "Sewa kendaraan",
 			"crew_payment": "Bayar kru",
-			"miscellaneous": "Lain-lain"
+			"miscellaneous": "Lain-lain",
+			"marketing": "Marketing",
+			"utilities": "Utilitas",
+			"office_supplies": "Perlengkapan kantor"
 		},
 		"eventType": {
 			"job_started": "Pekerjaan dimulai",
@@ -1430,7 +1458,11 @@
 		"aging31": "31–60 hari",
 		"aging60": "60+ hari",
 		"viewInvoices": "Semua faktur",
-		"viewReports": "Laporan lengkap →"
+		"viewReports": "Laporan lengkap →",
+		"jobGrossProfit": "Laba kotor job",
+		"jobGrossProfitSub": "Pendapatan dikurangi biaya job",
+		"operatingProfit": "Laba operasional",
+		"operatingProfitSub": "Setelah overhead {amount}"
 	},
 	"pagination": {
 		"showing": "{from}–{to} dari {total}",

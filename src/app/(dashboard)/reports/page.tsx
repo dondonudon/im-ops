@@ -15,21 +15,9 @@ import {
 	THead,
 	TR,
 } from "@/components/ui";
+import { monthRange, parseMonth } from "@/lib/month";
 import { createClient } from "@/lib/supabase/server";
 import { formatRupiah } from "@/lib/utils";
-
-function parseMonth(raw?: string): string {
-	if (raw && /^\d{4}-\d{2}$/.test(raw)) return raw;
-	return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }).slice(0, 7);
-}
-
-function monthRange(ym: string): { start: string; end: string } {
-	const [year, month] = ym.split("-").map(Number);
-	const start = `${year}-${String(month).padStart(2, "0")}-01`;
-	const next = new Date(year, month, 1);
-	const end = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-01`;
-	return { start, end };
-}
 
 export default async function ReportsPage({
 	searchParams,
@@ -65,6 +53,8 @@ export default async function ReportsPage({
 		supabase
 			.from("jobs")
 			.select("id, revenue, move_date")
+			// Cancelled jobs keep their revenue value; exclude them from revenue/profit.
+			.neq("status", "cancelled")
 			.gte("move_date", monthStart)
 			.lt("move_date", monthEnd),
 		supabase
@@ -113,6 +103,8 @@ export default async function ReportsPage({
 		supabase
 			.from("jobs")
 			.select("revenue, move_date")
+			// Cancelled jobs keep their revenue value; exclude them from the annual chart.
+			.neq("status", "cancelled")
 			.gte("move_date", yearStart)
 			.lt("move_date", yearEnd),
 		// Yearly expenses — for annual profit chart

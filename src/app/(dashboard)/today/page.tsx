@@ -393,6 +393,8 @@ async function MoneyCardSection() {
 		supabase
 			.from("jobs")
 			.select("revenue, move_date")
+			// Cancelled jobs keep their revenue value; exclude them from the KPI.
+			.neq("status", "cancelled")
 			.gte("move_date", monthStart)
 			.lt("move_date", monthEnd),
 		supabase

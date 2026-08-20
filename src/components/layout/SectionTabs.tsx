@@ -28,7 +28,11 @@ const AREAS: { test: (p: string) => boolean; tabs: Tab[] }[] = [
 		],
 	},
 	{
-		test: (p) => p.startsWith("/money") || p.startsWith("/invoices") || p.startsWith("/reports"),
+		test: (p) =>
+			p.startsWith("/money") ||
+			p.startsWith("/invoices") ||
+			p.startsWith("/expenses") ||
+			p.startsWith("/reports"),
 		tabs: [
 			{ href: "/money", key: "overview", match: (p) => p.startsWith("/money") },
 			{
@@ -36,6 +40,9 @@ const AREAS: { test: (p: string) => boolean; tabs: Tab[] }[] = [
 				key: "invoices",
 				match: (p) => p.startsWith("/invoices"),
 			},
+			// Operational (non-job) expenses only. Job expenses stay on the job, at
+			// /jobs/[id]/expenses — which this prefix deliberately doesn't match.
+			{ href: "/expenses", key: "expenses", match: (p) => p.startsWith("/expenses") },
 			{ href: "/reports", key: "reports", match: (p) => p.startsWith("/reports") },
 		],
 	},

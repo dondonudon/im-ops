@@ -3,6 +3,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export type UrlCache = Map<string, { url: string; expiresAt: number }>;
 
 /**
+ * Normalizes a stored `receipt_url` to a bucket-relative storage path.
+ * New rows store a bare path ("<jobId>/<uuid>.webp"); legacy rows store a full
+ * public URL containing "/receipts/". Handles both.
+ */
+export function receiptStoragePath(value: string): string {
+	const marker = "/receipts/";
+	const idx = value.indexOf(marker);
+	return idx !== -1 ? value.slice(idx + marker.length) : value;
+}
+
+/**
  * Fetches signed URLs for a set of storage paths in a single batch request,
  * reusing cached URLs that still have more than 60 seconds remaining.
  *

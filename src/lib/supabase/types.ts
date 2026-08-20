@@ -637,7 +637,9 @@ export type Database = {
 			expenses: {
 				Row: {
 					id: string;
-					job_id: string;
+					// Nullable in the DB (001:185). NULL ⟺ expense_type = 'operational',
+					// enforced by chk_job_expense_has_job / chk_operational_expense_has_no_job (008).
+					job_id: string | null;
 					amount: number;
 					category: string;
 					description: string | null;
@@ -645,10 +647,13 @@ export type Database = {
 					incurred_at: string;
 					logged_by: string | null;
 					created_at: string;
+					expense_type: "job" | "operational";
 				};
 				Insert: {
 					id?: string;
-					job_id: string;
+					// Required (not optional) so every insert site states its intent:
+					// a job id for job expenses, an explicit null for operational ones.
+					job_id: string | null;
 					amount: number;
 					category: string;
 					description?: string | null;
@@ -656,10 +661,11 @@ export type Database = {
 					incurred_at: string;
 					logged_by?: string | null;
 					created_at?: string;
+					expense_type?: "job" | "operational";
 				};
 				Update: {
 					id?: string;
-					job_id?: string;
+					job_id?: string | null;
 					amount?: number;
 					category?: string;
 					description?: string | null;
@@ -667,6 +673,7 @@ export type Database = {
 					incurred_at?: string;
 					logged_by?: string | null;
 					created_at?: string;
+					expense_type?: "job" | "operational";
 				};
 				Relationships: [
 					{

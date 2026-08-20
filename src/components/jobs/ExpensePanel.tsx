@@ -5,7 +5,13 @@ import { useTranslations } from "next-intl";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { NumericInput } from "@/components/shared/NumericInput";
+import { ReceiptLightbox } from "@/components/shared/ReceiptLightbox";
 import { Badge, Button, Card, CardHeader, Field, FormError, Input } from "@/components/ui";
+import {
+	categoryKeyByValue,
+	DEFAULT_JOB_CATEGORY,
+	JOB_EXPENSE_CATEGORIES,
+} from "@/lib/expenseCategories";
 import {
 	enqueueExpense,
 	flushQueue,
@@ -13,7 +19,7 @@ import {
 	queuedCount,
 	subscribe,
 } from "@/lib/offline/expenseQueue";
-import { batchSignedUrls, type UrlCache } from "@/lib/storage/signedUrls";
+import { batchSignedUrls, receiptStoragePath, type UrlCache } from "@/lib/storage/signedUrls";
 import { createClient } from "@/lib/supabase/client";
 import { formatRupiah, resizeImage } from "@/lib/utils";
 
@@ -26,21 +32,9 @@ type Expense = {
 	receipt_url: string | null;
 };
 
-const CATEGORIES: { value: string; key: string }[] = [
-	{ value: "Food", key: "food" },
-	{ value: "Labor", key: "labor" },
-	{ value: "Packing materials", key: "packing_materials" },
-	{ value: "Transport", key: "transport" },
-	{ value: "Other", key: "other" },
-];
+const CATEGORIES = JOB_EXPENSE_CATEGORIES;
 
-const CATEGORY_KEY_BY_VALUE: Record<string, string> = CATEGORIES.reduce(
-	(acc, c) => {
-		acc[c.value] = c.key;
-		return acc;
-	},
-	{} as Record<string, string>,
-);
+const CATEGORY_KEY_BY_VALUE: Record<string, string> = categoryKeyByValue(CATEGORIES);
 
 /**
  * Mobile-optimized expense entry panel.
@@ -100,7 +94,7 @@ export function ExpensePanel({
 	}, [expenses, receiptClient]);
 	const [form, setForm] = useState({
 		amount: "",
-		category: "Fuel",
+		category: DEFAULT_JOB_CATEGORY,
 		note: "",
 		date: todayISO(),
 	});
@@ -113,7 +107,12 @@ export function ExpensePanel({
 
 	// Edit state
 	const [editingId, setEditingId] = useState<string | null>(null);
-	const [editForm, setEditForm] = useState({ amount: "", category: "Fuel", note: "", date: "" });
+	const [editForm, setEditForm] = useState({
+		amount: "",
+		category: DEFAULT_JOB_CATEGORY,
+		note: "",
+		date: "",
+	});
 	const [editReceiptFile, setEditReceiptFile] = useState<File | null>(null);
 	const [editReceiptRemove, setEditReceiptRemove] = useState(false);
 	const [editSaving, setEditSaving] = useState(false);
@@ -149,7 +148,7 @@ export function ExpensePanel({
 	}, [tOffline, router.refresh]);
 
 	function resetForm() {
-		setForm({ amount: "", category: "Fuel", note: "", date: todayISO() });
+		setForm({ amount: "", category: DEFAULT_JOB_CATEGORY, note: "", date: todayISO() });
 		setReceiptFile(null);
 	}
 
@@ -317,6 +316,9 @@ export function ExpensePanel({
 				.from("expenses")
 				.insert({
 					job_id: jobId,
+					// Explicit rather than leaning on the DB default — this panel is
+					// job-only, and the constraint pairs expense_type with job_id (008).
+					expense_type: "job",
 					category: form.category,
 					description: form.note.trim() || null,
 					amount: amt,
@@ -810,75 +812,8 @@ export function ExpensePanel({
 	);
 }
 
-function ReceiptLightbox({
-	url,
-	onClose,
-	label,
-	closeLabel,
-}: {
-	url: string;
-	onClose: () => void;
-	label: string;
-	closeLabel: string;
-}) {
-	useEffect(() => {
-		const handleKey = (e: KeyboardEvent) => {
-			if (e.key === "Escape") onClose();
-		};
-		document.addEventListener("keydown", handleKey);
-		return () => document.removeEventListener("keydown", handleKey);
-	}, [onClose]);
-
-	return (
-		<div
-			role="dialog"
-			aria-modal="true"
-			aria-label={label}
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
-		>
-			{/* Backdrop close */}
-			<button
-				type="button"
-				className="absolute inset-0 w-full h-full cursor-default"
-				aria-label={closeLabel}
-				onClick={onClose}
-			/>
-			{/* Close button */}
-			<button
-				type="button"
-				className="absolute top-4 right-4 z-10 text-white text-2xl leading-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
-				onClick={onClose}
-				aria-label={closeLabel}
-			>
-				✕
-			</button>
-			{/* Image — click does nothing; backdrop button handles close */}
-			<div className="relative z-10 max-w-[90vw] max-h-[90vh]">
-				<Image
-					src={url}
-					alt={label}
-					width={800}
-					height={1100}
-					className="max-w-[90vw] max-h-[90vh] w-auto h-auto object-contain rounded shadow-2xl"
-				/>
-			</div>
-		</div>
-	);
-}
-
 function todayISO() {
 	return new Date().toLocaleDateString("en-CA");
-}
-
-/**
- * Normalizes a stored `receipt_url` to a bucket-relative storage path.
- * New rows store a bare path (e.g. "<jobId>/<uuid>.webp"); legacy rows store a
- * full public URL containing "/receipts/". Handles both.
- */
-function receiptStoragePath(value: string): string {
-	const marker = "/receipts/";
-	const idx = value.indexOf(marker);
-	return idx !== -1 ? value.slice(idx + marker.length) : value;
 }
 
 function PencilIcon() {

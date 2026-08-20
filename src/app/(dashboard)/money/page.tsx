@@ -10,21 +10,9 @@ import {
 	PageHeader,
 	Stat,
 } from "@/components/ui";
+import { monthRange, parseMonth } from "@/lib/month";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatRupiah } from "@/lib/utils";
-
-function parseMonth(raw?: string): string {
-	if (raw && /^\d{4}-\d{2}$/.test(raw)) return raw;
-	return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }).slice(0, 7);
-}
-
-function monthRange(ym: string): { start: string; end: string } {
-	const [year, month] = ym.split("-").map(Number);
-	const start = `${year}-${String(month).padStart(2, "0")}-01`;
-	const next = new Date(year, month, 1);
-	const end = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-01`;
-	return { start, end };
-}
 
 type Payment = {
 	id: string;
@@ -64,9 +52,11 @@ export default async function MoneyPage({
 		supabase.rpc("get_invoice_status_breakdown"),
 		// Actual cash received: payments made in this month
 		supabase.from("payments").select("amount").gte("paid_at", monthStart).lt("paid_at", monthEnd),
+		// expense_type is selected, NOT filtered — the two kinds are partitioned below
+		// so the page can show job gross profit and operating profit separately.
 		supabase
 			.from("expenses")
-			.select("amount")
+			.select("amount, expense_type")
 			.gte("incurred_at", monthStart)
 			.lt("incurred_at", monthEnd),
 		// Recent payments in the selected month
@@ -83,6 +73,8 @@ export default async function MoneyPage({
 		supabase
 			.from("jobs")
 			.select("id, revenue, move_date")
+			// Cancelled jobs keep their revenue value; exclude them from the KPI.
+			.neq("status", "cancelled")
 			.gte("move_date", monthStart)
 			.lt("move_date", monthEnd),
 	]);
@@ -95,12 +87,21 @@ export default async function MoneyPage({
 	const overdueCount = Number(arTotals?.overdue_count ?? 0);
 	// Cash actually received this month (for CASH IN card)
 	const cashIn = (monthlyPayments ?? []).reduce((s, p) => s + (p.amount ?? 0), 0);
-	const monthExpenses = (monthlyExp ?? []).reduce((s, i) => s + (i.amount ?? 0), 0);
+	// Partition the month's expenses by kind. Job expenses are charged against the
+	// jobs that ran this month; operational expenses (bulk packing materials, ads,
+	// utilities) have no job and are overhead for the month they were bought in.
+	let jobExpenses = 0;
+	let operationalTotal = 0;
+	for (const e of monthlyExp ?? []) {
+		if (e.expense_type === "operational") operationalTotal += e.amount ?? 0;
+		else jobExpenses += e.amount ?? 0;
+	}
 	// NET uses job revenue from completed jobs — consistent with reports page TOTAL PROFIT
 	const completedRevenue = (monthJobsData ?? [])
 		.filter((j) => (j.move_date ?? "") <= todayStr)
 		.reduce((s, j) => s + (j.revenue ?? 0), 0);
-	const net = completedRevenue - monthExpenses;
+	const jobGrossProfit = completedRevenue - jobExpenses;
+	const operatingProfit = jobGrossProfit - operationalTotal;
 
 	// AR aging buckets — pre-computed server-side
 	const agingRows: { label: string; amount: number; tone: string }[] = [
@@ -134,7 +135,7 @@ export default async function MoneyPage({
 			/>
 
 			{/* KPI stats */}
-			<div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+			<div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
 				<Stat
 					icon={<Wallet size={16} />}
 					tone={overdueCount > 0 ? "pending" : "neutral"}
@@ -160,11 +161,18 @@ export default async function MoneyPage({
 				/>
 				<Stat
 					icon={<TrendingUp size={16} />}
-					tone={net >= 0 ? "positive" : "danger"}
-					label={t("net")}
-					value={formatRupiah(net)}
-					sub={t("netSub")}
+					tone={jobGrossProfit >= 0 ? "positive" : "danger"}
+					label={t("jobGrossProfit")}
+					value={formatRupiah(jobGrossProfit)}
+					sub={t("jobGrossProfitSub")}
 					href="/reports"
+				/>
+				<Stat
+					icon={<TrendingUp size={16} />}
+					tone={operatingProfit >= 0 ? "positive" : "danger"}
+					label={t("operatingProfit")}
+					value={formatRupiah(operatingProfit)}
+					sub={t("operatingProfitSub", { amount: formatRupiah(operationalTotal) })}
 				/>
 			</div>
 
