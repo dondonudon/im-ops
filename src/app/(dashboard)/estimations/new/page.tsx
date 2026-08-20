@@ -13,7 +13,7 @@ export default async function NewEstimationPage({
 
 	const supabase = await createClient();
 
-	const [{ data: settingRows }, { data: existing }] = await Promise.all([
+	const [{ data: settingRows }, { data: existing }, { data: proposal }] = await Promise.all([
 		supabase
 			.from("system_settings")
 			.select("key, value")
@@ -23,13 +23,21 @@ export default async function NewEstimationPage({
 			.select("id, inputs, overrides")
 			.eq("proposal_id", proposal_id)
 			.maybeSingle(),
+		supabase.from("proposals").select("status").eq("id", proposal_id).maybeSingle(),
 	]);
+
+	// Estimations lock once the proposal leaves draft (invariant: proposals lock on
+	// approval). This also makes the form view-only when reached from a job.
+	const readOnly = proposal ? proposal.status !== "draft" : false;
 
 	return (
 		<div className="space-y-6">
-			<PageHeader title={existing ? "Edit Estimation" : "New Estimation"} />
+			<PageHeader
+				title={readOnly ? "Estimation" : existing ? "Edit Estimation" : "New Estimation"}
+			/>
 			<EstimationForm
 				proposalId={proposal_id}
+				readOnly={readOnly}
 				settingRows={settingRows ?? []}
 				existing={
 					existing

@@ -1034,6 +1034,7 @@
 			"overrideReason": "Override reason",
 			"breakdownTitle": "Breakdown",
 			"saveEstimation": "Save Estimation",
+			"lockedNotice": "This estimation is locked and view-only because the proposal is no longer a draft.",
 			"creating": "Saving…",
 			"summary": "Cost summary",
 			"breakdown": {

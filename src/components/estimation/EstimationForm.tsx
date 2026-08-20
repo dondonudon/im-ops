@@ -25,6 +25,7 @@ export function EstimationForm({
 	proposalId,
 	settingRows,
 	existing,
+	readOnly = false,
 }: {
 	proposalId: string;
 	settingRows: SettingRow[];
@@ -33,6 +34,8 @@ export function EstimationForm({
 		inputs: EstimationInputs;
 		overrides: { final_price?: number; override_reason?: string } | null;
 	};
+	/** Locks the form: disables all inputs and hides the save button. */
+	readOnly?: boolean;
 }) {
 	const router = useRouter();
 	const t = useTranslations("forms.estimation");
@@ -157,8 +160,14 @@ export function EstimationForm({
 	return (
 		<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 			{/* ── INPUTS ── */}
-			<div className="space-y-5">
+			<fieldset disabled={readOnly} className={`space-y-5 ${readOnly ? "opacity-70" : ""}`}>
 				<h2 className="text-lg font-semibold text-ink">{t("inputs")}</h2>
+
+				{readOnly && (
+					<p className="rounded-lg border border-line bg-surface-sunken px-3 py-2 text-sm text-ink-muted">
+						{t("lockedNotice")}
+					</p>
+				)}
 
 				{error && <FormError>{error}</FormError>}
 
@@ -364,16 +373,18 @@ export function EstimationForm({
 					)}
 				</div>
 
-				<Button
-					type="button"
-					onClick={handleSave}
-					disabled={saving || (overridePrice > 0 && !overrideReason.trim())}
-					loading={saving}
-					size="md"
-				>
-					{saving ? tButtons("saving") : t("saveEstimation")}
-				</Button>
-			</div>
+				{!readOnly && (
+					<Button
+						type="button"
+						onClick={handleSave}
+						disabled={saving || (overridePrice > 0 && !overrideReason.trim())}
+						loading={saving}
+						size="md"
+					>
+						{saving ? tButtons("saving") : t("saveEstimation")}
+					</Button>
+				)}
+			</fieldset>
 
 			{/* ── LIVE BREAKDOWN ── */}
 			<div className="space-y-4">

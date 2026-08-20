@@ -1034,6 +1034,7 @@
 			"overrideReason": "Alasan override",
 			"breakdownTitle": "Rincian",
 			"saveEstimation": "Simpan Estimasi",
+			"lockedNotice": "Estimasi ini terkunci dan hanya bisa dilihat karena proposal sudah bukan draf.",
 			"creating": "Menyimpan…",
 			"summary": "Ringkasan biaya",
 			"breakdown": {
