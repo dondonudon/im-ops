@@ -430,6 +430,16 @@ export function EstimationForm({
 							/>
 						</tbody>
 						<tfoot>
+							{overridePrice > 0 && (
+								<tr>
+									<td className="px-4 py-2 text-ink-faint line-through">
+										{tBreakdown("offerPrice")}
+									</td>
+									<td className="px-4 py-2 text-right tabular-nums text-ink-faint line-through">
+										{formatRupiah(outputs.initial_offer_price)}
+									</td>
+								</tr>
+							)}
 							<tr className="bg-primary">
 								<td className="px-4 py-3 text-sm font-bold text-primary-fg">
 									{overridePrice ? t("overridePriceLabel") : tBreakdown("offerPrice")}
