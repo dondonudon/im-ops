@@ -1,4 +1,5 @@
 "use client";
+import { Download } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { getPdfAssets } from "@/app/actions/getPdfAssets";
@@ -55,13 +56,14 @@ export function ProposalPDFDownloadButton({
 
 	return (
 		<Button
-			variant="secondary"
+			variant="primary"
 			size="sm"
 			onClick={handleDownload}
 			loading={generating}
 			aria-label={`${tActions("downloadPdf")} — ${filename}`}
 		>
-			{generating ? tActions("generatingPdf") : `⬇ ${tActions("downloadPdf")}`}
+			{!generating && <Download size={15} className="shrink-0" aria-hidden="true" />}
+			{generating ? tActions("generatingPdf") : tActions("downloadPdf")}
 		</Button>
 	);
 }

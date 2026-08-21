@@ -1,4 +1,5 @@
 "use client";
+import { Download } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { getPdfAssets } from "@/app/actions/getPdfAssets";
@@ -56,13 +57,14 @@ export function InvoicePDFDownloadButton({
 
 	return (
 		<Button
-			variant="secondary"
+			variant="primary"
 			size="sm"
 			onClick={handleDownload}
 			loading={generating}
 			aria-label={`${tDetail("downloadInvoicePdf")} — ${pdfProps.invoice.invoice_number}`}
 		>
-			{generating ? tActions("generatingPdf") : `⬇ ${tDetail("downloadInvoicePdf")}`}
+			{!generating && <Download size={15} className="shrink-0" aria-hidden="true" />}
+			{generating ? tActions("generatingPdf") : tDetail("downloadInvoicePdf")}
 		</Button>
 	);
 }

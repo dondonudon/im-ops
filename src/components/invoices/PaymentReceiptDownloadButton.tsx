@@ -68,7 +68,7 @@ export function PaymentReceiptDownloadButton({
 			onClick={handleDownload}
 			disabled={generating}
 			className={buttonStyles({
-				variant: "ghost",
+				variant: "subtle",
 				size: "icon",
 				className: generating ? "cursor-wait pointer-events-none" : "",
 			})}
