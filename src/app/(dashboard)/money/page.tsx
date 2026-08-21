@@ -1,4 +1,4 @@
-import { AlertTriangle, Banknote, TrendingUp, Wallet } from "lucide-react";
+import { AlertTriangle, Banknote, Receipt, TrendingUp, Wallet } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import {
@@ -20,8 +20,19 @@ type Payment = {
 	paid_at: string | null;
 	method: string | null;
 	invoice_id: string | null;
-	jobs: { job_number: string } | null;
+	jobs: { id: string; job_number: string } | null;
 	invoices: { invoice_number: string; label: string | null } | null;
+};
+
+type Expense = {
+	id: string;
+	amount: number;
+	incurred_at: string;
+	category: string;
+	description: string | null;
+	expense_type: "job" | "operational";
+	job_id: string | null;
+	jobs: { job_number: string } | null;
 };
 
 export default async function MoneyPage({
@@ -45,6 +56,7 @@ export default async function MoneyPage({
 		{ data: monthlyPayments },
 		{ data: monthlyExp },
 		{ data: paymentsData },
+		{ data: expensesData },
 		{ data: monthJobsData },
 	] = await Promise.all([
 		// Server-side aggregates — no row count cap, always accurate
@@ -63,11 +75,21 @@ export default async function MoneyPage({
 		supabase
 			.from("payments")
 			.select(
-				"id, amount, paid_at, method, invoice_id, jobs(job_number), invoices(invoice_number, label)",
+				"id, amount, paid_at, method, invoice_id, jobs(id, job_number), invoices(invoice_number, label)",
 			)
 			.gte("paid_at", monthStart)
 			.lt("paid_at", monthEnd)
 			.order("paid_at", { ascending: false })
+			.limit(8),
+		// Recent expenses in the selected month (both job + operational kinds)
+		supabase
+			.from("expenses")
+			.select(
+				"id, amount, incurred_at, category, description, expense_type, job_id, jobs(job_number)",
+			)
+			.gte("incurred_at", monthStart)
+			.lt("incurred_at", monthEnd)
+			.order("incurred_at", { ascending: false })
 			.limit(8),
 		// Jobs scheduled this month — for NET (revenue basis, consistent with reports)
 		supabase
@@ -80,6 +102,7 @@ export default async function MoneyPage({
 	]);
 
 	const payments = (paymentsData ?? []) as Payment[];
+	const expenses = (expensesData ?? []) as Expense[];
 
 	const totalOutstanding = Number(arTotals?.total_outstanding ?? 0);
 	const outstandingCount = Number(arTotals?.outstanding_count ?? 0);
@@ -173,10 +196,117 @@ export default async function MoneyPage({
 					label={t("operatingProfit")}
 					value={formatRupiah(operatingProfit)}
 					sub={t("operatingProfitSub", { amount: formatRupiah(operationalTotal) })}
+					href="/expenses"
 				/>
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+				{/* Recent payments */}
+				<Card>
+					<CardHeader title={t("recentPayments")} />
+					<div className="p-5">
+						{payments.length === 0 ? (
+							<EmptyState title={t("noPayments")} className="py-4" />
+						) : (
+							<ul className="space-y-1">
+								{payments.map((p) => {
+									// Route to the invoice the payment settled; fall back to the job.
+									const href = p.invoice_id
+										? `/invoices/${p.invoice_id}`
+										: p.jobs
+											? `/jobs/${p.jobs.id}`
+											: null;
+									const row = (
+										<>
+											<span className="flex h-7 w-7 items-center justify-center rounded-full bg-success-bg shrink-0">
+												<Banknote size={13} className="text-success" aria-hidden="true" />
+											</span>
+											<div className="flex-1 min-w-0">
+												<Money value={p.amount} className="text-[13px] font-semibold" />
+												<p className="text-xs text-ink-faint truncate">
+													{p.invoices?.invoice_number ?? p.jobs?.job_number ?? "—"}
+													{p.invoices?.label ? ` (${p.invoices.label})` : ""}
+													{p.method ? ` · ${p.method}` : ""}
+												</p>
+											</div>
+											<span className="text-xs text-ink-faint shrink-0 tabular-nums">
+												{p.paid_at ? formatDate(p.paid_at) : "—"}
+											</span>
+										</>
+									);
+									return (
+										<li key={p.id}>
+											{href ? (
+												<Link
+													href={href}
+													className="flex items-center gap-3 text-sm -mx-2 px-2 py-1.5 rounded-lg hover:bg-surface-sunken transition-colors"
+												>
+													{row}
+												</Link>
+											) : (
+												<div className="flex items-center gap-3 text-sm px-2 py-1.5">{row}</div>
+											)}
+										</li>
+									);
+								})}
+							</ul>
+						)}
+					</div>
+				</Card>
+
+				{/* Recent expenses */}
+				<Card>
+					<CardHeader
+						title={t("recentExpenses")}
+						action={
+							<Link
+								href="/expenses"
+								className="text-xs font-semibold text-primary-text hover:underline"
+							>
+								{t("viewExpenses")}
+							</Link>
+						}
+					/>
+					<div className="p-5">
+						{expenses.length === 0 ? (
+							<EmptyState title={t("noExpenses")} className="py-4" />
+						) : (
+							<ul className="space-y-1">
+								{expenses.map((e) => {
+									// Job expenses live under the job; operational ones on the expenses page.
+									const href =
+										e.expense_type === "job" && e.job_id
+											? `/jobs/${e.job_id}/expenses`
+											: "/expenses";
+									return (
+										<li key={e.id}>
+											<Link
+												href={href}
+												className="flex items-center gap-3 text-sm -mx-2 px-2 py-1.5 rounded-lg hover:bg-surface-sunken transition-colors"
+											>
+												<span className="flex h-7 w-7 items-center justify-center rounded-full bg-danger-bg shrink-0">
+													<Receipt size={13} className="text-danger" aria-hidden="true" />
+												</span>
+												<div className="flex-1 min-w-0">
+													<Money value={e.amount} className="text-[13px] font-semibold" />
+													<p className="text-xs text-ink-faint truncate">
+														{e.category}
+														{e.jobs?.job_number ? ` · ${e.jobs.job_number}` : ""}
+														{e.description ? ` · ${e.description}` : ""}
+													</p>
+												</div>
+												<span className="text-xs text-ink-faint shrink-0 tabular-nums">
+													{formatDate(e.incurred_at)}
+												</span>
+											</Link>
+										</li>
+									);
+								})}
+							</ul>
+						)}
+					</div>
+				</Card>
+
 				{/* AR aging */}
 				<Card>
 					<CardHeader
@@ -221,64 +351,33 @@ export default async function MoneyPage({
 					</div>
 				</Card>
 
-				{/* Recent payments */}
+				{/* Invoice status breakdown */}
 				<Card>
-					<CardHeader title={t("recentPayments")} />
+					<CardHeader title={t("invoiceStatus")} />
 					<div className="p-5">
-						{payments.length === 0 ? (
-							<EmptyState title={t("noPayments")} className="py-4" />
+						{groups.length === 0 ? (
+							<EmptyState title={t("noInvoices")} className="py-4" />
 						) : (
-							<ul className="space-y-3">
-								{payments.map((p) => (
-									<li key={p.id} className="flex items-center gap-3 text-sm">
-										<span className="flex h-7 w-7 items-center justify-center rounded-full bg-success-bg shrink-0">
-											<Banknote size={13} className="text-success" aria-hidden="true" />
+							<div className="space-y-2.5">
+								{groups.map((row) => (
+									<div key={row.status} className="flex items-center gap-3 text-sm">
+										<span
+											className={`h-2.5 w-2.5 rounded-full shrink-0 ${STATUS_DOT[row.status] ?? "bg-ink-faint"}`}
+											aria-hidden="true"
+										/>
+										<span className="flex-1 text-ink-muted capitalize">
+											{tInv(row.status as never)} ({row.inv_count})
 										</span>
-										<div className="flex-1 min-w-0">
-											<Money value={p.amount} className="text-[13px] font-semibold" />
-											<p className="text-xs text-ink-faint truncate">
-												{p.invoices?.invoice_number ?? p.jobs?.job_number ?? "—"}
-												{p.invoices?.label ? ` (${p.invoices.label})` : ""}
-												{p.method ? ` · ${p.method}` : ""}
-											</p>
-										</div>
-										<span className="text-xs text-ink-faint shrink-0 tabular-nums">
-											{p.paid_at ? formatDate(p.paid_at) : "—"}
+										<span className="tabular-nums font-medium text-ink">
+											{formatRupiah(row.total_amount)}
 										</span>
-									</li>
+									</div>
 								))}
-							</ul>
+							</div>
 						)}
 					</div>
 				</Card>
 			</div>
-
-			{/* Invoice status breakdown */}
-			<Card>
-				<CardHeader title={t("invoiceStatus")} />
-				<div className="p-5">
-					{groups.length === 0 ? (
-						<EmptyState title={t("noInvoices")} className="py-4" />
-					) : (
-						<div className="space-y-2.5">
-							{groups.map((row) => (
-								<div key={row.status} className="flex items-center gap-3 text-sm">
-									<span
-										className={`h-2.5 w-2.5 rounded-full shrink-0 ${STATUS_DOT[row.status] ?? "bg-ink-faint"}`}
-										aria-hidden="true"
-									/>
-									<span className="flex-1 text-ink-muted capitalize">
-										{tInv(row.status as never)} ({row.inv_count})
-									</span>
-									<span className="tabular-nums font-medium text-ink">
-										{formatRupiah(row.total_amount)}
-									</span>
-								</div>
-							))}
-						</div>
-					)}
-				</div>
-			</Card>
 		</div>
 	);
 }
