@@ -101,6 +101,27 @@ export function JobInvoicesPanel({
 		if (id) router.push(`/invoices/${id}`);
 	}
 
+	/**
+	 * Prefill the termin form with sensible defaults: the first termin is a 30%
+	 * down payment ("DP"); any subsequent termin defaults to the remaining
+	 * outstanding value ("Pelunasan"), so the children always sum to the master.
+	 */
+	function openTerminForm() {
+		const total = master?.total_amount ?? 0;
+		const alreadySplit = children.reduce((s, c) => s + c.total_amount, 0);
+		const outstanding = Math.max(total - alreadySplit, 0);
+		// Client component: browser runs in Jakarta time, so local date is correct.
+		const due = new Date();
+		due.setDate(due.getDate() + 7);
+		const dueDate = due.toLocaleDateString("en-CA");
+		if (children.length === 0) {
+			setForm({ amount: String(Math.round(total * 0.3)), label: "DP", due_date: dueDate });
+		} else {
+			setForm({ amount: String(outstanding), label: "Pelunasan", due_date: dueDate });
+		}
+		setShowForm(true);
+	}
+
 	async function handleAddTermin(e: React.FormEvent) {
 		e.preventDefault();
 		if (!master) return;
@@ -216,7 +237,7 @@ export function JobInvoicesPanel({
 							type="button"
 							variant="secondary"
 							size="md"
-							onClick={() => setShowForm(true)}
+							onClick={openTerminForm}
 							className="w-full"
 						>
 							{t("addTermin")}
