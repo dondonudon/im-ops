@@ -100,7 +100,8 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 			.from("expenses")
 			.select("id, category, description, amount, incurred_at")
 			.eq("job_id", id)
-			.order("incurred_at", { ascending: false }),
+			.order("incurred_at", { ascending: false })
+			.order("created_at", { ascending: false }),
 		supabase
 			.from("job_timeline")
 			.select("id, event_type, notes, occurred_at")

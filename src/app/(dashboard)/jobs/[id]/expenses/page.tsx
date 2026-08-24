@@ -17,7 +17,8 @@ export default async function ExpensesPage({ params }: { params: Promise<{ id: s
 			.from("expenses")
 			.select("id, category, description, amount, incurred_at, receipt_url")
 			.eq("job_id", id)
-			.order("incurred_at", { ascending: false }),
+			.order("incurred_at", { ascending: false })
+			.order("created_at", { ascending: false }),
 		// A job may now have many invoices (master + termin) — fetch the list, not maybeSingle.
 		supabase.from("invoices").select("status").eq("job_id", id),
 	]);
