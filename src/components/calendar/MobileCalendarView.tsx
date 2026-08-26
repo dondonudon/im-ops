@@ -50,8 +50,15 @@ type View = "month" | "week" | "day";
 // Pure helpers (no React)
 // ---------------------------------------------------------------------------
 
-const WEEKDAYS_SHORT = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+// Month header runs Monday-first. WEEKDAYS_MED stays Sunday-indexed because it's
+// looked up by Date.getDay() (0=Sun).
+const WEEKDAYS_SHORT = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 const WEEKDAYS_MED = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Monday-first column index (0=Mon … 6=Sun) for a JS Date. */
+function mondayIndex(d: Date): number {
+	return (d.getDay() + 6) % 7;
+}
 
 function toDateStr(d: Date): string {
 	// Use local-time getters — toISOString() returns UTC and shifts the date
@@ -68,14 +75,14 @@ function addDays(str: string, n: number): string {
 	return toDateStr(d);
 }
 
-/** Returns the 7 date-strings (Sun→Sat) for the week containing `anchor`. */
+/** Returns the 7 date-strings (Mon→Sun) for the week containing `anchor`. */
 function getWeekDays(anchor: string): string[] {
 	const d = new Date(`${anchor}T00:00:00`);
-	const sun = new Date(d);
-	sun.setDate(d.getDate() - d.getDay());
+	const mon = new Date(d);
+	mon.setDate(d.getDate() - mondayIndex(d));
 	return Array.from({ length: 7 }, (_, i) => {
-		const day = new Date(sun);
-		day.setDate(sun.getDate() + i);
+		const day = new Date(mon);
+		day.setDate(mon.getDate() + i);
 		return toDateStr(day);
 	});
 }
@@ -197,7 +204,7 @@ function MonthGrid({ viewDate, todayStr, entriesByDate, onSelect }: MonthGridPro
 	const year = anchor.getFullYear();
 	const month = anchor.getMonth();
 	const daysInMonth = new Date(year, month + 1, 0).getDate();
-	const firstDOW = new Date(year, month, 1).getDay();
+	const firstDOW = mondayIndex(new Date(year, month, 1));
 
 	const cells: (number | null)[] = [
 		...Array<null>(firstDOW).fill(null),
