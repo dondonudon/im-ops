@@ -1063,6 +1063,7 @@
 			"lockedJobClosed": "Expenses are locked — this job is closed.",
 			"lockedJobCancelled": "Expenses are locked — this job is cancelled.",
 			"lockedInvoicePaid": "Expenses are locked — invoice is fully paid.",
+			"lockedFullyPaid": "Expenses are locked — payment is complete.",
 			"moreOptions": "Note / date / receipt",
 			"hideOptions": "Hide options"
 		},

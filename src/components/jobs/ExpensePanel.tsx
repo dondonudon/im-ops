@@ -174,6 +174,7 @@ export function ExpensePanel({
 	}
 
 	async function handleUpdate(expenseId: string) {
+		if (lockReason) return;
 		const amt = Number(editForm.amount);
 		if (!amt || amt <= 0) {
 			setEditError(tCommonErrors("amountMustBePositive"));
@@ -233,6 +234,7 @@ export function ExpensePanel({
 	}
 
 	async function handleDelete(expenseId: string) {
+		if (lockReason) return;
 		setDeleteInProgress(true);
 		try {
 			const supabase = createClient();
@@ -276,6 +278,7 @@ export function ExpensePanel({
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
+		if (lockReason) return;
 		const amt = Number(form.amount);
 		if (!amt || amt <= 0) {
 			setError(tCommonErrors("amountMustBePositive"));
@@ -350,145 +353,149 @@ export function ExpensePanel({
 	return (
 		<>
 			<div className="space-y-6">
-				{/* Entry form — large touch targets for mobile */}
-				<form onSubmit={handleSubmit} autoComplete="off">
-					<Card className="p-5 space-y-4">
-						<div className="flex items-center justify-between gap-3">
-							<h2 className="text-base font-semibold text-ink">{tExpense("title")}</h2>
-							{pendingCount > 0 && (
-								<Badge tone="pending" dot>
-									{tOffline("pendingSync", { count: pendingCount })}
-								</Badge>
-							)}
-						</div>
-
-						{info && (
-							<div
-								role="status"
-								className="rounded bg-warning-bg border border-warning px-3 py-2 text-sm text-warning-text"
-							>
-								{info}
+				{/* Entry form — large touch targets for mobile. Hidden entirely when
+				    locked (job cancelled / invoice fully paid); the reason is shown in
+				    the list header below. */}
+				{!lockReason && (
+					<form onSubmit={handleSubmit} autoComplete="off">
+						<Card className="p-5 space-y-4">
+							<div className="flex items-center justify-between gap-3">
+								<h2 className="text-base font-semibold text-ink">{tExpense("title")}</h2>
+								{pendingCount > 0 && (
+									<Badge tone="pending" dot>
+										{tOffline("pendingSync", { count: pendingCount })}
+									</Badge>
+								)}
 							</div>
-						)}
 
-						{error && <FormError>{error}</FormError>}
-
-						{/* Amount — large input for thumb-friendly entry */}
-						<div>
-							<label htmlFor="exp-amount" className="block text-sm font-medium mb-1 text-ink">
-								{tExpense("amountIdr")}{" "}
-								<span aria-hidden="true" className="text-danger">
-									*
-								</span>
-							</label>
-							<NumericInput
-								id="exp-amount"
-								required
-								autoFocus
-								value={Number(form.amount) || 0}
-								onChange={(v) => setForm((p) => ({ ...p, amount: v > 0 ? String(v) : "" }))}
-								className="w-full rounded-lg border border-line-strong bg-surface px-4 py-4 text-2xl tabular-nums font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-right text-ink"
-							/>
-							{form.amount && Number(form.amount) > 0 && (
-								<p className="text-xs text-ink-faint mt-1 text-right">
-									{formatRupiah(Number(form.amount))}
-								</p>
-							)}
-						</div>
-
-						{/* Category chips */}
-						<div>
-							<span className="block text-sm font-medium mb-2 text-ink">
-								{tExpense("category")}
-							</span>
-							<fieldset
-								aria-label={tExpense("category")}
-								className="grid grid-cols-2 gap-2 sm:flex sm:flex-nowrap"
-							>
-								{CATEGORIES.map((c) => (
-									<button
-										key={c.value}
-										type="button"
-										onClick={() => setForm((p) => ({ ...p, category: c.value }))}
-										aria-pressed={form.category === c.value}
-										className={`last:col-span-2 sm:shrink-0 rounded-full min-h-[44px] px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
-											form.category === c.value
-												? "bg-primary text-primary-fg"
-												: "bg-subtle text-ink-muted hover:bg-subtle hover:text-ink"
-										}`}
-									>
-										{tEntityCategory(c.key)}
-									</button>
-								))}
-							</fieldset>
-						</div>
-
-						<Button
-							type="submit"
-							disabled={saving || isPending}
-							loading={saving}
-							variant="primary"
-							size="lg"
-							className="w-full"
-						>
-							{saving ? tCommonButtons("saving") : tExpense("saveExpense")}
-						</Button>
-
-						{/* Secondary fields — toggle to keep critical path short */}
-						<div>
-							<button
-								type="button"
-								onClick={() => setShowMore((p) => !p)}
-								aria-expanded={showMore}
-								className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-							>
-								{showMore ? `▲ ${tExpense("hideOptions")}` : `▼ ${tExpense("moreOptions")}`}
-							</button>
-							{showMore && (
-								<div className="mt-3 space-y-3">
-									<Field label={tExpense("note")} htmlFor="exp-note">
-										<Input
-											id="exp-note"
-											type="text"
-											value={form.note}
-											onChange={(e) => setForm((p) => ({ ...p, note: e.target.value }))}
-											placeholder="e.g. Jakarta–Bandung toll"
-										/>
-									</Field>
-									<Field label={tExpense("date")} htmlFor="exp-date">
-										<Input
-											id="exp-date"
-											type="date"
-											value={form.date}
-											onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
-										/>
-									</Field>
-									<div>
-										<label
-											htmlFor="exp-receipt"
-											className="block text-sm font-medium mb-1 text-ink"
-										>
-											{tExpense("receipt")}{" "}
-											<span className="text-ink-faint font-normal">
-												{tCommonHints("optionalParen")}
-											</span>
-										</label>
-										<input
-											id="exp-receipt"
-											type="file"
-											accept="image/*"
-											onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
-											className="block text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary-subtle file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-text hover:file:opacity-80"
-										/>
-										{receiptFile && (
-											<p className="text-xs text-ink-faint mt-1">{receiptFile.name}</p>
-										)}
-									</div>
+							{info && (
+								<div
+									role="status"
+									className="rounded bg-warning-bg border border-warning px-3 py-2 text-sm text-warning-text"
+								>
+									{info}
 								</div>
 							)}
-						</div>
-					</Card>
-				</form>
+
+							{error && <FormError>{error}</FormError>}
+
+							{/* Amount — large input for thumb-friendly entry */}
+							<div>
+								<label htmlFor="exp-amount" className="block text-sm font-medium mb-1 text-ink">
+									{tExpense("amountIdr")}{" "}
+									<span aria-hidden="true" className="text-danger">
+										*
+									</span>
+								</label>
+								<NumericInput
+									id="exp-amount"
+									required
+									autoFocus
+									value={Number(form.amount) || 0}
+									onChange={(v) => setForm((p) => ({ ...p, amount: v > 0 ? String(v) : "" }))}
+									className="w-full rounded-lg border border-line-strong bg-surface px-4 py-4 text-2xl tabular-nums font-bold focus:outline-none focus:ring-2 focus:ring-[var(--ring)] text-right text-ink"
+								/>
+								{form.amount && Number(form.amount) > 0 && (
+									<p className="text-xs text-ink-faint mt-1 text-right">
+										{formatRupiah(Number(form.amount))}
+									</p>
+								)}
+							</div>
+
+							{/* Category chips */}
+							<div>
+								<span className="block text-sm font-medium mb-2 text-ink">
+									{tExpense("category")}
+								</span>
+								<fieldset
+									aria-label={tExpense("category")}
+									className="grid grid-cols-2 gap-2 sm:flex sm:flex-nowrap"
+								>
+									{CATEGORIES.map((c) => (
+										<button
+											key={c.value}
+											type="button"
+											onClick={() => setForm((p) => ({ ...p, category: c.value }))}
+											aria-pressed={form.category === c.value}
+											className={`last:col-span-2 sm:shrink-0 rounded-full min-h-[44px] px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${
+												form.category === c.value
+													? "bg-primary text-primary-fg"
+													: "bg-subtle text-ink-muted hover:bg-subtle hover:text-ink"
+											}`}
+										>
+											{tEntityCategory(c.key)}
+										</button>
+									))}
+								</fieldset>
+							</div>
+
+							<Button
+								type="submit"
+								disabled={saving || isPending}
+								loading={saving}
+								variant="primary"
+								size="lg"
+								className="w-full"
+							>
+								{saving ? tCommonButtons("saving") : tExpense("saveExpense")}
+							</Button>
+
+							{/* Secondary fields — toggle to keep critical path short */}
+							<div>
+								<button
+									type="button"
+									onClick={() => setShowMore((p) => !p)}
+									aria-expanded={showMore}
+									className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
+								>
+									{showMore ? `▲ ${tExpense("hideOptions")}` : `▼ ${tExpense("moreOptions")}`}
+								</button>
+								{showMore && (
+									<div className="mt-3 space-y-3">
+										<Field label={tExpense("note")} htmlFor="exp-note">
+											<Input
+												id="exp-note"
+												type="text"
+												value={form.note}
+												onChange={(e) => setForm((p) => ({ ...p, note: e.target.value }))}
+												placeholder="e.g. Jakarta–Bandung toll"
+											/>
+										</Field>
+										<Field label={tExpense("date")} htmlFor="exp-date">
+											<Input
+												id="exp-date"
+												type="date"
+												value={form.date}
+												onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+											/>
+										</Field>
+										<div>
+											<label
+												htmlFor="exp-receipt"
+												className="block text-sm font-medium mb-1 text-ink"
+											>
+												{tExpense("receipt")}{" "}
+												<span className="text-ink-faint font-normal">
+													{tCommonHints("optionalParen")}
+												</span>
+											</label>
+											<input
+												id="exp-receipt"
+												type="file"
+												accept="image/*"
+												onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
+												className="block text-sm text-ink-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary-subtle file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-text hover:file:opacity-80"
+											/>
+											{receiptFile && (
+												<p className="text-xs text-ink-faint mt-1">{receiptFile.name}</p>
+											)}
+										</div>
+									</div>
+								)}
+							</div>
+						</Card>
+					</form>
+				)}
 
 				{/* List */}
 				<Card>

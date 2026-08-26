@@ -1063,6 +1063,7 @@
 			"lockedJobClosed": "Pengeluaran dikunci — pekerjaan ini sudah ditutup.",
 			"lockedJobCancelled": "Pengeluaran dikunci — pekerjaan ini dibatalkan.",
 			"lockedInvoicePaid": "Pengeluaran dikunci — faktur sudah lunas.",
+			"lockedFullyPaid": "Pengeluaran dikunci — pembayaran sudah lunas.",
 			"moreOptions": "Catatan / tanggal / resi",
 			"hideOptions": "Sembunyikan opsi"
 		},
