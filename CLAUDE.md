@@ -82,6 +82,8 @@ These are enforced at the DB level and in app logic:
 7. **Invoice status starts at `sent`** (no draft state). Lifecycle: `sent` → `partially_paid` / `paid` / `overdue` / `cancelled`. The `update_invoice_status` trigger auto-advances status when payments are recorded; on a child invoice the trigger also rolls up `paid_amount` and status to the master.
 8. **Calendar failures are non-fatal.** `lib/gcal/sync.ts` always returns `null` on failure; records are created without `gcal_event_id`. Never let a gcal error block a write.
 
+9. **Job expenses lock once the job is settled.** A job's `expense_type = 'job'` rows become immutable (no insert/update/delete) when the job is cancelled, OR its active master invoice is fully paid, OR (no invoice yet) collected payments cover `jobs.revenue`. Enforced in two places that must stay in sync: the UI (`ExpensePanel` + `jobs/[id]/expenses/page.tsx`) and a DB trigger (`before_expense_lock_check` → `is_job_expenses_locked()`, migration `009`). A single paid termin must NOT lock — only the master's rolled-up total or the payments-vs-revenue check does. Operational expenses (`job_id IS NULL`) are never locked.
+
 ---
 
 ## Key files
@@ -328,6 +330,15 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 ---
 
 ## Active development context (as of 2026-08)
+
+- **Job-expense lock fixed + hardened** (migration `009`): the pre-split lock used
+  `invoices.some(status === 'paid')`, which fired on the first paid termin. Now the
+  lock is job-level (see invariant 9) — master rolled-up total, or payments vs
+  `jobs.revenue` when there's no invoice. Enforced both in the UI (`ExpensePanel`
+  now hides the entry form and guards its mutation handlers) and via the
+  `before_expense_lock_check` DB trigger so the lock holds even though expenses are
+  written client-side (direct PostgREST, no server action). **Apply migration `009`
+  to Supabase before deploying.**
 
 - **Split invoices + job change-orders shipped** (migrations `006`/`007`): payable
   master + termin-children invoice model per job; `job_adjustments` with derived
