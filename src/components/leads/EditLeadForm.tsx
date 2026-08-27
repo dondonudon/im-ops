@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { LocationInput, type LocationValue } from "@/components/shared/LocationInput";
+import { AddressListInput, emptyLocation } from "@/components/shared/AddressListInput";
+import type { LocationValue } from "@/components/shared/LocationInput";
 import {
 	Button,
 	buttonStyles,
@@ -15,6 +16,7 @@ import {
 	Select,
 	Textarea,
 } from "@/components/ui";
+import { replaceLeadAddresses } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/client";
 
 const LEAD_TYPES = ["whatsapp", "onsite", "returning", "corporate"] as const;
@@ -27,15 +29,8 @@ export type InitialLeadData = {
 	lead_type: string;
 	origin_channel: string;
 	notes: string | null;
-	pickup_address: string | null;
-	pickup_lat: number | null;
-	pickup_lng: number | null;
-	destination_address: string | null;
-	destination_lat: number | null;
-	destination_lng: number | null;
-	destination_address_2: string | null;
-	destination_2_lat: number | null;
-	destination_2_lng: number | null;
+	pickups: LocationValue[];
+	destinations: LocationValue[];
 };
 
 export function EditLeadForm({ lead }: { lead: InitialLeadData }) {
@@ -52,22 +47,12 @@ export function EditLeadForm({ lead }: { lead: InitialLeadData }) {
 		origin_channel: lead.origin_channel ?? "whatsapp",
 		notes: lead.notes ?? "",
 	});
-	const [pickup, setPickup] = useState<LocationValue>({
-		address: lead.pickup_address ?? "",
-		lat: lead.pickup_lat,
-		lng: lead.pickup_lng,
-	});
-	const [destination, setDestination] = useState<LocationValue>({
-		address: lead.destination_address ?? "",
-		lat: lead.destination_lat,
-		lng: lead.destination_lng,
-	});
-	const [destination2, setDestination2] = useState<LocationValue>({
-		address: lead.destination_address_2 ?? "",
-		lat: lead.destination_2_lat,
-		lng: lead.destination_2_lng,
-	});
-	const [showDestination2, setShowDestination2] = useState(Boolean(lead.destination_address_2));
+	const [pickups, setPickups] = useState<LocationValue[]>(
+		lead.pickups.length > 0 ? lead.pickups : [{ ...emptyLocation }],
+	);
+	const [destinations, setDestinations] = useState<LocationValue[]>(
+		lead.destinations.length > 0 ? lead.destinations : [{ ...emptyLocation }],
+	);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -86,15 +71,6 @@ export function EditLeadForm({ lead }: { lead: InitialLeadData }) {
 			const { error: err } = await supabase
 				.from("leads")
 				.update({
-					pickup_address: pickup.address.trim() || null,
-					pickup_lat: pickup.lat,
-					pickup_lng: pickup.lng,
-					destination_address: destination.address.trim() || null,
-					destination_lat: destination.lat,
-					destination_lng: destination.lng,
-					destination_address_2: destination2.address.trim() || null,
-					destination_2_lat: destination2.lat,
-					destination_2_lng: destination2.lng,
 					preferred_date: form.preferred_date || null,
 					lead_type: form.lead_type as (typeof LEAD_TYPES)[number],
 					origin_channel: form.origin_channel as (typeof CHANNELS)[number],
@@ -102,6 +78,7 @@ export function EditLeadForm({ lead }: { lead: InitialLeadData }) {
 				})
 				.eq("id", lead.id);
 			if (err) throw err;
+			await replaceLeadAddresses(supabase, lead.id, pickups, destinations);
 			router.push(`/leads/${lead.id}`);
 		} catch (err: unknown) {
 			setError(err instanceof Error ? err.message : "Save failed.");
@@ -131,52 +108,29 @@ export function EditLeadForm({ lead }: { lead: InitialLeadData }) {
 				{error && <FormError>{error}</FormError>}
 
 				<form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate autoComplete="off">
-					<Field label={t("pickup")} htmlFor="pickup_address">
-						<LocationInput
-							id="pickup_address"
-							value={pickup}
-							onChange={setPickup}
+					<Field label={t("pickup")}>
+						<AddressListInput
+							values={pickups}
+							onChange={setPickups}
+							idPrefix="pickup"
+							itemLabel={t("pickupLabel")}
+							addLabel={t("addPickup")}
+							removeLabel={t("removeAddress")}
 							placeholder="Search pickup address…"
 						/>
 					</Field>
 
-					<Field label={t("destination")} htmlFor="destination_address">
-						<LocationInput
-							id="destination_address"
-							value={destination}
-							onChange={setDestination}
+					<Field label={t("destination")}>
+						<AddressListInput
+							values={destinations}
+							onChange={setDestinations}
+							idPrefix="destination"
+							itemLabel={t("destinationLabel")}
+							addLabel={t("addDestination")}
+							removeLabel={t("removeAddress")}
 							placeholder="Search destination address…"
 						/>
 					</Field>
-
-					{showDestination2 ? (
-						<Field label={t("destination2")} htmlFor="destination_address_2">
-							<LocationInput
-								id="destination_address_2"
-								value={destination2}
-								onChange={setDestination2}
-								placeholder="Search second destination…"
-							/>
-							<button
-								type="button"
-								onClick={() => {
-									setShowDestination2(false);
-									setDestination2({ address: "", lat: null, lng: null });
-								}}
-								className="mt-1 text-xs text-ink-faint hover:text-danger transition-colors"
-							>
-								{t("removeDestination2")}
-							</button>
-						</Field>
-					) : (
-						<button
-							type="button"
-							onClick={() => setShowDestination2(true)}
-							className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-						>
-							+ {t("addDestination2")}
-						</button>
-					)}
 
 					<Field label={t("preferredDate")} htmlFor="preferred_date">
 						<Input

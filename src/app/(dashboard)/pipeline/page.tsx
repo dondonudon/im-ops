@@ -8,6 +8,7 @@ import {
 	type PipelineCard,
 } from "@/components/pipeline/PipelineBoard";
 import { EmptyState, Money, PageHeader } from "@/components/ui";
+import { type LeadAddressRow, routePoints } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 
@@ -33,9 +34,7 @@ function stageOf(status: string): Stage | null {
 type LeadRow = {
 	id: string;
 	status: string;
-	pickup_address: string | null;
-	destination_address: string | null;
-	destination_address_2: string | null;
+	lead_addresses: LeadAddressRow[] | null;
 	preferred_date: string | null;
 	created_at: string;
 	customers: { name: string; type: string } | null;
@@ -66,7 +65,7 @@ export default async function PipelinePage() {
 		supabase
 			.from("leads")
 			.select(
-				"id, status, pickup_address, destination_address, destination_address_2, preferred_date, created_at, customers(name, type), proposals(final_price, status)",
+				"id, status, lead_addresses(role, seq, address, lat, lng), preferred_date, created_at, customers(name, type), proposals(final_price, status)",
 			)
 			.neq("status", "closed_lost")
 			.gte("created_at", cutoff.toISOString())
@@ -91,9 +90,7 @@ export default async function PipelinePage() {
 			id: lead.id,
 			status: lead.status,
 			customerName: lead.customers?.name ?? "—",
-			pickup: lead.pickup_address,
-			destination: lead.destination_address,
-			destination2: lead.destination_address_2,
+			routePoints: routePoints(lead.lead_addresses),
 			dateLabel: formatDate(lead.preferred_date ?? lead.created_at),
 			value: dealValue(lead.proposals),
 		};

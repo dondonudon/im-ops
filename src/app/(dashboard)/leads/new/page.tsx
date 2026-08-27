@@ -3,7 +3,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { useEffect, useState } from "react";
-import { LocationInput, type LocationValue } from "@/components/shared/LocationInput";
+import { AddressListInput, emptyLocation } from "@/components/shared/AddressListInput";
+import type { LocationValue } from "@/components/shared/LocationInput";
 import { Button, Field, FormError, Input, PageHeader, Select, Textarea } from "@/components/ui";
 import { CUSTOMER_PREFIX_OPTIONS, type CustomerPrefix } from "@/lib/constants";
 import {
@@ -11,6 +12,7 @@ import {
 	findDuplicateCustomer,
 	formatCustomerLabel,
 } from "@/lib/customerDuplicates";
+import { replaceLeadAddresses } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/client";
 
 type Customer = CustomerDuplicate;
@@ -44,19 +46,9 @@ export default function NewLeadPage() {
 		new_customer_type: "individual",
 		new_customer_company_name: "",
 	});
-	const [pickup, setPickup] = useState<LocationValue>({ address: "", lat: null, lng: null });
-	const [destination, setDestination] = useState<LocationValue>({
-		address: "",
-		lat: null,
-		lng: null,
-	});
-	const [destination2, setDestination2] = useState<LocationValue>({
-		address: "",
-		lat: null,
-		lng: null,
-	});
+	const [pickups, setPickups] = useState<LocationValue[]>([{ ...emptyLocation }]);
+	const [destinations, setDestinations] = useState<LocationValue[]>([{ ...emptyLocation }]);
 	const [createNewCustomer, setCreateNewCustomer] = useState(!preselectedCustomerId);
-	const [showDestination2, setShowDestination2] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -125,15 +117,6 @@ export default function NewLeadPage() {
 				.from("leads")
 				.insert({
 					customer_id: customerId,
-					pickup_address: pickup.address.trim() || null,
-					pickup_lat: pickup.lat,
-					pickup_lng: pickup.lng,
-					destination_address: destination.address.trim() || null,
-					destination_lat: destination.lat,
-					destination_lng: destination.lng,
-					destination_address_2: destination2.address.trim() || null,
-					destination_2_lat: destination2.lat,
-					destination_2_lng: destination2.lng,
 					preferred_date: form.preferred_date || null,
 					lead_type: form.lead_type as "whatsapp" | "onsite" | "returning" | "corporate",
 					origin_channel: form.origin_channel as "whatsapp" | "call" | "referral" | "walkin",
@@ -143,6 +126,8 @@ export default function NewLeadPage() {
 				.select("id")
 				.single();
 			if (leadErr) throw leadErr;
+
+			await replaceLeadAddresses(supabase, lead.id, pickups, destinations);
 
 			router.push(`/leads/${lead.id}`);
 			// Leave saving=true — button stays in loading state until navigation unmounts this page
@@ -262,52 +247,29 @@ export default function NewLeadPage() {
 				</fieldset>
 
 				{/* Addresses */}
-				<Field label={t("pickup")} htmlFor="pickup_address">
-					<LocationInput
-						id="pickup_address"
-						value={pickup}
-						onChange={setPickup}
+				<Field label={t("pickup")}>
+					<AddressListInput
+						values={pickups}
+						onChange={setPickups}
+						idPrefix="pickup"
+						itemLabel={t("pickupLabel")}
+						addLabel={t("addPickup")}
+						removeLabel={t("removeAddress")}
 						placeholder="Search pickup address…"
 					/>
 				</Field>
 
-				<Field label={t("destination")} htmlFor="destination_address">
-					<LocationInput
-						id="destination_address"
-						value={destination}
-						onChange={setDestination}
+				<Field label={t("destination")}>
+					<AddressListInput
+						values={destinations}
+						onChange={setDestinations}
+						idPrefix="destination"
+						itemLabel={t("destinationLabel")}
+						addLabel={t("addDestination")}
+						removeLabel={t("removeAddress")}
 						placeholder="Search destination address…"
 					/>
 				</Field>
-
-				{showDestination2 ? (
-					<Field label={t("destination2")} htmlFor="destination_address_2">
-						<LocationInput
-							id="destination_address_2"
-							value={destination2}
-							onChange={setDestination2}
-							placeholder="Search second destination…"
-						/>
-						<button
-							type="button"
-							onClick={() => {
-								setShowDestination2(false);
-								setDestination2({ address: "", lat: null, lng: null });
-							}}
-							className="mt-1 text-xs text-ink-faint hover:text-danger transition-colors"
-						>
-							{t("removeDestination2")}
-						</button>
-					</Field>
-				) : (
-					<button
-						type="button"
-						onClick={() => setShowDestination2(true)}
-						className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-					>
-						+ {t("addDestination2")}
-					</button>
-				)}
 
 				<Field label={t("preferredDate")} htmlFor="preferred_date">
 					<Input

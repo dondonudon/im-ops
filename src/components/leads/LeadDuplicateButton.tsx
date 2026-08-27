@@ -26,7 +26,7 @@ export function LeadDuplicateButton({ leadId }: { leadId: string }) {
 			const { data: source, error: fetchErr } = await supabase
 				.from("leads")
 				.select(
-					"customer_id, pickup_address, destination_address, destination_address_2, preferred_date, lead_type, origin_channel, notes",
+					"customer_id, preferred_date, lead_type, origin_channel, notes, lead_addresses(role, seq, address, lat, lng)",
 				)
 				.eq("id", leadId)
 				.single();
@@ -40,9 +40,6 @@ export function LeadDuplicateButton({ leadId }: { leadId: string }) {
 				.from("leads")
 				.insert({
 					customer_id: source.customer_id!,
-					pickup_address: source.pickup_address,
-					destination_address: source.destination_address,
-					destination_address_2: source.destination_address_2,
 					preferred_date: source.preferred_date,
 					lead_type: source.lead_type,
 					origin_channel: source.origin_channel,
@@ -53,6 +50,22 @@ export function LeadDuplicateButton({ leadId }: { leadId: string }) {
 				.select("id")
 				.single();
 			if (insertErr || !created) throw insertErr ?? new Error("Insert failed");
+
+			// Clone the address rows onto the new lead (coords included).
+			const sourceAddresses = source.lead_addresses ?? [];
+			if (sourceAddresses.length > 0) {
+				const { error: addrErr } = await supabase.from("lead_addresses").insert(
+					sourceAddresses.map((a) => ({
+						lead_id: created.id,
+						role: a.role,
+						seq: a.seq,
+						address: a.address,
+						lat: a.lat,
+						lng: a.lng,
+					})),
+				);
+				if (addrErr) throw addrErr;
+			}
 
 			router.push(`/leads/${created.id}`);
 		} catch (err: unknown) {

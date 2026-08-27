@@ -331,6 +331,20 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 
 ## Active development context (as of 2026-08)
 
+- **Lead addresses normalized to a child table** (migration `010`): unlimited
+  pickups AND destinations per lead. Replaces the old flat `leads.pickup_address`
+  / `destination_address` / `destination_address_2` (+ lat/lng) columns with
+  `lead_addresses(lead_id, role 'pickup'|'destination', seq, address, lat, lng)`.
+  Read via embed `leads(lead_addresses(role, seq, address, lat, lng))` + the
+  `groupLeadAddresses` / `routePoints` helpers in `src/lib/leadAddresses.ts`;
+  write via `replaceLeadAddresses` (delete-then-insert). `RouteLine` now takes
+  `points: string[]`. Forms use `AddressListInput` (dynamic add/remove on top of
+  `LocationInput`). **Search:** a denormalized `leads.addresses_text` (GIN trgm,
+  trigger-maintained from `lead_addresses`) — list/card views that read the
+  `leads_with_customer` view use `addresses_text` + `routePointsFromText`, since
+  embedding a child table through a view isn't reliable. The old flat columns are
+  dropped by migration `010`. **Apply migration `010` to Supabase before deploying.**
+
 - **Job-expense lock fixed + hardened** (migration `009`): the pre-split lock used
   `invoices.some(status === 'paid')`, which fired on the first paid termin. Now the
   lock is job-level (see invariant 9) — master rolled-up total, or payments vs

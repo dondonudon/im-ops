@@ -9,6 +9,7 @@ import {
 	Text,
 	View,
 } from "@react-pdf/renderer";
+import { Fragment } from "react";
 import type { ProposalCustomFields } from "@/lib/proposalCustomFields";
 import {
 	formatCustomerName,
@@ -106,9 +107,8 @@ export interface ProposalPDFProps {
 		address: string | null;
 	};
 	lead: {
-		pickup_address: string | null;
-		destination_address: string | null;
-		destination_address_2: string | null;
+		pickups: string[];
+		destinations: string[];
 		preferred_date: string | null;
 	};
 	outputs: Record<string, number>;
@@ -145,10 +145,9 @@ export function ProposalPDF({
 	const priceWords = numberToIndonesianWords(price);
 	const priceWordsDisplay = `${priceWords.charAt(0).toUpperCase()}${priceWords.slice(1)} rupiah`;
 
-	const pickup = lead.pickup_address;
-	const destination = lead.destination_address;
-	const destination2 = lead.destination_address_2;
-	const hasRoute = Boolean(pickup || destination);
+	const pickups = lead.pickups;
+	const destinations = lead.destinations;
+	const hasRoute = pickups.length > 0 || destinations.length > 0;
 
 	const effectiveServices = customFields.override_services
 		? customFields.override_services
@@ -217,28 +216,21 @@ export function ProposalPDF({
 					proposal jasa pindah
 					{hasRoute ? (
 						<>
-							{pickup ? (
+							{pickups.length > 0 ? (
 								<>
 									{" dari "}
-									<Text style={{ fontFamily: "Helvetica-Bold" }}>{pickup.replace(/\n/g, " ")}</Text>
-								</>
-							) : null}
-							{destination ? (
-								<>
-									{" ke "}
 									<Text style={{ fontFamily: "Helvetica-Bold" }}>
-										{destination.replace(/\n/g, " ")}
+										{pickups.map((p) => p.replace(/\n/g, " ")).join(", ")}
 									</Text>
 								</>
 							) : null}
-							{destination2 ? (
-								<>
-									{", lalu ke "}
-									<Text style={{ fontFamily: "Helvetica-Bold" }}>
-										{destination2.replace(/\n/g, " ")}
-									</Text>
-								</>
-							) : null}
+							{destinations.map((d, i) => (
+								// biome-ignore lint/suspicious/noArrayIndexKey: fixed render list; index also drives the connector text
+								<Fragment key={`dest-${i}-${d}`}>
+									{i === 0 ? " ke " : ", lalu ke "}
+									<Text style={{ fontFamily: "Helvetica-Bold" }}>{d.replace(/\n/g, " ")}</Text>
+								</Fragment>
+							))}
 						</>
 					) : null}
 					{price > 0 ? (

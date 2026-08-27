@@ -13,6 +13,7 @@ import { BackLink } from "@/components/shared/BackLink";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
 import { billableLeaves } from "@/lib/invoices";
+import { groupLeadAddresses, type LeadAddressRow } from "@/lib/leadAddresses";
 import { buildCompanySettings, buildInvoiceTemplateSettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
 import { deriveJobStatus, formatDate, formatJobSchedule, formatRupiah } from "@/lib/utils";
@@ -36,7 +37,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         proposals(
           id, proposal_number, final_price,
           leads(
-            id, pickup_address, destination_address, destination_address_2,
+            id, lead_addresses(role, seq, address),
             customers(id, name, phone)
           )
         )
@@ -156,9 +157,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		final_price: number | null;
 		leads: {
 			id: string;
-			pickup_address: string | null;
-			destination_address: string | null;
-			destination_address_2: string | null;
+			lead_addresses: LeadAddressRow[] | null;
 			customers: { id: string; name: string; phone: string | null } | null;
 		} | null;
 	} | null;
@@ -166,6 +165,17 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 	const estimationOutputs = (estimation?.outputs ?? {}) as Record<string, number>;
 
 	const customer = proposal?.leads?.customers ?? null;
+	const moveGroups = groupLeadAddresses(proposal?.leads?.lead_addresses ?? []);
+	const moveStops = [
+		...moveGroups.pickups.map((s, i) => ({
+			label: moveGroups.pickups.length > 1 ? `${t("pickup")} ${i + 1}` : t("pickup"),
+			address: s.address,
+		})),
+		...moveGroups.destinations.map((s, i) => ({
+			label: moveGroups.destinations.length > 1 ? `${t("destination")} ${i + 1}` : t("destination"),
+			address: s.address,
+		})),
+	];
 	const totalExpenses = (expenses ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
 	const profit = (job.revenue ?? 0) - totalExpenses;
 	const derivedStatus = deriveJobStatus(job.move_date, job.status);
@@ -240,19 +250,24 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 			{/* Move summary — full-width, addresses only */}
 			{proposal?.leads && (
 				<Card className="p-5 grid grid-cols-2 gap-4 text-sm">
-					<div>
-						<p className="text-ink-muted">{t("pickup")}</p>
-						<p className="font-medium mt-0.5">{proposal.leads.pickup_address ?? "—"}</p>
-					</div>
-					<div>
-						<p className="text-ink-muted">{t("destination")}</p>
-						<p className="font-medium mt-0.5">{proposal.leads.destination_address ?? "—"}</p>
-					</div>
-					{proposal.leads.destination_address_2 && (
-						<div>
-							<p className="text-ink-muted">{t("destination2")}</p>
-							<p className="font-medium mt-0.5">{proposal.leads.destination_address_2}</p>
-						</div>
+					{moveStops.length > 0 ? (
+						moveStops.map((stop) => (
+							<div key={stop.label}>
+								<p className="text-ink-muted">{stop.label}</p>
+								<p className="font-medium mt-0.5">{stop.address ?? "—"}</p>
+							</div>
+						))
+					) : (
+						<>
+							<div>
+								<p className="text-ink-muted">{t("pickup")}</p>
+								<p className="font-medium mt-0.5">—</p>
+							</div>
+							<div>
+								<p className="text-ink-muted">{t("destination")}</p>
+								<p className="font-medium mt-0.5">—</p>
+							</div>
+						</>
 					)}
 				</Card>
 			)}

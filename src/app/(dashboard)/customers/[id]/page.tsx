@@ -5,6 +5,7 @@ import { BackLink } from "@/components/shared/BackLink";
 import { PendingLink } from "@/components/shared/PendingLink";
 import { jobStatusVariant, leadStatusVariant, StatusChip } from "@/components/shared/StatusChip";
 import { buttonStyles, PageHeader } from "@/components/ui";
+import { type LeadAddressRow, routePoints } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/server";
 import { formatCustomerName, formatDate, formatRupiah } from "@/lib/utils";
 
@@ -24,7 +25,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 		supabase.from("customers").select("*").eq("id", id).single(),
 		supabase
 			.from("leads")
-			.select("id, status, pickup_address, destination_address, created_at")
+			.select("id, status, lead_addresses(role, seq, address), created_at")
 			.eq("customer_id", id)
 			.order("created_at", { ascending: false }),
 		supabase
@@ -99,7 +100,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 									className="flex items-center justify-between rounded-xl border border-line bg-surface px-4 py-3 hover:bg-subtle transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 								>
 									<span className="text-sm font-medium text-ink truncate max-w-xs">
-										{l.pickup_address ?? "—"} → {l.destination_address ?? "—"}
+										{routePoints(l.lead_addresses as LeadAddressRow[] | null).join(" → ") || "—"}
 									</span>
 									<div className="flex items-center gap-3">
 										<StatusChip

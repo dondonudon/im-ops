@@ -4,6 +4,8 @@ import { Plus, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AddressListInput, emptyLocation } from "@/components/shared/AddressListInput";
+import type { LocationValue } from "@/components/shared/LocationInput";
 import { Button, Field, FormError, Input, Select, Textarea } from "@/components/ui";
 import { CUSTOMER_PREFIX_OPTIONS, type CustomerPrefix } from "@/lib/constants";
 import {
@@ -11,6 +13,7 @@ import {
 	findDuplicateCustomer,
 	formatCustomerLabel,
 } from "@/lib/customerDuplicates";
+import { replaceLeadAddresses } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/client";
 import { capitalizeWords, cn, formatCustomerName } from "@/lib/utils";
 
@@ -23,9 +26,6 @@ const EMPTY = {
 	phone: "",
 	type: "individual",
 	company_name: "",
-	pickup_address: "",
-	destination_address: "",
-	destination_address_2: "",
 	preferred_date: "",
 	lead_type: "whatsapp",
 	origin_channel: "whatsapp",
@@ -47,7 +47,8 @@ export function QuickLeadModal() {
 
 	const [open, setOpen] = useState(false);
 	const [form, setForm] = useState(EMPTY);
-	const [showDestination2, setShowDestination2] = useState(false);
+	const [pickups, setPickups] = useState<LocationValue[]>([{ ...emptyLocation }]);
+	const [destinations, setDestinations] = useState<LocationValue[]>([{ ...emptyLocation }]);
 	const [customers, setCustomers] = useState<Customer[]>([]);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -72,7 +73,8 @@ export function QuickLeadModal() {
 	useEffect(() => {
 		function onOpen() {
 			setForm(EMPTY);
-			setShowDestination2(false);
+			setPickups([{ ...emptyLocation }]);
+			setDestinations([{ ...emptyLocation }]);
 			setQuery("");
 			setComboOpen(false);
 			setSelectedCustomer(null);
@@ -209,9 +211,6 @@ export function QuickLeadModal() {
 				.from("leads")
 				.insert({
 					customer_id: customerId,
-					pickup_address: form.pickup_address.trim() || null,
-					destination_address: form.destination_address.trim() || null,
-					destination_address_2: form.destination_address_2.trim() || null,
 					preferred_date: form.preferred_date || null,
 					lead_type: form.lead_type as "whatsapp" | "onsite" | "returning" | "corporate",
 					origin_channel: form.origin_channel as "whatsapp" | "call" | "referral" | "walkin",
@@ -221,6 +220,8 @@ export function QuickLeadModal() {
 				.select("id")
 				.single();
 			if (leadErr) throw leadErr;
+
+			await replaceLeadAddresses(supabase, lead.id, pickups, destinations);
 
 			setOpen(false);
 			router.push(`/leads/${lead.id}`);
@@ -428,56 +429,28 @@ export function QuickLeadModal() {
 					</Field>
 
 					{/* ── Addresses ── */}
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-						<Field label={t("pickup")} htmlFor="ql_pickup">
-							<Textarea
-								id="ql_pickup"
-								rows={3}
-								value={form.pickup_address}
-								onChange={(e) => set("pickup_address", e.target.value.toUpperCase())}
-								className="uppercase"
-							/>
-						</Field>
-						<Field label={t("destination")} htmlFor="ql_dest">
-							<Textarea
-								id="ql_dest"
-								rows={3}
-								value={form.destination_address}
-								onChange={(e) => set("destination_address", e.target.value.toUpperCase())}
-								className="uppercase"
-							/>
-						</Field>
-					</div>
-
-					{showDestination2 ? (
-						<Field label={t("destination2")} htmlFor="ql_dest2">
-							<Textarea
-								id="ql_dest2"
-								rows={3}
-								value={form.destination_address_2}
-								onChange={(e) => set("destination_address_2", e.target.value.toUpperCase())}
-								className="uppercase"
-							/>
-							<button
-								type="button"
-								onClick={() => {
-									setShowDestination2(false);
-									set("destination_address_2", "");
-								}}
-								className="mt-1 text-xs text-ink-faint hover:text-danger transition-colors"
-							>
-								{t("removeDestination2")}
-							</button>
-						</Field>
-					) : (
-						<button
-							type="button"
-							onClick={() => setShowDestination2(true)}
-							className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-						>
-							+ {t("addDestination2")}
-						</button>
-					)}
+					<Field label={t("pickup")}>
+						<AddressListInput
+							values={pickups}
+							onChange={setPickups}
+							idPrefix="ql-pickup"
+							itemLabel={t("pickupLabel")}
+							addLabel={t("addPickup")}
+							removeLabel={t("removeAddress")}
+							placeholder="Search pickup address…"
+						/>
+					</Field>
+					<Field label={t("destination")}>
+						<AddressListInput
+							values={destinations}
+							onChange={setDestinations}
+							idPrefix="ql-destination"
+							itemLabel={t("destinationLabel")}
+							addLabel={t("addDestination")}
+							removeLabel={t("removeAddress")}
+							placeholder="Search destination address…"
+						/>
+					</Field>
 
 					{/* ── Date + Type + Channel ── */}
 					<Field label={t("preferredDate")} htmlFor="ql_date">

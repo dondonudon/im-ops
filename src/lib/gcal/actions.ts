@@ -7,6 +7,7 @@ import {
 	patchCalendarEvent,
 	pushCalendarEvent,
 } from "@/lib/gcal/sync";
+import { type LeadAddressRow, routePoints } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/server";
 
 type ActionResult =
@@ -90,7 +91,7 @@ export async function syncSurveyToCalendar(surveyId: string): Promise<ActionResu
 	const { data: survey } = await supabase
 		.from("surveys")
 		.select(
-			"id, lead_id, scheduled_at, notes, gcal_event_id, leads(pickup_address, destination_address, customers(name))",
+			"id, lead_id, scheduled_at, notes, gcal_event_id, leads(lead_addresses(role, seq, address), customers(name))",
 		)
 		.eq("id", surveyId)
 		.single();
@@ -101,15 +102,15 @@ export async function syncSurveyToCalendar(surveyId: string): Promise<ActionResu
 	if (!calendarId) return { ok: false, error: "Google Calendar not configured." };
 
 	const lead = survey.leads as {
-		pickup_address: string | null;
-		destination_address: string | null;
+		lead_addresses: LeadAddressRow[] | null;
 		customers: { name: string } | null;
 	} | null;
 	const customerName = lead?.customers?.name ?? "Customer";
+	const firstStop = routePoints(lead?.lead_addresses ?? null)[0] ?? "";
 
 	const eventInput: GCalEventInput = {
 		calendarId,
-		summary: `[SURVEY] ${customerName} — ${lead?.pickup_address ?? ""}`,
+		summary: `[SURVEY] ${customerName} — ${firstStop}`,
 		description: survey.notes ?? "",
 		startDateTime: survey.scheduled_at,
 		endDateTime: isoPlusHours(survey.scheduled_at, 1),
@@ -139,7 +140,7 @@ export async function syncJobToCalendar(jobId: string): Promise<ActionResult> {
 	const { data: job } = await supabase
 		.from("jobs")
 		.select(
-			"id, job_number, move_date, move_time, move_end_date, move_end_time, revenue, gcal_event_id, proposals(proposal_number, leads(pickup_address, destination_address, destination_address_2, customers(name)))",
+			"id, job_number, move_date, move_time, move_end_date, move_end_time, revenue, gcal_event_id, proposals(proposal_number, leads(lead_addresses(role, seq, address), customers(name)))",
 		)
 		.eq("id", jobId)
 		.single();
@@ -152,9 +153,7 @@ export async function syncJobToCalendar(jobId: string): Promise<ActionResult> {
 	const proposal = job.proposals as {
 		proposal_number: string;
 		leads: {
-			pickup_address: string | null;
-			destination_address: string | null;
-			destination_address_2: string | null;
+			lead_addresses: LeadAddressRow[] | null;
 			customers: { name: string } | null;
 		} | null;
 	} | null;
@@ -165,10 +164,10 @@ export async function syncJobToCalendar(jobId: string): Promise<ActionResult> {
 	const endDate = job.move_end_date ?? job.move_date;
 	const endTime = job.move_end_time ?? (job.move_time ? addHoursToHHMM(job.move_time, 8) : "18:00");
 
-	const dest2 = lead?.destination_address_2;
+	const route = routePoints(lead?.lead_addresses ?? null).join(" → ");
 	const eventInput: GCalEventInput = {
 		calendarId,
-		summary: `[JOB] ${customerName} — ${lead?.pickup_address ?? ""} → ${lead?.destination_address ?? ""}${dest2 ? ` → ${dest2}` : ""}`,
+		summary: `[JOB] ${customerName} — ${route}`,
 		description: `Job: ${job.job_number}\nProposal: ${proposal?.proposal_number ?? ""}\nRevenue: ${job.revenue != null ? Number(job.revenue).toLocaleString("id-ID") : ""}`,
 		startDateTime: buildJakartaDateTime(job.move_date, startTime),
 		endDateTime: buildJakartaDateTime(endDate, endTime),

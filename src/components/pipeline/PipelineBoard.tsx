@@ -12,9 +12,7 @@ export type PipelineCard = {
 	id: string;
 	status: string;
 	customerName: string;
-	pickup: string | null;
-	destination: string | null;
-	destination2: string | null;
+	routePoints: string[];
 	dateLabel: string;
 	value: number;
 };
@@ -365,12 +363,7 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 														{tStatus(card.status as never)}
 													</Badge>
 												</div>
-												<RouteLine
-													from={card.pickup}
-													via={card.destination2}
-													to={card.destination}
-													className="mb-2"
-												/>
+												<RouteLine points={card.routePoints} className="mb-2" />
 												<div className="flex items-center justify-between text-xs">
 													<span className="text-ink-faint tabular-nums">{card.dateLabel}</span>
 													{card.value > 0 && (
@@ -404,11 +397,7 @@ export function PipelineBoard({ initialColumns }: { initialColumns: ColumnsData 
 								{tStatus(dragCardRef.current.status as never)}
 							</Badge>
 						</div>
-						<RouteLine
-							from={dragCardRef.current.pickup}
-							via={dragCardRef.current.destination2}
-							to={dragCardRef.current.destination}
-						/>
+						<RouteLine points={dragCardRef.current.routePoints} />
 					</div>
 				</div>
 			)}

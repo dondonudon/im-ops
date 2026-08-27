@@ -7,6 +7,7 @@ import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { BackLink } from "@/components/shared/BackLink";
 import { PendingLink } from "@/components/shared/PendingLink";
 import { Badge, Card, Money, PageHeader, toneFor } from "@/components/ui";
+import { groupLeadAddresses, type LeadAddressRow } from "@/lib/leadAddresses";
 import { buildCompanySettings, buildInvoiceTemplateSettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
 import { formatCustomerName, formatDate } from "@/lib/utils";
@@ -24,7 +25,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         *,
         jobs(
           id, job_number, move_date,
-          proposals(leads(id, pickup_address, destination_address, destination_address_2, customers(id, prefix, name, phone, email, type, company_name, address)))
+          proposals(leads(id, lead_addresses(role, seq, address), customers(id, prefix, name, phone, email, type, company_name, address)))
         )
       `)
 			.eq("id", id)
@@ -110,9 +111,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 		proposals: {
 			leads: {
 				id: string;
-				pickup_address: string | null;
-				destination_address: string | null;
-				destination_address_2: string | null;
+				lead_addresses: LeadAddressRow[] | null;
 				customers: {
 					id: string;
 					prefix: string | null;
@@ -133,6 +132,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
 	const lead = job?.proposals?.leads ?? null;
 	const customer = lead?.customers ?? null;
+	const leadRoute = groupLeadAddresses(lead?.lead_addresses ?? []);
+	const leadPickups = leadRoute.pickups
+		.map((s) => s.address)
+		.filter((a): a is string => Boolean(a));
+	const leadDestinations = leadRoute.destinations
+		.map((s) => s.address)
+		.filter((a): a is string => Boolean(a));
 
 	return (
 		<div className="space-y-6">
@@ -185,9 +191,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 									address: customer.address,
 								},
 								lead: {
-									pickup_address: lead?.pickup_address ?? null,
-									destination_address: lead?.destination_address ?? null,
-									destination_address_2: lead?.destination_address_2 ?? null,
+									pickups: leadPickups,
+									destinations: leadDestinations,
 								},
 								company: pdfCompany,
 								template: pdfTemplate,

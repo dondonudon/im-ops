@@ -133,9 +133,8 @@ export interface InvoicePDFProps {
 		address: string | null;
 	};
 	lead: {
-		pickup_address: string | null;
-		destination_address: string | null;
-		destination_address_2: string | null;
+		pickups: string[];
+		destinations: string[];
 	};
 	company: {
 		name: string;
@@ -161,12 +160,16 @@ export function InvoicePDF({ invoice, customer, lead, company, template }: Invoi
 	const displayDate = `${company.city}, ${formatIndonesianDate(invoice.created_at)}`;
 
 	// Build the line-item description
+	const pickupText = lead.pickups.join(", ");
+	const destinationText = lead.destinations
+		.map((d, i) => (i === 0 ? d : `lalu ke ${d}`))
+		.join(", ");
 	const description =
 		invoice.notes?.trim() ||
-		(lead.pickup_address && lead.destination_address
-			? `Pindah barang dari ${lead.pickup_address} ke ${lead.destination_address}${lead.destination_address_2 ? `, lalu ke ${lead.destination_address_2}` : ""}`
-			: lead.pickup_address
-				? `Pindah barang dari ${lead.pickup_address}`
+		(pickupText && destinationText
+			? `Pindah barang dari ${pickupText} ke ${destinationText}`
+			: pickupText
+				? `Pindah barang dari ${pickupText}`
 				: "Jasa pindah barang");
 
 	const totalFormatted = formatRupiahLetter(invoice.total_amount);

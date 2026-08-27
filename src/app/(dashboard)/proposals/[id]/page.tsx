@@ -8,6 +8,7 @@ import { ProposalDuplicateButton } from "@/components/proposals/ProposalDuplicat
 import { ProposalPDFDownloadButton } from "@/components/proposals/ProposalPDFDownloadButton";
 import { BackLink } from "@/components/shared/BackLink";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
+import { groupLeadAddresses, type LeadAddressRow } from "@/lib/leadAddresses";
 import { buildCompanySettings, buildProposalTemplateSettings } from "@/lib/pdfSettings";
 import { parseCustomFields } from "@/lib/proposalCustomFields";
 import { createClient } from "@/lib/supabase/server";
@@ -32,7 +33,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 			.select(`
         *,
         leads(
-          id, pickup_address, destination_address, destination_address_2, preferred_date,
+          id, preferred_date, lead_addresses(role, seq, address),
           customers(id, prefix, name, phone, email, type, company_name, address)
         )
       `)
@@ -71,9 +72,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 
 	const lead = proposal.leads as {
 		id: string;
-		pickup_address: string | null;
-		destination_address: string | null;
-		destination_address_2: string | null;
+		lead_addresses: LeadAddressRow[] | null;
 		preferred_date: string | null;
 		customers: {
 			id: string;
@@ -98,6 +97,24 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 			company_name: string | null;
 			address: string | null;
 		} | null) ?? null;
+	const leadRoute = groupLeadAddresses(lead?.lead_addresses ?? []);
+	const leadPickups = leadRoute.pickups
+		.map((s) => s.address)
+		.filter((a): a is string => Boolean(a));
+	const leadDestinations = leadRoute.destinations
+		.map((s) => s.address)
+		.filter((a): a is string => Boolean(a));
+	const leadMoveStops = [
+		...leadRoute.pickups.map((s, i) => ({
+			label: leadRoute.pickups.length > 1 ? `${tJob("pickup")} ${i + 1}` : tJob("pickup"),
+			address: s.address,
+		})),
+		...leadRoute.destinations.map((s, i) => ({
+			label:
+				leadRoute.destinations.length > 1 ? `${tJob("destination")} ${i + 1}` : tJob("destination"),
+			address: s.address,
+		})),
+	];
 	const estimationOutputs = (estimation?.outputs ?? {}) as Record<string, number>;
 
 	return (
@@ -159,9 +176,8 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 										address: customer.address,
 									},
 									lead: {
-										pickup_address: lead.pickup_address,
-										destination_address: lead.destination_address,
-										destination_address_2: lead.destination_address_2,
+										pickups: leadPickups,
+										destinations: leadDestinations,
 										preferred_date: lead.preferred_date,
 									},
 									outputs: estimationOutputs,
@@ -181,19 +197,24 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 					{/* Move summary */}
 					{lead && (
 						<Card className="p-5 grid grid-cols-2 gap-4 text-sm">
-							<div>
-								<p className="text-ink-muted">{tJob("pickup")}</p>
-								<p className="font-medium mt-0.5 text-ink">{lead.pickup_address ?? "—"}</p>
-							</div>
-							<div>
-								<p className="text-ink-muted">{tJob("destination")}</p>
-								<p className="font-medium mt-0.5 text-ink">{lead.destination_address ?? "—"}</p>
-							</div>
-							{lead.destination_address_2 && (
-								<div>
-									<p className="text-ink-muted">{tJob("destination2")}</p>
-									<p className="font-medium mt-0.5 text-ink">{lead.destination_address_2}</p>
-								</div>
+							{leadMoveStops.length > 0 ? (
+								leadMoveStops.map((stop) => (
+									<div key={stop.label}>
+										<p className="text-ink-muted">{stop.label}</p>
+										<p className="font-medium mt-0.5 text-ink">{stop.address ?? "—"}</p>
+									</div>
+								))
+							) : (
+								<>
+									<div>
+										<p className="text-ink-muted">{tJob("pickup")}</p>
+										<p className="font-medium mt-0.5 text-ink">—</p>
+									</div>
+									<div>
+										<p className="text-ink-muted">{tJob("destination")}</p>
+										<p className="font-medium mt-0.5 text-ink">—</p>
+									</div>
+								</>
 							)}
 							{lead.preferred_date && (
 								<div>

@@ -13,6 +13,7 @@ import {
 	toneFor,
 } from "@/components/ui";
 import { PAGE_SIZE } from "@/lib/constants";
+import { routePointsFromText } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, sanitizeSearch } from "@/lib/utils";
 
@@ -42,19 +43,16 @@ export default async function LeadsPage({
 
 	let query = supabase
 		.from("leads_with_customer")
-		.select(
-			"id, status, pickup_address, destination_address, destination_address_2, preferred_date, created_at, customer_name",
-			{ count: "exact" },
-		);
+		.select("id, status, addresses_text, preferred_date, created_at, customer_name", {
+			count: "exact",
+		});
 
 	if (status) query = query.filter("status", "eq", status);
 	if (q) {
 		const safe = sanitizeSearch(q);
 		query = query.or(
 			[
-				`pickup_address.ilike.%${safe}%`,
-				`destination_address.ilike.%${safe}%`,
-				`destination_address_2.ilike.%${safe}%`,
+				`addresses_text.ilike.%${safe}%`,
 				`customer_name.ilike.%${safe}%`,
 				`customer_phone.ilike.%${safe}%`,
 			].join(","),
@@ -109,12 +107,7 @@ export default async function LeadsPage({
 						>
 							<div className="min-w-0 flex-1">
 								<p className="font-semibold text-ink truncate">{lead.customer_name ?? "—"}</p>
-								<RouteLine
-									from={lead.pickup_address}
-									via={lead.destination_address_2}
-									to={lead.destination_address}
-									className="mt-1.5"
-								/>
+								<RouteLine points={routePointsFromText(lead.addresses_text)} className="mt-1.5" />
 							</div>
 							<div className="flex items-center gap-4 shrink-0">
 								<Badge tone={toneFor("lead", lead.status)} dot>

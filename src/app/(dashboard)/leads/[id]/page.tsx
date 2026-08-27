@@ -8,6 +8,7 @@ import { LeadDuplicateButton } from "@/components/leads/LeadDuplicateButton";
 import { LeadPhotoGallery } from "@/components/leads/LeadPhotoGallery";
 import { BackLink } from "@/components/shared/BackLink";
 import { Badge, buttonStyles, Card, PageHeader, toneFor } from "@/components/ui";
+import { groupLeadAddresses, type LeadAddressRow } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/server";
 import { formatCustomerName, formatDate } from "@/lib/utils";
 
@@ -29,7 +30,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 			supabase
 				.from("leads")
 				.select(
-					"*, destination_address_2, pickup_lat, pickup_lng, destination_lat, destination_lng, destination_2_lat, destination_2_lng, customers(id, prefix, name, phone)",
+					"*, lead_addresses(role, seq, address, lat, lng), customers(id, prefix, name, phone)",
 				)
 				.eq("id", id)
 				.single(),
@@ -58,6 +59,29 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 		]);
 
 	if (!lead) notFound();
+
+	const { pickups, destinations } = groupLeadAddresses(
+		(lead.lead_addresses as LeadAddressRow[] | null) ?? [],
+	);
+	const moveStops: {
+		label: string;
+		address: string | null;
+		lat: number | null;
+		lng: number | null;
+	}[] = [];
+	const pushStops = (rows: LeadAddressRow[], base: string) => {
+		const list = rows.length > 0 ? rows : [{ address: null, lat: null, lng: null }];
+		list.forEach((s, i) => {
+			moveStops.push({
+				label: rows.length > 1 ? `${base} ${i + 1}` : base,
+				address: s.address ?? null,
+				lat: s.lat ?? null,
+				lng: s.lng ?? null,
+			});
+		});
+	};
+	pushStops(pickups, t("pickup"));
+	pushStops(destinations, t("destination"));
 
 	const customer = lead.customers as {
 		id: string;
@@ -128,43 +152,13 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 								{t("moveDetails")}
 							</h2>
 							<div className="grid grid-cols-2 gap-4 text-sm">
-								<div>
-									<p className="text-ink-muted">{t("pickup")}</p>
-									<p className="font-medium mt-0.5 text-ink">{lead.pickup_address ?? "—"}</p>
-									{lead.pickup_lat && lead.pickup_lng && (
-										<a
-											href={`https://www.google.com/maps/dir/?api=1&destination=${lead.pickup_lat},${lead.pickup_lng}`}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-xs text-primary-text hover:underline mt-0.5 inline-flex items-center gap-1"
-										>
-											<MapPin size={11} aria-hidden="true" />
-											Open in Maps
-										</a>
-									)}
-								</div>
-								<div>
-									<p className="text-ink-muted">{t("destination")}</p>
-									<p className="font-medium mt-0.5 text-ink">{lead.destination_address ?? "—"}</p>
-									{lead.destination_lat && lead.destination_lng && (
-										<a
-											href={`https://www.google.com/maps/dir/?api=1&destination=${lead.destination_lat},${lead.destination_lng}`}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-xs text-primary-text hover:underline mt-0.5 inline-flex items-center gap-1"
-										>
-											<MapPin size={11} aria-hidden="true" />
-											Open in Maps
-										</a>
-									)}
-								</div>
-								{lead.destination_address_2 && (
-									<div>
-										<p className="text-ink-muted">{t("destination2")}</p>
-										<p className="font-medium mt-0.5 text-ink">{lead.destination_address_2}</p>
-										{lead.destination_2_lat && lead.destination_2_lng && (
+								{moveStops.map((stop) => (
+									<div key={stop.label}>
+										<p className="text-ink-muted">{stop.label}</p>
+										<p className="font-medium mt-0.5 text-ink">{stop.address ?? "—"}</p>
+										{stop.lat && stop.lng && (
 											<a
-												href={`https://www.google.com/maps/dir/?api=1&destination=${lead.destination_2_lat},${lead.destination_2_lng}`}
+												href={`https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lng}`}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="text-xs text-primary-text hover:underline mt-0.5 inline-flex items-center gap-1"
@@ -174,7 +168,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 											</a>
 										)}
 									</div>
-								)}
+								))}
 								<div>
 									<p className="text-ink-muted">{t("leadType")}</p>
 									<p className="font-medium mt-0.5 text-ink">

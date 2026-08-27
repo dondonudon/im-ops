@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { CalendarView } from "@/components/calendar/CalendarView";
 import { SyncAllButton } from "@/components/calendar/SyncAllButton";
 import { PageHeader } from "@/components/ui";
+import { type LeadAddressRow, routePoints } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function CalendarPage() {
@@ -21,7 +22,7 @@ export default async function CalendarPage() {
 			.from("jobs")
 			.select(`
 				id, job_number, status, move_date, move_time, move_end_date, move_end_time, gcal_event_id,
-				proposals(leads(customers(name), pickup_address, destination_address))
+				proposals(leads(customers(name), lead_addresses(role, seq, address)))
 			`)
 			.not("move_date", "is", null)
 			.gte("move_date", startDate)
@@ -44,15 +45,12 @@ export default async function CalendarPage() {
 			const proposal = j.proposals as {
 				leads: {
 					customers: { name: string } | null;
-					pickup_address: string | null;
-					destination_address: string | null;
+					lead_addresses: LeadAddressRow[] | null;
 				} | null;
 			} | null;
 			const customerName = proposal?.leads?.customers?.name ?? null;
-			const pickup = proposal?.leads?.pickup_address ?? null;
-			const destination = proposal?.leads?.destination_address ?? null;
-			const detail =
-				pickup && destination ? `${pickup} → ${destination}` : (pickup ?? destination ?? undefined);
+			const points = routePoints(proposal?.leads?.lead_addresses ?? null);
+			const detail = points.length > 0 ? points.join(" → ") : undefined;
 			const moveTime = j.move_time as string | null;
 			// "YYYY-MM-DDTHH:MM" so the agenda can extract the time; bare date for all-day.
 			const start = moveTime ? `${j.move_date}T${moveTime.slice(0, 5)}` : j.move_date!;

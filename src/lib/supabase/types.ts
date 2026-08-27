@@ -48,15 +48,7 @@ export type Database = {
 				Row: {
 					id: string;
 					customer_id: string;
-					pickup_address: string | null;
-					pickup_lat: number | null;
-					pickup_lng: number | null;
-					destination_address: string | null;
-					destination_lat: number | null;
-					destination_lng: number | null;
-					destination_address_2: string | null;
-					destination_2_lat: number | null;
-					destination_2_lng: number | null;
+					addresses_text: string | null;
 					preferred_date: string | null;
 					lead_type: "whatsapp" | "onsite" | "returning" | "corporate" | null;
 					origin_channel: "whatsapp" | "call" | "referral" | "walkin" | null;
@@ -75,15 +67,7 @@ export type Database = {
 				Insert: {
 					id?: string;
 					customer_id: string;
-					pickup_address?: string | null;
-					pickup_lat?: number | null;
-					pickup_lng?: number | null;
-					destination_address?: string | null;
-					destination_lat?: number | null;
-					destination_lng?: number | null;
-					destination_address_2?: string | null;
-					destination_2_lat?: number | null;
-					destination_2_lng?: number | null;
+					addresses_text?: string | null;
 					preferred_date?: string | null;
 					lead_type?: "whatsapp" | "onsite" | "returning" | "corporate" | null;
 					origin_channel?: "whatsapp" | "call" | "referral" | "walkin" | null;
@@ -102,15 +86,7 @@ export type Database = {
 				Update: {
 					id?: string;
 					customer_id?: string;
-					pickup_address?: string | null;
-					pickup_lat?: number | null;
-					pickup_lng?: number | null;
-					destination_address?: string | null;
-					destination_lat?: number | null;
-					destination_lng?: number | null;
-					destination_address_2?: string | null;
-					destination_2_lat?: number | null;
-					destination_2_lng?: number | null;
+					addresses_text?: string | null;
 					preferred_date?: string | null;
 					lead_type?: "whatsapp" | "onsite" | "returning" | "corporate" | null;
 					origin_channel?: "whatsapp" | "call" | "referral" | "walkin" | null;
@@ -132,6 +108,47 @@ export type Database = {
 						columns: ["customer_id"];
 						isOneToOne: false;
 						referencedRelation: "customers";
+						referencedColumns: ["id"];
+					},
+				];
+			};
+			lead_addresses: {
+				Row: {
+					id: string;
+					lead_id: string;
+					role: "pickup" | "destination";
+					seq: number;
+					address: string | null;
+					lat: number | null;
+					lng: number | null;
+					created_at: string;
+				};
+				Insert: {
+					id?: string;
+					lead_id: string;
+					role: "pickup" | "destination";
+					seq?: number;
+					address?: string | null;
+					lat?: number | null;
+					lng?: number | null;
+					created_at?: string;
+				};
+				Update: {
+					id?: string;
+					lead_id?: string;
+					role?: "pickup" | "destination";
+					seq?: number;
+					address?: string | null;
+					lat?: number | null;
+					lng?: number | null;
+					created_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "lead_addresses_lead_id_fkey";
+						columns: ["lead_id"];
+						isOneToOne: false;
+						referencedRelation: "leads";
 						referencedColumns: ["id"];
 					},
 				];
@@ -1186,9 +1203,7 @@ export type Database = {
 					id: string;
 					status: string;
 					customer_id: string | null;
-					pickup_address: string | null;
-					destination_address: string | null;
-					destination_address_2: string | null;
+					addresses_text: string | null;
 					preferred_date: string | null;
 					lead_type: string | null;
 					origin_channel: string | null;

@@ -27,6 +27,7 @@ import {
 	Stat,
 	toneFor,
 } from "@/components/ui";
+import { type LeadAddressRow, routePoints } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/server";
 import { deriveJobStatus, formatDate, formatRupiah } from "@/lib/utils";
 
@@ -61,9 +62,7 @@ type TodayJob = {
 	move_date: string;
 	proposals: {
 		leads: {
-			pickup_address: string | null;
-			destination_address: string | null;
-			destination_address_2: string | null;
+			lead_addresses: LeadAddressRow[] | null;
 			customers: { name: string } | null;
 		} | null;
 	} | null;
@@ -118,13 +117,13 @@ export default async function TodayPage() {
 		supabase
 			.from("jobs")
 			.select(
-				"id, job_number, status, move_date, proposals(leads(pickup_address, destination_address, destination_address_2, customers(name)))",
+				"id, job_number, status, move_date, proposals(leads(lead_addresses(role, seq, address), customers(name)))",
 			)
 			.eq("move_date", today)
 			.order("status"),
 		supabase
 			.from("leads")
-			.select("id, pickup_address, customers(name)")
+			.select("id, lead_addresses(role, seq, address), customers(name)")
 			.eq("status", "survey_scheduled")
 			.order("created_at")
 			.limit(5),
@@ -171,7 +170,10 @@ export default async function TodayPage() {
 			icon: <ClipboardCheck size={16} />,
 			tone: "pending" as const,
 			title: t("queue.surveyDue"),
-			sub: (l.customers as { name: string } | null)?.name ?? l.pickup_address ?? "—",
+			sub:
+				(l.customers as { name: string } | null)?.name ??
+				routePoints(l.lead_addresses as LeadAddressRow[] | null)[0] ??
+				"—",
 			action: t("queue.review"),
 			href: `/leads/${l.id}`,
 		})),
@@ -279,11 +281,7 @@ export default async function TodayPage() {
 									<p className="text-sm font-semibold text-ink truncate mb-2">
 										{lead?.customers?.name ?? "—"}
 									</p>
-									<RouteLine
-										from={lead?.pickup_address}
-										via={lead?.destination_address_2}
-										to={lead?.destination_address}
-									/>
+									<RouteLine points={routePoints(lead?.lead_addresses)} />
 								</PendingLink>
 							);
 						})}

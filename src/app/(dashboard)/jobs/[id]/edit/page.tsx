@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { useEffect, useState } from "react";
+import { AddressListInput, emptyLocation } from "@/components/shared/AddressListInput";
+import type { LocationValue } from "@/components/shared/LocationInput";
 import { NumericInput } from "@/components/shared/NumericInput";
 import {
 	Button,
@@ -17,6 +19,7 @@ import {
 	Textarea,
 } from "@/components/ui";
 import { syncJobToCalendar } from "@/lib/gcal/actions";
+import { groupLeadAddresses, type LeadAddressRow, replaceLeadAddresses } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/client";
 
 const JOB_STATUSES = ["scheduled", "cancelled"] as const;
@@ -44,14 +47,12 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 		move_end_time: "",
 		revenue: "",
 		notes: "",
-		pickup_address: "",
-		destination_address: "",
-		destination_address_2: "",
 	});
+	const [pickups, setPickups] = useState<LocationValue[]>([{ ...emptyLocation }]);
+	const [destinations, setDestinations] = useState<LocationValue[]>([{ ...emptyLocation }]);
 	const [jobNumber, setJobNumber] = useState("");
 	const [customerName, setCustomerName] = useState("");
 	const [leadId, setLeadId] = useState<string | null>(null);
-	const [showDestination2, setShowDestination2] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -61,7 +62,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 		supabase
 			.from("jobs")
 			.select(
-				"job_number, status, move_date, move_time, move_end_date, move_end_time, base_revenue, notes, proposals(leads(id, pickup_address, destination_address, destination_address_2, customers(name)))",
+				"job_number, status, move_date, move_time, move_end_date, move_end_time, base_revenue, notes, proposals(leads(id, lead_addresses(role, seq, address, lat, lng), customers(name)))",
 			)
 			.eq("id", id)
 			.single()
@@ -75,9 +76,7 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 					data.proposals as {
 						leads: {
 							id: string;
-							pickup_address: string | null;
-							destination_address: string | null;
-							destination_address_2: string | null;
+							lead_addresses: LeadAddressRow[] | null;
 							customers: { name: string } | null;
 						} | null;
 					} | null
@@ -85,8 +84,20 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 				setJobNumber(data.job_number ?? "");
 				setCustomerName(lead?.customers?.name ?? "");
 				setLeadId(lead?.id ?? null);
-				const dest2 = lead?.destination_address_2 ?? "";
-				if (dest2) setShowDestination2(true);
+				const grouped = groupLeadAddresses(lead?.lead_addresses ?? []);
+				const toValue = (r: LeadAddressRow): LocationValue => ({
+					address: r.address ?? "",
+					lat: r.lat,
+					lng: r.lng,
+				});
+				setPickups(
+					grouped.pickups.length > 0 ? grouped.pickups.map(toValue) : [{ ...emptyLocation }],
+				);
+				setDestinations(
+					grouped.destinations.length > 0
+						? grouped.destinations.map(toValue)
+						: [{ ...emptyLocation }],
+				);
 				setForm({
 					status: (data.status ?? "scheduled") as JobStatus,
 					move_date: data.move_date ?? "",
@@ -98,9 +109,6 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 					),
 					revenue: data.base_revenue != null ? String(data.base_revenue) : "",
 					notes: data.notes ?? "",
-					pickup_address: lead?.pickup_address ?? "",
-					destination_address: lead?.destination_address ?? "",
-					destination_address_2: dest2,
 				});
 				setLoading(false);
 			});
@@ -122,32 +130,20 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 				throw new Error("Revenue must be a valid positive number.");
 			}
 			const supabase = createClient();
-			const [{ error: err }, { error: leadErr }] = await Promise.all([
-				supabase
-					.from("jobs")
-					.update({
-						status: form.status,
-						move_date: form.move_date || undefined,
-						move_time: form.move_time || null,
-						move_end_date: form.move_end_date || null,
-						move_end_time: form.move_end_time || null,
-						base_revenue: revenueNum ?? 0,
-						notes: form.notes.trim() || null,
-					})
-					.eq("id", id),
-				leadId
-					? supabase
-							.from("leads")
-							.update({
-								pickup_address: form.pickup_address.trim() || null,
-								destination_address: form.destination_address.trim() || null,
-								destination_address_2: form.destination_address_2.trim() || null,
-							})
-							.eq("id", leadId)
-					: Promise.resolve({ error: null }),
-			]);
+			const { error: err } = await supabase
+				.from("jobs")
+				.update({
+					status: form.status,
+					move_date: form.move_date || undefined,
+					move_time: form.move_time || null,
+					move_end_date: form.move_end_date || null,
+					move_end_time: form.move_end_time || null,
+					base_revenue: revenueNum ?? 0,
+					notes: form.notes.trim() || null,
+				})
+				.eq("id", id);
 			if (err) throw err;
-			if (leadErr) throw leadErr;
+			if (leadId) await replaceLeadAddresses(supabase, leadId, pickups, destinations);
 
 			// Re-sync the Google Calendar event (PATCH if it exists, POST otherwise).
 			// Non-blocking — calendar failures must never block the save flow.
@@ -293,66 +289,28 @@ export default function EditJobPage({ params }: { params: { id: string } }) {
 					{/* Addresses */}
 					<fieldset className="space-y-3">
 						<legend className="block text-sm font-medium text-ink mb-1">{t("addresses")}</legend>
-						<Field label={tCustomer("pickup")} htmlFor="pickup_address">
-							<Input
-								id="pickup_address"
-								name="pickup_address"
-								value={form.pickup_address}
-								onChange={(e) => {
-									e.target.value = e.target.value.toUpperCase();
-									handleChange(e);
-								}}
-								placeholder="—"
-								className="uppercase"
+						<Field label={tCustomer("pickup")}>
+							<AddressListInput
+								values={pickups}
+								onChange={setPickups}
+								idPrefix="pickup"
+								itemLabel={tCustomer("pickupLabel")}
+								addLabel={tCustomer("addPickup")}
+								removeLabel={tCustomer("removeAddress")}
+								placeholder="Search pickup address…"
 							/>
 						</Field>
-						<Field label={tCustomer("destination")} htmlFor="destination_address">
-							<Input
-								id="destination_address"
-								name="destination_address"
-								value={form.destination_address}
-								onChange={(e) => {
-									e.target.value = e.target.value.toUpperCase();
-									handleChange(e);
-								}}
-								placeholder="—"
-								className="uppercase"
+						<Field label={tCustomer("destination")}>
+							<AddressListInput
+								values={destinations}
+								onChange={setDestinations}
+								idPrefix="destination"
+								itemLabel={tCustomer("destinationLabel")}
+								addLabel={tCustomer("addDestination")}
+								removeLabel={tCustomer("removeAddress")}
+								placeholder="Search destination address…"
 							/>
 						</Field>
-
-						{showDestination2 ? (
-							<Field label={tCustomer("destination2")} htmlFor="destination_address_2">
-								<Input
-									id="destination_address_2"
-									name="destination_address_2"
-									value={form.destination_address_2}
-									onChange={(e) => {
-										e.target.value = e.target.value.toUpperCase();
-										handleChange(e);
-									}}
-									placeholder="—"
-									className="uppercase"
-								/>
-								<button
-									type="button"
-									onClick={() => {
-										setShowDestination2(false);
-										setForm((prev) => ({ ...prev, destination_address_2: "" }));
-									}}
-									className="mt-1 text-xs text-ink-faint hover:text-danger transition-colors"
-								>
-									{tCustomer("removeDestination2")}
-								</button>
-							</Field>
-						) : (
-							<button
-								type="button"
-								onClick={() => setShowDestination2(true)}
-								className="text-sm text-primary-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] rounded"
-							>
-								+ {tCustomer("addDestination2")}
-							</button>
-						)}
 					</fieldset>
 
 					{/* Contracted amount (base_revenue; job.revenue is derived from this + adjustments) */}

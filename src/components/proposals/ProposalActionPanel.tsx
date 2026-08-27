@@ -20,8 +20,6 @@ type Proposal = {
 
 type Lead = {
 	id: string;
-	pickup_address: string | null;
-	destination_address: string | null;
 	preferred_date: string | null;
 } | null;
 

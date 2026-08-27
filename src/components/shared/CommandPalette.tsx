@@ -20,6 +20,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { routePointsFromText } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/client";
 import { sanitizeSearch } from "@/lib/utils";
 
@@ -558,9 +559,7 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 
 	type LeadRow = {
 		id: string;
-		pickup_address: string | null;
-		destination_address: string | null;
-		destination_address_2: string | null;
+		addresses_text: string | null;
 		customers: { name: string } | null;
 	};
 	type JobRow = {
@@ -617,17 +616,13 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 
 		supabase
 			.from("leads")
-			.select("id, pickup_address, destination_address, destination_address_2, customers(name)")
-			.or(
-				`pickup_address.ilike.${pattern},destination_address.ilike.${pattern},destination_address_2.ilike.${pattern},notes.ilike.${pattern}`,
-			)
+			.select("id, addresses_text, customers(name)")
+			.or(`addresses_text.ilike.${pattern},notes.ilike.${pattern}`)
 			.limit(PER_GROUP_LIMIT)
 			.abortSignal(signal),
 		supabase
 			.from("leads")
-			.select(
-				"id, pickup_address, destination_address, destination_address_2, customers!inner(name)",
-			)
+			.select("id, addresses_text, customers!inner(name)")
 			.ilike("customers.name", pattern)
 			.limit(PER_GROUP_LIMIT)
 			.abortSignal(signal),
@@ -707,8 +702,7 @@ async function runSearch(raw: string, signal: AbortSignal): Promise<Hit[]> {
 		...((leadsByText.data ?? []) as LeadRow[]),
 		...((leadsByCustomer.data ?? []) as LeadRow[]),
 	]) {
-		const route =
-			[lead.pickup_address, lead.destination_address].filter(Boolean).join(" → ") || "Lead";
+		const route = routePointsFromText(lead.addresses_text).join(" → ") || "Lead";
 		const title = lead.customers?.name ?? "Unknown customer";
 		add("leads", lead.id, title, route);
 	}

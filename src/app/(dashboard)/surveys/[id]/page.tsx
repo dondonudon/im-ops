@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
 import { SurveyDetailClient } from "@/components/surveys/SurveyDetailClient";
 import { Badge, buttonStyles, Card } from "@/components/ui";
+import { groupLeadAddresses, type LeadAddressRow } from "@/lib/leadAddresses";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 
@@ -19,7 +20,7 @@ export default async function SurveyDetailPage({ params }: { params: Promise<{ i
 		supabase
 			.from("surveys")
 			.select(
-				"id, lead_id, scheduled_at, conducted_at, access_notes, special_items, notes, surveyor_id, gcal_event_id, leads(id, pickup_address, destination_address, destination_address_2, customers(name))",
+				"id, lead_id, scheduled_at, conducted_at, access_notes, special_items, notes, surveyor_id, gcal_event_id, leads(id, lead_addresses(role, seq, address), customers(name))",
 			)
 			.eq("id", id)
 			.single(),
@@ -34,11 +35,23 @@ export default async function SurveyDetailPage({ params }: { params: Promise<{ i
 
 	const lead = survey.leads as {
 		id: string;
-		pickup_address: string | null;
-		destination_address: string | null;
-		destination_address_2: string | null;
+		lead_addresses: LeadAddressRow[] | null;
 		customers: { name: string } | null;
 	} | null;
+
+	const surveyGroups = groupLeadAddresses(lead?.lead_addresses ?? []);
+	const surveyStops = [
+		...surveyGroups.pickups.map((s, i) => ({
+			role: "pickup" as const,
+			label: surveyGroups.pickups.length > 1 ? `Pickup ${i + 1}` : "Pickup",
+			address: s.address,
+		})),
+		...surveyGroups.destinations.map((s, i) => ({
+			role: "destination" as const,
+			label: surveyGroups.destinations.length > 1 ? `Destination ${i + 1}` : "Destination",
+			address: s.address,
+		})),
+	].filter((s) => Boolean(s.address));
 
 	const customerName = lead?.customers?.name ?? "Unknown Customer";
 	const isDone = !!survey.conducted_at;
@@ -90,41 +103,23 @@ export default async function SurveyDetailPage({ params }: { params: Promise<{ i
 							</div>
 						</div>
 					)}
-					{lead?.pickup_address && (
-						<div className="flex items-start gap-2 text-ink-muted">
-							<User size={15} className="text-ink-faint shrink-0 mt-0.5" aria-hidden="true" />
+					{surveyStops.map((stop) => (
+						<div key={stop.label} className="flex items-start gap-2 text-ink-muted">
+							{stop.role === "pickup" ? (
+								<User size={15} className="text-ink-faint shrink-0 mt-0.5" aria-hidden="true" />
+							) : (
+								<ClipboardList
+									size={15}
+									className="text-ink-faint shrink-0 mt-0.5"
+									aria-hidden="true"
+								/>
+							)}
 							<div>
-								<dt className="text-xs text-ink-faint leading-none mb-0.5">Pickup</dt>
-								<dd className="font-medium">{lead.pickup_address}</dd>
+								<dt className="text-xs text-ink-faint leading-none mb-0.5">{stop.label}</dt>
+								<dd className="font-medium">{stop.address}</dd>
 							</div>
 						</div>
-					)}
-					{lead?.destination_address && (
-						<div className="flex items-start gap-2 text-ink-muted">
-							<ClipboardList
-								size={15}
-								className="text-ink-faint shrink-0 mt-0.5"
-								aria-hidden="true"
-							/>
-							<div>
-								<dt className="text-xs text-ink-faint leading-none mb-0.5">Destination</dt>
-								<dd className="font-medium">{lead.destination_address}</dd>
-							</div>
-						</div>
-					)}
-					{lead?.destination_address_2 && (
-						<div className="flex items-start gap-2 text-ink-muted">
-							<ClipboardList
-								size={15}
-								className="text-ink-faint shrink-0 mt-0.5"
-								aria-hidden="true"
-							/>
-							<div>
-								<dt className="text-xs text-ink-faint leading-none mb-0.5">Second destination</dt>
-								<dd className="font-medium">{lead.destination_address_2}</dd>
-							</div>
-						</div>
-					)}
+					))}
 				</dl>
 			</Card>
 
