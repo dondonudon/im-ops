@@ -56,13 +56,13 @@ Built around workflows, not modules.
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000).
+   Open [http://localhost:3001](http://localhost:3001).
 
 ## Scripts
 
 | Command              | What it does |
 |----------------------|--------------|
-| `npm run dev`        | Next.js dev server on :3000 |
+| `npm run dev`        | Next.js dev server on :3001 |
 | `npm run build`      | Production build |
 | `npm run start`      | Run the production build |
 | `npm run lint`       | ESLint via `next lint` (Next.js-specific rules) |
