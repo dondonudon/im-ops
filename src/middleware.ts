@@ -74,6 +74,10 @@ export async function middleware(request: NextRequest) {
 			scriptSrc,
 			"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 			"img-src 'self' *.supabase.co data: blob: https://maps.googleapis.com https://maps.gstatic.com https://*.googleapis.com",
+			// media-src: evidence videos are served from Supabase Storage signed URLs;
+			// blob: is used for locally re-encoded clips before upload. Without this the
+			// <video> elements fall back to default-src 'self' and are blocked.
+			"media-src 'self' *.supabase.co data: blob:",
 			// data: is required for @react-pdf/renderer which loads its WASM binary
 			// as a data: URL via fetch() before passing it to WebAssembly.instantiate()
 			"connect-src 'self' *.supabase.co data: blob: https://maps.googleapis.com https://places.googleapis.com",

@@ -59,6 +59,7 @@ export function LocationInput({ id, value, onChange, placeholder, className }: L
 
 function LocationInputInner({ id, value, onChange, placeholder, className }: LocationInputProps) {
 	const [mode, setMode] = useState<Mode>("search");
+	const [focused, setFocused] = useState(false);
 	const [mapOpen, setMapOpen] = useState(false);
 	const [pinPos, setPinPos] = useState<google.maps.LatLngLiteral>(
 		value.lat && value.lng ? { lat: value.lat, lng: value.lng } : JAKARTA,
@@ -81,10 +82,20 @@ function LocationInputInner({ id, value, onChange, placeholder, className }: Loc
 		requestOptions: { componentRestrictions: { country: "id" } },
 	});
 
-	// Sync search input if parent value changes externally
+	// Sync search input when the parent value changes externally (map pin, paste,
+	// reset). Guarded so it doesn't clobber suggestion-fetching while the user types
+	// — free typing already keeps value.address and searchValue in lockstep.
 	useEffect(() => {
-		setSearchValue(value.address, false);
-	}, [value.address, setSearchValue]);
+		if (value.address !== searchValue) setSearchValue(value.address, false);
+	}, [value.address, searchValue, setSearchValue]);
+
+	// Free-typed address: propagate to the parent as the user types so an address
+	// that isn't in Google's suggestions is still saved (coords cleared — no pin).
+	function handleType(next: string) {
+		const upper = next.toUpperCase();
+		setSearchValue(upper);
+		onChange({ address: upper, lat: null, lng: null });
+	}
 
 	async function handleSelect(description: string) {
 		setSearchValue(description, false);
@@ -184,8 +195,11 @@ function LocationInputInner({ id, value, onChange, placeholder, className }: Loc
 							id={id}
 							className={cn(controlBase, "pr-8 uppercase")}
 							value={searchValue}
-							onChange={(e) => setSearchValue(e.target.value.toUpperCase())}
-							placeholder={placeholder ?? "Search address…"}
+							onChange={(e) => handleType(e.target.value)}
+							onFocus={() => setFocused(true)}
+							// Delay so a suggestion's onClick still fires before the list unmounts.
+							onBlur={() => setTimeout(() => setFocused(false), 120)}
+							placeholder={placeholder ?? "Search or type an address…"}
 							disabled={!ready}
 							autoComplete="off"
 						/>
@@ -201,8 +215,9 @@ function LocationInputInner({ id, value, onChange, placeholder, className }: Loc
 						)}
 					</div>
 
-					{/* Autocomplete dropdown */}
-					{status === "OK" && (
+					{/* Autocomplete dropdown — only while focused, so it never covers the
+					    fields below once you've moved on without picking a suggestion. */}
+					{focused && status === "OK" && (
 						<ul className="absolute z-50 mt-1 w-full rounded-lg border border-line bg-surface shadow-token-md overflow-hidden">
 							{data.map(({ place_id, description }) => (
 								<li key={place_id}>

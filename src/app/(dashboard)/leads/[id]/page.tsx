@@ -36,7 +36,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 				.single(),
 			supabase
 				.from("lead_photos")
-				.select("id, storage_path, caption, uploaded_at")
+				.select("id, media_type, storage_path, caption, uploaded_at")
 				.eq("lead_id", id)
 				.order("uploaded_at", { ascending: true }),
 			supabase

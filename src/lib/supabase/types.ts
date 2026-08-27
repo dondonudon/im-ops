@@ -157,6 +157,7 @@ export type Database = {
 				Row: {
 					id: string;
 					lead_id: string;
+					media_type: "photo" | "video";
 					storage_path: string;
 					caption: string | null;
 					uploaded_by: string | null;
@@ -165,6 +166,7 @@ export type Database = {
 				Insert: {
 					id?: string;
 					lead_id: string;
+					media_type?: "photo" | "video";
 					storage_path: string;
 					caption?: string | null;
 					uploaded_by?: string | null;
@@ -173,6 +175,7 @@ export type Database = {
 				Update: {
 					id?: string;
 					lead_id?: string;
+					media_type?: "photo" | "video";
 					storage_path?: string;
 					caption?: string | null;
 					uploaded_by?: string | null;
@@ -274,7 +277,7 @@ export type Database = {
 				Row: {
 					id: string;
 					job_id: string;
-					media_type: "photo" | "pdf";
+					media_type: "photo" | "video" | "pdf";
 					storage_path: string;
 					file_name: string | null;
 					caption: string | null;
@@ -283,7 +286,7 @@ export type Database = {
 				Insert: {
 					id?: string;
 					job_id: string;
-					media_type: "photo" | "pdf";
+					media_type: "photo" | "video" | "pdf";
 					storage_path: string;
 					file_name?: string | null;
 					caption?: string | null;

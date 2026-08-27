@@ -331,6 +331,18 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 
 ## Active development context (as of 2026-08)
 
+- **Evidence galleries support video** (migration `011`): lead photos, survey
+  media, and job media now accept video alongside images. `lead_photos` gained a
+  `media_type ('photo'|'video')` column; `job_media`'s check widened to
+  `('photo'|'video'|'pdf')`; `survey_media` already allowed video. Uploads: images
+  still go through `resizeImage`; videos through `prepareVideoUpload` (in
+  `lib/utils.ts`) — under 50 MB uploads as-is (no re-encode), over 50 MB does a
+  best-effort real-time downscale to 1080p via canvas + `MediaRecorder`, and
+  throws `VideoTooLargeError` if it still can't fit. Display: shared `MediaThumb`
+  (grid tiles) + `PhotoLightbox`'s `kind: 'video'` branch render native `<video>`.
+  CSP gained a `media-src` directive (Supabase + blob:). **Apply migration `011`
+  to Supabase before deploying.**
+
 - **Lead addresses normalized to a child table** (migration `010`): unlimited
   pickups AND destinations per lead. Replaces the old flat `leads.pickup_address`
   / `destination_address` / `destination_address_2` (+ lat/lng) columns with

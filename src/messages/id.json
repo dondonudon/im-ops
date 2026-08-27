@@ -230,6 +230,8 @@
 			"dateTimeRequired": "Mohon isi tanggal dan waktu.",
 			"moveDateRequired": "Tanggal pindahan wajib diisi.",
 			"notAnImage": "{name} bukan gambar.",
+			"unsupportedMedia": "{name} bukan gambar atau video yang didukung.",
+			"videoTooLarge": "{name} terlalu besar. Silakan pangkas video lalu coba lagi.",
 			"uploadFailed": "Gagal mengunggah."
 		}
 	},
@@ -1210,7 +1212,8 @@
 			"deleteFile": "Hapus file",
 			"showMore": "Tampilkan {count} lainnya",
 			"showLess": "Tampilkan lebih sedikit",
-			"unsupportedFile": "{name} bukan tipe file yang didukung."
+			"unsupportedFile": "{name} bukan tipe file yang didukung.",
+			"videoTooLarge": "{name} terlalu besar. Silakan pangkas video lalu coba lagi."
 		},
 		"adjustments": {
 			"title": "Biaya & penyesuaian",

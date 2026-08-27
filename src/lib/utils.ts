@@ -115,6 +115,165 @@ export async function resizeImage(file: File, maxPx = 1600): Promise<Blob> {
 	});
 }
 
+/** Max size for an uploaded (or re-encoded) evidence video. */
+export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+
+/** True when a File is a video, based on its MIME type. */
+export function isVideoFile(file: File): boolean {
+	return file.type.startsWith("video/");
+}
+
+/** Thrown when a video can't be brought under MAX_VIDEO_BYTES for upload. */
+export class VideoTooLargeError extends Error {
+	constructor(message = "Video exceeds the size limit") {
+		super(message);
+		this.name = "VideoTooLargeError";
+	}
+}
+
+const VIDEO_MIME_TO_EXT: Record<string, string> = {
+	"video/mp4": "mp4",
+	"video/quicktime": "mov",
+	"video/webm": "webm",
+	"video/x-matroska": "mkv",
+	"video/3gpp": "3gp",
+	"video/ogg": "ogv",
+};
+
+function videoExtFor(file: File): string {
+	const fromName = file.name.split(".").pop()?.toLowerCase();
+	if (fromName && fromName.length <= 5 && /^[a-z0-9]+$/.test(fromName)) return fromName;
+	return VIDEO_MIME_TO_EXT[file.type] ?? "mp4";
+}
+
+/** Pick the first MediaRecorder-supported WebM codec, or null if none. */
+function pickVideoMimeType(): string | null {
+	if (typeof MediaRecorder === "undefined") return null;
+	const candidates = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+	for (const c of candidates) {
+		if (MediaRecorder.isTypeSupported?.(c)) return c;
+	}
+	return null;
+}
+
+/**
+ * Best-effort client-side downscale + re-encode of an oversized video, in real
+ * time, via canvas capture + MediaRecorder. Scales the longest edge down to
+ * `maxPx` and targets an adaptive bitrate so the whole clip fits under
+ * MAX_VIDEO_BYTES. Returns null when the browser can't re-encode (no
+ * MediaRecorder / captureStream / supported codec).
+ *
+ * NOTE: audio is captured from the muted source element; a few browsers emit a
+ * silent audio track in this path. This only affects clips large enough to need
+ * re-encoding — anything under the cap uploads untouched with full audio.
+ */
+async function downscaleVideo(file: File, maxPx = 1080): Promise<Blob | null> {
+	const mimeType = pickVideoMimeType();
+	if (!mimeType) return null;
+
+	const video = document.createElement("video");
+	video.muted = true;
+	video.playsInline = true;
+	const url = URL.createObjectURL(file);
+	video.src = url;
+
+	try {
+		await new Promise<void>((resolve, reject) => {
+			video.onloadedmetadata = () => resolve();
+			video.onerror = () => reject(new Error("Video failed to load"));
+		});
+
+		const duration = video.duration;
+		const { videoWidth, videoHeight } = video;
+		if (!Number.isFinite(duration) || duration <= 0 || !videoWidth || !videoHeight) return null;
+
+		const scale = Math.min(maxPx / videoWidth, maxPx / videoHeight, 1);
+		const width = Math.round(videoWidth * scale);
+		const height = Math.round(videoHeight * scale);
+
+		const canvas = document.createElement("canvas");
+		canvas.width = width;
+		canvas.height = height;
+		const ctx = canvas.getContext("2d");
+		if (!ctx) return null;
+
+		const capture = (
+			canvas as HTMLCanvasElement & { captureStream?: (fps?: number) => MediaStream }
+		).captureStream;
+		if (!capture) return null;
+		const canvasStream = capture.call(canvas, 30);
+
+		const srcCapture = video as HTMLVideoElement & {
+			captureStream?: () => MediaStream;
+			mozCaptureStream?: () => MediaStream;
+		};
+		const srcStream = srcCapture.captureStream?.() ?? srcCapture.mozCaptureStream?.();
+		const audioTracks = srcStream?.getAudioTracks() ?? [];
+		const combined = new MediaStream([...canvasStream.getVideoTracks(), ...audioTracks]);
+
+		const AUDIO_BPS = audioTracks.length > 0 ? 128_000 : 0;
+		// Target 90% of the cap across the whole clip, leaving headroom for the
+		// audio track + container overhead; clamp to a sane range.
+		const targetTotalBits = MAX_VIDEO_BYTES * 8 * 0.9;
+		let videoBps = Math.floor(targetTotalBits / duration) - AUDIO_BPS;
+		videoBps = Math.max(500_000, Math.min(videoBps, 8_000_000));
+
+		const recorder = new MediaRecorder(combined, {
+			mimeType,
+			videoBitsPerSecond: videoBps,
+			...(AUDIO_BPS ? { audioBitsPerSecond: AUDIO_BPS } : {}),
+		});
+		const chunks: Blob[] = [];
+		recorder.ondataavailable = (e) => {
+			if (e.data.size > 0) chunks.push(e.data);
+		};
+		const recorded = new Promise<Blob>((resolve) => {
+			recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
+		});
+
+		let raf = 0;
+		const drawFrame = () => {
+			if (video.ended || video.paused) return;
+			ctx.drawImage(video, 0, 0, width, height);
+			raf = requestAnimationFrame(drawFrame);
+		};
+
+		recorder.start(1000);
+		await video.play();
+		drawFrame();
+		await new Promise<void>((resolve) => {
+			video.onended = () => resolve();
+		});
+		cancelAnimationFrame(raf);
+		if (recorder.state !== "inactive") recorder.stop();
+		return await recorded;
+	} catch {
+		return null;
+	} finally {
+		URL.revokeObjectURL(url);
+	}
+}
+
+/**
+ * Prepares a video File for upload (client-side), honoring MAX_VIDEO_BYTES.
+ * - Under the cap: returns the file unchanged — no re-encode, no quality loss.
+ * - Over the cap: best-effort downscale to <=1080p at an adaptive bitrate.
+ * Throws VideoTooLargeError if the result is still over the cap or the browser
+ * can't re-encode.
+ */
+export async function prepareVideoUpload(
+	file: File,
+): Promise<{ blob: Blob; ext: string; contentType: string }> {
+	if (file.size <= MAX_VIDEO_BYTES) {
+		return { blob: file, ext: videoExtFor(file), contentType: file.type || "video/mp4" };
+	}
+	const blob = await downscaleVideo(file);
+	if (!blob || blob.size > MAX_VIDEO_BYTES) {
+		throw new VideoTooLargeError();
+	}
+	return { blob, ext: "webm", contentType: "video/webm" };
+}
+
 /**
  * Sanitize a user-supplied search term for safe use inside a PostgREST
  * `.or()` / `.ilike()` filter string.

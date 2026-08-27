@@ -1,16 +1,16 @@
 "use client";
 import { CheckCircle2, Loader2, Plus, Trash2, Upload, ZoomIn } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { MediaThumb } from "@/components/shared/MediaThumb";
 import { NumericInput } from "@/components/shared/NumericInput";
 import { type LightboxPhoto, PhotoLightbox } from "@/components/shared/PhotoLightbox";
 import { Button, Card, FormError } from "@/components/ui";
 import { batchSignedUrls, type UrlCache } from "@/lib/storage/signedUrls";
 import { createClient } from "@/lib/supabase/client";
-import { resizeImage } from "@/lib/utils";
+import { isVideoFile, prepareVideoUpload, resizeImage, VideoTooLargeError } from "@/lib/utils";
 
 type SpecialItem = { type: string; qty: number; note: string };
 
@@ -139,24 +139,52 @@ export function SurveyDetailClient({
 		try {
 			const supabase = createClient();
 			for (const file of files) {
-				if (!file.type.startsWith("image/")) {
-					setError(tErrors("notAnImage", { name: file.name }));
+				const isVideo = isVideoFile(file);
+				const isImage = file.type.startsWith("image/");
+				if (!isVideo && !isImage) {
+					setError(tErrors("unsupportedMedia", { name: file.name }));
 					continue;
 				}
-				const blob = await resizeImage(file);
-				const fileName = `${crypto.randomUUID()}.webp`;
+
+				let blob: Blob;
+				let ext: string;
+				let contentType: string;
+				let mediaType: "photo" | "video";
+
+				if (isVideo) {
+					try {
+						const prepared = await prepareVideoUpload(file);
+						blob = prepared.blob;
+						ext = prepared.ext;
+						contentType = prepared.contentType;
+					} catch (err) {
+						if (err instanceof VideoTooLargeError) {
+							setError(tErrors("videoTooLarge", { name: file.name }));
+							continue;
+						}
+						throw err;
+					}
+					mediaType = "video";
+				} else {
+					blob = await resizeImage(file);
+					ext = "webp";
+					contentType = "image/webp";
+					mediaType = "photo";
+				}
+
+				const fileName = `${crypto.randomUUID()}.${ext}`;
 				const storagePath = `${initial.id}/${fileName}`;
 
 				const { error: uploadErr } = await supabase.storage
 					.from("survey-media")
-					.upload(storagePath, blob, { contentType: "image/webp" });
+					.upload(storagePath, blob, { contentType });
 				if (uploadErr) throw uploadErr;
 
 				const { data: row, error: dbErr } = await supabase
 					.from("survey_media")
 					.insert({
 						survey_id: initial.id,
-						media_type: "photo",
+						media_type: mediaType,
 						storage_path: storagePath,
 					})
 					.select("id, media_type, storage_path, caption, uploaded_at")
@@ -321,7 +349,7 @@ export function SurveyDetailClient({
 							id="survey-media-upload"
 							ref={fileInputRef}
 							type="file"
-							accept="image/*"
+							accept="image/*,video/*"
 							multiple
 							disabled={uploading}
 							onChange={handleFileChange}
@@ -347,15 +375,7 @@ export function SurveyDetailClient({
 										key={m.id}
 										className="relative group rounded-xl overflow-hidden aspect-square bg-subtle"
 									>
-										{url && (
-											<Image
-												src={url}
-												alt={m.caption ?? t("photoAlt")}
-												fill
-												sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-												className="object-cover transition-transform duration-200 group-hover:scale-105"
-											/>
-										)}
+										<MediaThumb url={url} kind={m.media_type} alt={m.caption ?? t("photoAlt")} />
 										<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
 										<button
 											type="button"
@@ -406,6 +426,7 @@ export function SurveyDetailClient({
 							src: mediaUrls.get(m.storage_path) ?? "",
 							alt: m.caption ?? t("photoAlt"),
 							caption: m.caption,
+							kind: m.media_type,
 						}));
 						return (
 							<PhotoLightbox

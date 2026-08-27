@@ -1,17 +1,18 @@
 "use client";
 import { Loader2, Upload, X, ZoomIn } from "lucide-react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MediaThumb } from "@/components/shared/MediaThumb";
 import { type LightboxPhoto, PhotoLightbox } from "@/components/shared/PhotoLightbox";
 import { buttonStyles, Card } from "@/components/ui";
 import { batchSignedUrls, type UrlCache } from "@/lib/storage/signedUrls";
 import { createClient } from "@/lib/supabase/client";
-import { resizeImage } from "@/lib/utils";
+import { isVideoFile, prepareVideoUpload, resizeImage, VideoTooLargeError } from "@/lib/utils";
 
 type Photo = {
 	id: string;
+	media_type: "photo" | "video";
 	storage_path: string;
 	caption: string | null;
 	uploaded_at: string;
@@ -74,31 +75,57 @@ export function LeadPhotoGallery({
 
 		try {
 			for (const file of files) {
-				// Validate file type
-				if (!file.type.startsWith("image/")) {
-					setError(tErrors("notAnImage", { name: file.name }));
-					continue;
-				}
-				if (file.size > MAX_IMAGE_BYTES) {
-					setError(tErrors("uploadFailed"));
+				const isVideo = isVideoFile(file);
+				const isImage = file.type.startsWith("image/");
+				if (!isVideo && !isImage) {
+					setError(tErrors("unsupportedMedia", { name: file.name }));
 					continue;
 				}
 
-				// Resize + convert to WebP
-				const blob = await resizeImage(file);
-				const fileName = `${crypto.randomUUID()}.webp`;
+				let blob: Blob;
+				let ext: string;
+				let contentType: string;
+				let mediaType: "photo" | "video";
+
+				if (isVideo) {
+					try {
+						const prepared = await prepareVideoUpload(file);
+						blob = prepared.blob;
+						ext = prepared.ext;
+						contentType = prepared.contentType;
+					} catch (err) {
+						if (err instanceof VideoTooLargeError) {
+							setError(tErrors("videoTooLarge", { name: file.name }));
+							continue;
+						}
+						throw err;
+					}
+					mediaType = "video";
+				} else {
+					if (file.size > MAX_IMAGE_BYTES) {
+						setError(tErrors("uploadFailed"));
+						continue;
+					}
+					// Resize + convert to WebP
+					blob = await resizeImage(file);
+					ext = "webp";
+					contentType = "image/webp";
+					mediaType = "photo";
+				}
+
+				const fileName = `${crypto.randomUUID()}.${ext}`;
 				const storagePath = `${leadId}/${fileName}`;
 
 				const { error: uploadErr } = await supabase.storage
 					.from("lead-photos")
-					.upload(storagePath, blob, { contentType: "image/webp" });
+					.upload(storagePath, blob, { contentType });
 
 				if (uploadErr) throw uploadErr;
 
 				const { data: record, error: dbErr } = await supabase
 					.from("lead_photos")
-					.insert({ lead_id: leadId, storage_path: storagePath })
-					.select("id, storage_path, caption, uploaded_at")
+					.insert({ lead_id: leadId, media_type: mediaType, storage_path: storagePath })
+					.select("id, media_type, storage_path, caption, uploaded_at")
 					.single();
 
 				if (dbErr) throw dbErr;
@@ -147,7 +174,7 @@ export function LeadPhotoGallery({
 						id="photo-upload"
 						ref={fileInputRef}
 						type="file"
-						accept="image/*"
+						accept="image/*,video/*"
 						multiple
 						className="sr-only"
 						onChange={handleFileChange}
@@ -178,16 +205,14 @@ export function LeadPhotoGallery({
 									key={photo.id}
 									className="relative group rounded-lg overflow-hidden aspect-square bg-subtle"
 								>
+									<MediaThumb
+										url={photoUrls.get(photo.storage_path)}
+										kind={photo.media_type}
+										alt={photo.caption ?? t("fallbackAlt")}
+										priority={actualIndex === 0}
+									/>
 									{photoUrls.get(photo.storage_path) ? (
 										<>
-											<Image
-												src={photoUrls.get(photo.storage_path) as string}
-												alt={photo.caption ?? t("fallbackAlt")}
-												fill
-												priority={actualIndex === 0}
-												className="object-cover transition-transform duration-200 group-hover:scale-105"
-												sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-											/>
 											<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
 											<button
 												type="button"
@@ -218,9 +243,7 @@ export function LeadPhotoGallery({
 												)}
 											</button>
 										</>
-									) : (
-										<div className="absolute inset-0 animate-pulse bg-subtle" />
-									)}
+									) : null}
 								</li>
 							);
 						})}
@@ -247,6 +270,7 @@ export function LeadPhotoGallery({
 							src: photoUrls.get(p.storage_path) ?? "",
 							alt: p.caption ?? t("fallbackAlt"),
 							caption: p.caption,
+							kind: p.media_type,
 						}),
 					)}
 					index={lightboxIndex}

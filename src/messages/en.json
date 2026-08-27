@@ -230,6 +230,8 @@
 			"dateTimeRequired": "Please set a date and time.",
 			"moveDateRequired": "Move date is required.",
 			"notAnImage": "{name} is not an image.",
+			"unsupportedMedia": "{name} is not a supported image or video.",
+			"videoTooLarge": "{name} is too large. Please trim the video and try again.",
 			"uploadFailed": "Upload failed."
 		}
 	},
@@ -1210,7 +1212,8 @@
 			"deleteFile": "Delete file",
 			"showMore": "Show {count} more",
 			"showLess": "Show less",
-			"unsupportedFile": "{name} is not a supported file type."
+			"unsupportedFile": "{name} is not a supported file type.",
+			"videoTooLarge": "{name} is too large. Please trim the video and try again."
 		},
 		"adjustments": {
 			"title": "Charges & adjustments",

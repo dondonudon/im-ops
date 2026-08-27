@@ -128,7 +128,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		leadId
 			? supabase
 					.from("lead_photos")
-					.select("id, storage_path, caption")
+					.select("id, media_type, storage_path, caption")
 					.eq("lead_id", leadId)
 					.order("uploaded_at")
 			: Promise.resolve({ data: null, error: null }),
@@ -532,7 +532,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 						initialMedia={
 							(jobMedia ?? []) as {
 								id: string;
-								media_type: "photo" | "pdf";
+								media_type: "photo" | "video" | "pdf";
 								storage_path: string;
 								file_name: string | null;
 								caption: string | null;
@@ -546,6 +546,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							leadPhotos={
 								(leadPhotos ?? []) as Array<{
 									id: string;
+									media_type: "photo" | "video";
 									storage_path: string;
 									caption: string | null;
 								}>

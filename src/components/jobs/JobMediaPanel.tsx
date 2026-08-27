@@ -1,18 +1,18 @@
 "use client";
 
 import { FileText, Loader2, Trash2, Upload, ZoomIn } from "lucide-react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MediaThumb } from "@/components/shared/MediaThumb";
 import { PhotoLightbox } from "@/components/shared/PhotoLightbox";
 import { Card } from "@/components/ui";
 import { batchSignedUrls, type UrlCache } from "@/lib/storage/signedUrls";
 import { createClient } from "@/lib/supabase/client";
-import { resizeImage } from "@/lib/utils";
+import { prepareVideoUpload, resizeImage, VideoTooLargeError } from "@/lib/utils";
 
 type MediaRow = {
 	id: string;
-	media_type: "photo" | "pdf";
+	media_type: "photo" | "video" | "pdf";
 	storage_path: string;
 	file_name: string | null;
 	caption: string | null;
@@ -57,19 +57,28 @@ export function JobMediaPanel({
 		};
 	}, [media, supabase]);
 
-	const photos = media.filter((m) => m.media_type === "photo");
+	// Photos and videos share the visual grid; PDFs render as a separate list.
+	const visuals = media.filter((m) => m.media_type === "photo" || m.media_type === "video");
 	const pdfs = media.filter((m) => m.media_type === "pdf");
 
 	const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 	const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
 	/** Detect file type from magic bytes rather than trusting the browser-supplied MIME type. */
-	async function detectFileType(file: File): Promise<"pdf" | "image" | "unknown"> {
-		const header = await file.slice(0, 8).arrayBuffer();
+	async function detectFileType(file: File): Promise<"pdf" | "image" | "video" | "unknown"> {
+		const header = await file.slice(0, 12).arrayBuffer();
 		const bytes = new Uint8Array(header);
 		// PDF: %PDF  (25 50 44 46)
 		if (bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46) {
 			return "pdf";
+		}
+		// WebM/Matroska: EBML header (1A 45 DF A3)
+		if (bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3) {
+			return "video";
+		}
+		// MP4 / MOV / 3GP: "ftyp" box at offset 4 (66 74 79 70)
+		if (bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+			return "video";
 		}
 		// PNG: \x89PNG (89 50 4e 47)
 		if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
@@ -96,6 +105,9 @@ export function JobMediaPanel({
 		) {
 			return "image";
 		}
+		// Fallback: trust the browser MIME type for videos whose container we don't
+		// sniff above (some phone codecs vary).
+		if (file.type.startsWith("video/")) return "video";
 		return "unknown";
 	}
 
@@ -110,7 +122,8 @@ export function JobMediaPanel({
 				const fileType = await detectFileType(file);
 				const isPdf = fileType === "pdf";
 				const isImage = fileType === "image";
-				if (!isPdf && !isImage) {
+				const isVideo = fileType === "video";
+				if (!isPdf && !isImage && !isVideo) {
 					setError(t("unsupportedFile", { name: file.name }));
 					continue;
 				}
@@ -126,13 +139,27 @@ export function JobMediaPanel({
 				let blob: Blob;
 				let fileName: string;
 				let contentType: string;
-				let mediaType: "photo" | "pdf";
+				let mediaType: "photo" | "video" | "pdf";
 
 				if (isPdf) {
 					blob = file;
 					fileName = `${crypto.randomUUID()}.pdf`;
 					contentType = "application/pdf";
 					mediaType = "pdf";
+				} else if (isVideo) {
+					try {
+						const prepared = await prepareVideoUpload(file);
+						blob = prepared.blob;
+						fileName = `${crypto.randomUUID()}.${prepared.ext}`;
+						contentType = prepared.contentType;
+					} catch (err) {
+						if (err instanceof VideoTooLargeError) {
+							setError(t("videoTooLarge", { name: file.name }));
+							continue;
+						}
+						throw err;
+					}
+					mediaType = "video";
 				} else {
 					blob = await resizeImage(file);
 					fileName = `${crypto.randomUUID()}.webp`;
@@ -182,7 +209,7 @@ export function JobMediaPanel({
 		}
 	}
 
-	const visiblePhotos = showAll ? photos : photos.slice(0, 8);
+	const visibleVisuals = showAll ? visuals : visuals.slice(0, 8);
 
 	return (
 		<Card className="p-5 space-y-4">
@@ -206,7 +233,7 @@ export function JobMediaPanel({
 						id="job-media-upload"
 						ref={fileInputRef}
 						type="file"
-						accept="image/*,application/pdf"
+						accept="image/*,video/*,application/pdf"
 						multiple
 						disabled={uploading}
 						onChange={handleFileChange}
@@ -220,37 +247,31 @@ export function JobMediaPanel({
 
 			{media.length > 0 && (
 				<>
-					{/* Photo grid */}
-					{photos.length > 0 && (
+					{/* Photo + video grid */}
+					{visuals.length > 0 && (
 						<ul
 							className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
 							aria-label={t("photos")}
 						>
-							{visiblePhotos.map((m) => {
-								const photoIndex = photos.indexOf(m);
+							{visibleVisuals.map((m) => {
+								const visualIndex = visuals.indexOf(m);
 								const url = signedUrls.get(m.storage_path);
 								return (
 									<li
 										key={m.id}
 										className="relative group rounded-xl overflow-hidden aspect-square bg-subtle"
 									>
-										{url ? (
-											<Image
-												src={url}
-												alt={m.caption ?? t("photoAlt")}
-												fill
-												sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-												className="object-cover transition-transform duration-200 group-hover:scale-105"
-											/>
-										) : (
-											<div className="absolute inset-0 animate-pulse bg-subtle" />
-										)}
+										<MediaThumb
+											url={url}
+											kind={m.media_type === "video" ? "video" : "photo"}
+											alt={m.caption ?? t("photoAlt")}
+										/>
 										<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
 										<button
 											type="button"
-											onClick={() => setLightboxIndex(photoIndex)}
+											onClick={() => setLightboxIndex(visualIndex)}
 											className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
-											aria-label={t("viewPhoto", { n: photoIndex + 1, total: photos.length })}
+											aria-label={t("viewPhoto", { n: visualIndex + 1, total: visuals.length })}
 										>
 											<ZoomIn size={22} className="text-white drop-shadow-lg" aria-hidden="true" />
 										</button>
@@ -273,13 +294,13 @@ export function JobMediaPanel({
 						</ul>
 					)}
 
-					{photos.length > 8 && (
+					{visuals.length > 8 && (
 						<button
 							type="button"
 							onClick={() => setShowAll((v) => !v)}
 							className="w-full text-xs font-medium text-ink-muted hover:text-ink transition-colors py-1"
 						>
-							{showAll ? t("showLess") : t("showMore", { count: photos.length - 8 })}
+							{showAll ? t("showLess") : t("showMore", { count: visuals.length - 8 })}
 						</button>
 					)}
 
@@ -325,17 +346,18 @@ export function JobMediaPanel({
 
 			{lightboxIndex !== null && (
 				<PhotoLightbox
-					photos={photos
+					photos={visuals
 						.map((m) => ({
 							src: signedUrls.get(m.storage_path) ?? "",
 							alt: m.caption ?? t("photoAlt"),
 							caption: m.caption,
+							kind: m.media_type === "video" ? ("video" as const) : ("photo" as const),
 						}))
 						.filter((p) => p.src !== "")}
 					index={lightboxIndex}
 					onClose={() => setLightboxIndex(null)}
 					onPrev={() => setLightboxIndex((i) => Math.max(0, (i ?? 0) - 1))}
-					onNext={() => setLightboxIndex((i) => Math.min(photos.length - 1, (i ?? 0) + 1))}
+					onNext={() => setLightboxIndex((i) => Math.min(visuals.length - 1, (i ?? 0) + 1))}
 				/>
 			)}
 		</Card>

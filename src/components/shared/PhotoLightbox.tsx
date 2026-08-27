@@ -9,6 +9,8 @@ export type LightboxPhoto = {
 	src: string;
 	alt: string;
 	caption?: string | null;
+	/** Defaults to "photo" when omitted. */
+	kind?: "photo" | "video";
 };
 
 /**
@@ -139,15 +141,27 @@ export function PhotoLightbox({
 				onClick={(e) => e.stopPropagation()}
 				onKeyDown={(e) => e.stopPropagation()}
 			>
-				<Image
-					src={photo.src}
-					alt={photo.alt}
-					fill
-					className="object-contain select-none"
-					sizes="90vw"
-					priority
-					draggable={false}
-				/>
+				{photo.kind === "video" ? (
+					// biome-ignore lint/a11y/useMediaCaption: user-uploaded evidence clips have no captions track
+					<video
+						src={photo.src}
+						controls
+						autoPlay
+						playsInline
+						className="absolute inset-0 h-full w-full object-contain select-none"
+						aria-label={photo.alt}
+					/>
+				) : (
+					<Image
+						src={photo.src}
+						alt={photo.alt}
+						fill
+						className="object-contain select-none"
+						sizes="90vw"
+						priority
+						draggable={false}
+					/>
+				)}
 			</div>
 
 			{/* Caption */}
@@ -180,13 +194,23 @@ export function PhotoLightbox({
 							aria-current={i === index ? "true" : undefined}
 							className={`shrink-0 w-10 h-10 rounded overflow-hidden border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${i === index ? "border-white scale-110" : "border-white/30 opacity-60 hover:opacity-90"}`}
 						>
-							<Image
-								src={p.src}
-								alt=""
-								width={40}
-								height={40}
-								className="object-cover w-full h-full"
-							/>
+							{p.kind === "video" ? (
+								<video
+									src={`${p.src}#t=0.1`}
+									muted
+									playsInline
+									preload="metadata"
+									className="object-cover w-full h-full"
+								/>
+							) : (
+								<Image
+									src={p.src}
+									alt=""
+									width={40}
+									height={40}
+									className="object-cover w-full h-full"
+								/>
+							)}
 						</button>
 					))}
 				</div>

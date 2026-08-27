@@ -1,10 +1,10 @@
 "use client";
 
 import { ExternalLink, ZoomIn } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MediaThumb } from "@/components/shared/MediaThumb";
 import { type LightboxPhoto, PhotoLightbox } from "@/components/shared/PhotoLightbox";
 import { Card } from "@/components/ui";
 import { batchSignedUrls, type UrlCache } from "@/lib/storage/signedUrls";
@@ -13,9 +13,15 @@ import { formatDate } from "@/lib/utils";
 
 type LeadPhoto = {
 	id: string;
+	media_type?: "photo" | "video" | null;
 	storage_path: string;
 	caption: string | null;
 };
+
+/** Narrow a possibly-null media_type string to the two kinds the UI renders. */
+function mediaKind(value: string | null | undefined): "photo" | "video" {
+	return value === "video" ? "video" : "photo";
+}
 
 type SpecialItem = {
 	type: string;
@@ -73,7 +79,10 @@ export function LeadSurveyReferencePanel({
 		[primarySurvey],
 	);
 	const surveyPhotos = useMemo(
-		() => (primarySurvey?.survey_media ?? []).filter((m) => m.media_type === "photo"),
+		() =>
+			(primarySurvey?.survey_media ?? []).filter(
+				(m) => m.media_type === "photo" || m.media_type === "video",
+			),
 		[primarySurvey],
 	);
 	const [showAllSurveyPhotos, setShowAllSurveyPhotos] = useState(false);
@@ -160,17 +169,11 @@ export function LeadSurveyReferencePanel({
 									const url = leadPhotoUrls.get(photo.storage_path);
 									return (
 										<li key={photo.id} className={TILE_CLASSES}>
-											{url ? (
-												<Image
-													src={url}
-													alt={photo.caption ?? t("photoAlt")}
-													fill
-													sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-													className="object-cover transition-transform duration-200 group-hover:scale-105"
-												/>
-											) : (
-												<div className="absolute inset-0 animate-pulse bg-subtle" />
-											)}
+											<MediaThumb
+												url={url}
+												kind={mediaKind(photo.media_type)}
+												alt={photo.caption ?? t("photoAlt")}
+											/>
 											<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
 											<button
 												type="button"
@@ -249,15 +252,11 @@ export function LeadSurveyReferencePanel({
 											const url = surveyPhotoUrls.get(m.storage_path);
 											return (
 												<li key={m.id} className={TILE_CLASSES}>
-													{url && (
-														<Image
-															src={url}
-															alt={m.caption ?? t("photoAlt")}
-															fill
-															sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-															className="object-cover transition-transform duration-200 group-hover:scale-105"
-														/>
-													)}
+													<MediaThumb
+														url={url}
+														kind={mediaKind(m.media_type)}
+														alt={m.caption ?? t("photoAlt")}
+													/>
 													<div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
 													<button
 														type="button"
@@ -302,6 +301,7 @@ export function LeadSurveyReferencePanel({
 								src: leadPhotoUrls.get(p.storage_path) ?? "",
 								alt: p.caption ?? t("photoAlt"),
 								caption: p.caption,
+								kind: mediaKind(p.media_type),
 							}),
 						)
 						.filter((p) => p.src !== "")}
@@ -321,6 +321,7 @@ export function LeadSurveyReferencePanel({
 								src: surveyPhotoUrls.get(m.storage_path) ?? "",
 								alt: m.caption ?? t("photoAlt"),
 								caption: m.caption,
+								kind: mediaKind(m.media_type),
 							}),
 						)
 						.filter((p) => p.src !== "")}
