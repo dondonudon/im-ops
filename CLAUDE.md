@@ -351,7 +351,16 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
   `groupLeadAddresses` / `routePoints` helpers in `src/lib/leadAddresses.ts`;
   write via `replaceLeadAddresses` (delete-then-insert). `RouteLine` now takes
   `points: string[]`. Forms use `AddressListInput` (dynamic add/remove on top of
-  `LocationInput`). **Search:** a denormalized `leads.addresses_text` (GIN trgm,
+  `LocationInput`); detail views render each stop via `AddressLink`
+  (`src/components/shared/`) — a Maps directions link when the stop has coords,
+  plain text otherwise (raw lat/lng is never user-facing). `LocationInput` also
+  supports free-typed addresses (not just Google suggestions), closes its
+  autocomplete on blur, and resolves pasted `maps.app.goo.gl` share links
+  server-side via `resolveMapUrl` (returns `{ lat, lng, address }` — address from
+  the link's `q=`; the client then geocodes that address for an accurate pin,
+  because the page-body coords are only the map viewport center and can be far from
+  the actual place). **Search:** a denormalized
+  `leads.addresses_text` (GIN trgm,
   trigger-maintained from `lead_addresses`) — list/card views that read the
   `leads_with_customer` view use `addresses_text` + `routePointsFromText`, since
   embedding a child table through a view isn't reliable. The old flat columns are

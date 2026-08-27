@@ -1,6 +1,7 @@
 import { ArrowLeft, CalendarDays, ClipboardList, User } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AddressLink } from "@/components/shared/AddressLink";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
 import { SurveyDetailClient } from "@/components/surveys/SurveyDetailClient";
 import { Badge, buttonStyles, Card } from "@/components/ui";
@@ -20,7 +21,7 @@ export default async function SurveyDetailPage({ params }: { params: Promise<{ i
 		supabase
 			.from("surveys")
 			.select(
-				"id, lead_id, scheduled_at, conducted_at, access_notes, special_items, notes, surveyor_id, gcal_event_id, leads(id, lead_addresses(role, seq, address), customers(name))",
+				"id, lead_id, scheduled_at, conducted_at, access_notes, special_items, notes, surveyor_id, gcal_event_id, leads(id, lead_addresses(role, seq, address, lat, lng), customers(name))",
 			)
 			.eq("id", id)
 			.single(),
@@ -45,11 +46,15 @@ export default async function SurveyDetailPage({ params }: { params: Promise<{ i
 			role: "pickup" as const,
 			label: surveyGroups.pickups.length > 1 ? `Pickup ${i + 1}` : "Pickup",
 			address: s.address,
+			lat: s.lat,
+			lng: s.lng,
 		})),
 		...surveyGroups.destinations.map((s, i) => ({
 			role: "destination" as const,
 			label: surveyGroups.destinations.length > 1 ? `Destination ${i + 1}` : "Destination",
 			address: s.address,
+			lat: s.lat,
+			lng: s.lng,
 		})),
 	].filter((s) => Boolean(s.address));
 
@@ -116,7 +121,9 @@ export default async function SurveyDetailPage({ params }: { params: Promise<{ i
 							)}
 							<div>
 								<dt className="text-xs text-ink-faint leading-none mb-0.5">{stop.label}</dt>
-								<dd className="font-medium">{stop.address}</dd>
+								<dd className="font-medium">
+									<AddressLink address={stop.address} lat={stop.lat} lng={stop.lng} />
+								</dd>
 							</div>
 						</div>
 					))}

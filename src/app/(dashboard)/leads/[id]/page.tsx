@@ -1,4 +1,4 @@
-import { MapPin, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -6,6 +6,7 @@ import { DealTimeline } from "@/components/leads/DealTimeline";
 import { LeadActionPanel } from "@/components/leads/LeadActionPanel";
 import { LeadDuplicateButton } from "@/components/leads/LeadDuplicateButton";
 import { LeadPhotoGallery } from "@/components/leads/LeadPhotoGallery";
+import { AddressLink } from "@/components/shared/AddressLink";
 import { BackLink } from "@/components/shared/BackLink";
 import { Badge, buttonStyles, Card, PageHeader, toneFor } from "@/components/ui";
 import { groupLeadAddresses, type LeadAddressRow } from "@/lib/leadAddresses";
@@ -155,18 +156,12 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 								{moveStops.map((stop) => (
 									<div key={stop.label}>
 										<p className="text-ink-muted">{stop.label}</p>
-										<p className="font-medium mt-0.5 text-ink">{stop.address ?? "—"}</p>
-										{stop.lat && stop.lng && (
-											<a
-												href={`https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lng}`}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="text-xs text-primary-text hover:underline mt-0.5 inline-flex items-center gap-1"
-											>
-												<MapPin size={11} aria-hidden="true" />
-												Open in Maps
-											</a>
-										)}
+										<AddressLink
+											address={stop.address}
+											lat={stop.lat}
+											lng={stop.lng}
+											className="font-medium mt-0.5"
+										/>
 									</div>
 								))}
 								<div>

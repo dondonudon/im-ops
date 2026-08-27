@@ -9,6 +9,7 @@ import { JobCancelButton } from "@/components/jobs/JobCancelButton";
 import { JobMediaPanel } from "@/components/jobs/JobMediaPanel";
 import { LeadSurveyReferencePanel } from "@/components/jobs/LeadSurveyReferencePanel";
 import { TimelineLogEventButton } from "@/components/jobs/TimelineLogEventButton";
+import { AddressLink } from "@/components/shared/AddressLink";
 import { BackLink } from "@/components/shared/BackLink";
 import { GCalRetryButton } from "@/components/shared/GCalRetryButton";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
@@ -37,7 +38,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         proposals(
           id, proposal_number, final_price,
           leads(
-            id, lead_addresses(role, seq, address),
+            id, lead_addresses(role, seq, address, lat, lng),
             customers(id, name, phone)
           )
         )
@@ -170,10 +171,14 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 		...moveGroups.pickups.map((s, i) => ({
 			label: moveGroups.pickups.length > 1 ? `${t("pickup")} ${i + 1}` : t("pickup"),
 			address: s.address,
+			lat: s.lat,
+			lng: s.lng,
 		})),
 		...moveGroups.destinations.map((s, i) => ({
 			label: moveGroups.destinations.length > 1 ? `${t("destination")} ${i + 1}` : t("destination"),
 			address: s.address,
+			lat: s.lat,
+			lng: s.lng,
 		})),
 	];
 	const totalExpenses = (expenses ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
@@ -254,7 +259,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 						moveStops.map((stop) => (
 							<div key={stop.label}>
 								<p className="text-ink-muted">{stop.label}</p>
-								<p className="font-medium mt-0.5">{stop.address ?? "—"}</p>
+								<AddressLink
+									address={stop.address}
+									lat={stop.lat}
+									lng={stop.lng}
+									className="font-medium mt-0.5"
+								/>
 							</div>
 						))
 					) : (

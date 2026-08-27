@@ -4,7 +4,11 @@ import { Link2, Loader2, MapPin, Navigation, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
 import { resolveMapUrl } from "@/app/actions/resolveMapUrl";
-import { isShortGoogleMapsUrl, parseGoogleMapsUrl } from "@/lib/parseGoogleMapsUrl";
+import {
+	extractAddressFromMapsUrl,
+	isShortGoogleMapsUrl,
+	parseGoogleMapsUrl,
+} from "@/lib/parseGoogleMapsUrl";
 import { cn } from "@/lib/utils";
 
 // Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your .env.local to enable this component
@@ -97,16 +101,67 @@ function LocationInputInner({ id, value, onChange, placeholder, className }: Loc
 		onChange({ address: upper, lat: null, lng: null });
 	}
 
-	async function handleSelect(description: string) {
+	// Coordinate resolution goes through the Places API (which powers autocomplete and
+	// is therefore enabled) rather than the Geocoding API, which may not be enabled.
+	function placesService() {
+		return new window.google.maps.places.PlacesService(document.createElement("div"));
+	}
+
+	type Coords = { lat: number; lng: number };
+
+	function coordsFromPlaceId(placeId: string): Promise<Coords | null> {
+		return new Promise((resolve) => {
+			try {
+				placesService().getDetails({ placeId, fields: ["geometry"] }, (place, status) => {
+					const loc = place?.geometry?.location;
+					resolve(
+						status === window.google.maps.places.PlacesServiceStatus.OK && loc
+							? { lat: loc.lat(), lng: loc.lng() }
+							: null,
+					);
+				});
+			} catch {
+				resolve(null);
+			}
+		});
+	}
+
+	function coordsFromQuery(query: string): Promise<Coords | null> {
+		return new Promise((resolve) => {
+			try {
+				placesService().findPlaceFromQuery({ query, fields: ["geometry"] }, (results, status) => {
+					const loc = results?.[0]?.geometry?.location;
+					resolve(
+						status === window.google.maps.places.PlacesServiceStatus.OK && loc
+							? { lat: loc.lat(), lng: loc.lng() }
+							: null,
+					);
+				});
+			} catch {
+				resolve(null);
+			}
+		});
+	}
+
+	// Geocoding-API fallback (only works if that API is enabled).
+	async function coordsFromGeocoder(address: string): Promise<Coords | null> {
+		try {
+			const results = await getGeocode({ address });
+			return await getLatLng(results[0]);
+		} catch {
+			return null;
+		}
+	}
+
+	async function handleSelect(placeId: string, description: string) {
 		setSearchValue(description, false);
 		clearSuggestions();
-		try {
-			const results = await getGeocode({ address: description });
-			const { lat, lng } = await getLatLng(results[0]);
-			onChange({ address: description.toUpperCase(), lat, lng });
-		} catch {
-			onChange({ address: description.toUpperCase(), lat: null, lng: null });
-		}
+		const coords = (await coordsFromPlaceId(placeId)) ?? (await coordsFromGeocoder(description));
+		onChange({
+			address: description.toUpperCase(),
+			lat: coords?.lat ?? null,
+			lng: coords?.lng ?? null,
+		});
 	}
 
 	function handleClear() {
@@ -137,12 +192,35 @@ function LocationInputInner({ id, value, onChange, placeholder, className }: Loc
 	}, []);
 
 	function confirmMapPin() {
+		// Show the reverse-geocoded address, not raw lat/lng, if geocoding didn't resolve.
 		onChange({
-			address: pinAddress || `${pinPos.lat},${pinPos.lng}`,
+			address: pinAddress,
 			lat: pinPos.lat,
 			lng: pinPos.lng,
 		});
+		if (pinAddress) setSearchValue(pinAddress, false);
 		setMapOpen(false);
+	}
+
+	// Commit a resolved pin: always show a human address, never raw lat/lng.
+	function commitPastedPin(address: string, lat: number | null, lng: number | null) {
+		const upper = address.toUpperCase();
+		onChange({ address: upper, lat, lng });
+		setSearchValue(upper, false);
+		setPasteValue("");
+		setPasteError(null);
+		setMode("search");
+	}
+
+	// Reverse-geocode coords → address label (Geocoding API), then commit.
+	function reverseGeocodeAndCommit(lat: number, lng: number) {
+		if (!geocoderRef.current) {
+			geocoderRef.current = new window.google.maps.Geocoder();
+		}
+		geocoderRef.current.geocode({ location: { lat, lng } }, (results, status) => {
+			const address = status === "OK" && results?.[0] ? results[0].formatted_address : "";
+			commitPastedPin(address, lat, lng);
+		});
 	}
 
 	// Paste link handler
@@ -152,34 +230,39 @@ function LocationInputInner({ id, value, onChange, placeholder, className }: Loc
 		setPasteError(null);
 		setPasteLoading(true);
 		try {
-			let coords = parseGoogleMapsUrl(trimmed);
-			if (!coords && isShortGoogleMapsUrl(trimmed)) {
-				coords = await resolveMapUrl(trimmed);
+			// 1. Pasted URL already carries explicit coordinates → use that exact point.
+			const direct = parseGoogleMapsUrl(trimmed);
+			if (direct) {
+				const address = extractAddressFromMapsUrl(trimmed);
+				if (address) commitPastedPin(address, direct.lat, direct.lng);
+				else reverseGeocodeAndCommit(direct.lat, direct.lng);
+				return;
 			}
-			if (!coords) {
+
+			// 2. Short share link (maps.app.goo.gl) → resolve to a place address.
+			if (!isShortGoogleMapsUrl(trimmed)) {
 				setPasteError("Could not extract coordinates from this link.");
 				return;
 			}
-			// Reverse geocode to get address
-			if (!geocoderRef.current) {
-				geocoderRef.current = new window.google.maps.Geocoder();
+			const resolved = await resolveMapUrl(trimmed);
+			if (!resolved) {
+				setPasteError("Could not extract coordinates from this link.");
+				return;
 			}
-			if (geocoderRef.current) {
-				geocoderRef.current.geocode({ location: coords }, (results, status) => {
-					const address =
-						status === "OK" && results?.[0]
-							? results[0].formatted_address.toUpperCase()
-							: `${coords!.lat},${coords!.lng}`;
-					onChange({ address, lat: coords!.lat, lng: coords!.lng });
-					setPasteValue("");
-					setMode("search");
-					setSearchValue(address, false);
-				});
-			} else {
-				onChange({ address: `${coords.lat},${coords.lng}`, lat: coords.lat, lng: coords.lng });
-				setPasteValue("");
-				setMode("search");
+
+			// Locate the resolved ADDRESS via the Places API. The coords scraped from the
+			// page are only the map viewport center and can land far from the actual place,
+			// so we never use them — the address is the reliable signal. If Places (and the
+			// geocoder fallback) can't locate it, save the address without a wrong pin.
+			if (resolved.address) {
+				const coords =
+					(await coordsFromQuery(resolved.address)) ?? (await coordsFromGeocoder(resolved.address));
+				commitPastedPin(resolved.address, coords?.lat ?? null, coords?.lng ?? null);
+				return;
 			}
+
+			// No address to geocode (e.g. a dropped-pin share) — reverse-geocode the coords.
+			reverseGeocodeAndCommit(resolved.lat, resolved.lng);
 		} finally {
 			setPasteLoading(false);
 		}
@@ -224,7 +307,7 @@ function LocationInputInner({ id, value, onChange, placeholder, className }: Loc
 									<button
 										type="button"
 										className="w-full px-3 py-2.5 text-left text-sm text-ink hover:bg-subtle transition-colors flex items-start gap-2"
-										onClick={() => handleSelect(description)}
+										onClick={() => handleSelect(place_id, description)}
 									>
 										<MapPin
 											size={13}

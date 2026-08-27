@@ -6,6 +6,7 @@ import { ProposalActionPanel } from "@/components/proposals/ProposalActionPanel"
 import { ProposalCustomFieldsEditor } from "@/components/proposals/ProposalCustomFieldsEditor";
 import { ProposalDuplicateButton } from "@/components/proposals/ProposalDuplicateButton";
 import { ProposalPDFDownloadButton } from "@/components/proposals/ProposalPDFDownloadButton";
+import { AddressLink } from "@/components/shared/AddressLink";
 import { BackLink } from "@/components/shared/BackLink";
 import { Badge, buttonStyles, Card, CardHeader, PageHeader, toneFor } from "@/components/ui";
 import { groupLeadAddresses, type LeadAddressRow } from "@/lib/leadAddresses";
@@ -33,7 +34,7 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 			.select(`
         *,
         leads(
-          id, preferred_date, lead_addresses(role, seq, address),
+          id, preferred_date, lead_addresses(role, seq, address, lat, lng),
           customers(id, prefix, name, phone, email, type, company_name, address)
         )
       `)
@@ -108,11 +109,15 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 		...leadRoute.pickups.map((s, i) => ({
 			label: leadRoute.pickups.length > 1 ? `${tJob("pickup")} ${i + 1}` : tJob("pickup"),
 			address: s.address,
+			lat: s.lat,
+			lng: s.lng,
 		})),
 		...leadRoute.destinations.map((s, i) => ({
 			label:
 				leadRoute.destinations.length > 1 ? `${tJob("destination")} ${i + 1}` : tJob("destination"),
 			address: s.address,
+			lat: s.lat,
+			lng: s.lng,
 		})),
 	];
 	const estimationOutputs = (estimation?.outputs ?? {}) as Record<string, number>;
@@ -201,7 +206,12 @@ export default async function ProposalDetailPage({ params }: { params: Promise<{
 								leadMoveStops.map((stop) => (
 									<div key={stop.label}>
 										<p className="text-ink-muted">{stop.label}</p>
-										<p className="font-medium mt-0.5 text-ink">{stop.address ?? "—"}</p>
+										<AddressLink
+											address={stop.address}
+											lat={stop.lat}
+											lng={stop.lng}
+											className="font-medium mt-0.5"
+										/>
 									</div>
 								))
 							) : (
