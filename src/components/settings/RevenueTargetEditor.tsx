@@ -71,6 +71,18 @@ export function RevenueTargetEditor({ defaultTarget, initialTargets }: Props) {
 				{ onConflict: "year,month" },
 			);
 
+		// A target set for the current month or later carries forward: it becomes the
+		// default for months that have no explicit target. Editing a past month is a
+		// historical correction and must not move the default.
+		const now = currentYearMonth();
+		const isForward = year > now.year || (year === now.year && month >= now.month);
+		if (amount > 0 && isForward && amount !== defaultTarget) {
+			await supabase
+				.from("system_settings")
+				.update({ value: String(amount), updated_at: new Date().toISOString() })
+				.eq("key", "revenue_target_monthly");
+		}
+
 		setSaveState("saved");
 		startTransition(() => router.refresh());
 		setTimeout(() => setSaveState("idle"), 2000);
