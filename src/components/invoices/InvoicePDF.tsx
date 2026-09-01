@@ -13,106 +13,126 @@ import { formatCustomerName, formatIndonesianDate, formatRupiahLetter } from "@/
 
 Font.registerHyphenationCallback((word) => [word]);
 
-const styles = StyleSheet.create({
-	page: {
-		fontSize: 11,
-		fontFamily: "Helvetica",
-		paddingTop: 28,
-		paddingBottom: 36,
-		paddingHorizontal: 56,
-		color: "#1f2937",
-	},
-	// ── Header ──────────────────────────────────────────────────────────────
-	header: { alignItems: "center", marginBottom: 6 },
-	logo: { width: 72, height: 72, marginBottom: 4, objectFit: "contain" },
-	tagline: { fontSize: 8, textAlign: "center", color: "#374151", marginTop: 2, letterSpacing: 0.2 },
-	headerAddress: { fontSize: 8, textAlign: "center", color: "#374151", marginTop: 1 },
-	divider: {
-		borderBottomWidth: 0.5,
-		borderBottomColor: "#374151",
-		marginBottom: 10,
-		marginTop: 6,
-	},
-	// ── Invoice title ────────────────────────────────────────────────────────
-	invoiceTitleBlock: { alignItems: "center", marginBottom: 12 },
-	invoiceTitle: {
-		fontSize: 13,
-		fontFamily: "Helvetica-Bold",
-		textDecoration: "underline",
-		textAlign: "center",
-	},
-	invoiceNumber: { fontSize: 11, textAlign: "center", marginTop: 3 },
-	// ── Meta ────────────────────────────────────────────────────────────────
-	date: { fontSize: 11, marginBottom: 12 },
-	recipient: { marginBottom: 12 },
-	recipientLabel: { fontSize: 11, marginBottom: 2 },
-	recipientName: { fontSize: 11, fontFamily: "Helvetica-Bold" },
-	// ── Table ────────────────────────────────────────────────────────────────
-	table: { marginBottom: 12 },
-	tableHeaderRow: {
-		flexDirection: "row",
-		borderTopWidth: 0.5,
-		borderBottomWidth: 0.5,
-		borderLeftWidth: 0.5,
-		borderRightWidth: 0.5,
-		borderColor: "#374151",
-	},
-	tableRow: {
-		flexDirection: "row",
-		borderBottomWidth: 0.5,
-		borderLeftWidth: 0.5,
-		borderRightWidth: 0.5,
-		borderColor: "#374151",
-	},
-	tableTotalRow: {
-		flexDirection: "row",
-		borderBottomWidth: 0.5,
-		borderLeftWidth: 0.5,
-		borderRightWidth: 0.5,
-		borderColor: "#374151",
-	},
-	// Column widths
-	colNo: { width: 28, textAlign: "center", paddingVertical: 4, paddingHorizontal: 4 },
-	colDesc: { flex: 1, paddingVertical: 4, paddingHorizontal: 6 },
-	colUnit: { width: 44, textAlign: "center", paddingVertical: 4, paddingHorizontal: 4 },
-	colHarga: { width: 90, textAlign: "right", paddingVertical: 4, paddingHorizontal: 6 },
-	colNilai: { width: 90, textAlign: "right", paddingVertical: 4, paddingHorizontal: 6 },
-	// Vertical dividers inside rows
-	cellBorder: { borderLeftWidth: 0.5, borderLeftColor: "#374151" },
-	headerCellText: { fontSize: 10, fontFamily: "Helvetica-Bold", textAlign: "center" },
-	cellText: { fontSize: 10 },
-	totalLabelCell: {
-		flex: 1,
-		textAlign: "right",
-		paddingVertical: 4,
-		paddingHorizontal: 6,
-		fontFamily: "Helvetica-Bold",
-		fontSize: 10,
-	},
-	totalValueCell: {
-		width: 90,
-		textAlign: "right",
-		paddingVertical: 4,
-		paddingHorizontal: 6,
-		fontFamily: "Helvetica-Bold",
-		fontSize: 10,
-	},
-	// ── Bank info ────────────────────────────────────────────────────────────
-	bankSection: { marginBottom: 14 },
-	bankText: { fontSize: 11, marginBottom: 1 },
-	// ── Signature ────────────────────────────────────────────────────────────
-	signatureRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 4 },
-	signBlock: { width: 200, alignItems: "center" },
-	signLabel: { fontSize: 11, marginBottom: 1 },
-	signCompany: { fontSize: 11, fontFamily: "Helvetica-Bold", marginBottom: 8 },
-	qrSeal: { width: 80, height: 80, marginBottom: 4 },
-	qrSealLabel: { fontSize: 7, color: "#6b7280", textAlign: "center", marginBottom: 8 },
-	signName: { fontSize: 11 },
-	signRole: { fontSize: 11 },
-	// ── Footer ───────────────────────────────────────────────────────────────
-	footer: { position: "absolute", bottom: 18, left: 56, right: 56 },
-	footerText: { fontSize: 8, color: "#dc2626", textAlign: "center" },
-});
+// Scale-aware styles. `s` (fitScale) shrinks font sizes and vertical spacing so
+// an over-long invoice can be compacted back onto one page (see pdfFit.ts).
+// Horizontal metrics, borders and the fixed footer chrome stay constant.
+function makeStyles(s: number) {
+	return StyleSheet.create({
+		page: {
+			fontSize: 11 * s,
+			fontFamily: "Helvetica",
+			paddingTop: 28 * s,
+			paddingBottom: 36,
+			paddingHorizontal: 56,
+			color: "#1f2937",
+		},
+		// ── Header ──────────────────────────────────────────────────────────────
+		header: { alignItems: "center", marginBottom: 6 * s },
+		logo: { width: 72 * s, height: 72 * s, marginBottom: 4 * s, objectFit: "contain" },
+		tagline: {
+			fontSize: 8 * s,
+			textAlign: "center",
+			color: "#374151",
+			marginTop: 2,
+			letterSpacing: 0.2,
+		},
+		headerAddress: { fontSize: 8 * s, textAlign: "center", color: "#374151", marginTop: 1 },
+		divider: {
+			borderBottomWidth: 0.5,
+			borderBottomColor: "#374151",
+			marginBottom: 10 * s,
+			marginTop: 6 * s,
+		},
+		// ── Invoice title ────────────────────────────────────────────────────────
+		invoiceTitleBlock: { alignItems: "center", marginBottom: 12 * s },
+		invoiceTitle: {
+			fontSize: 13 * s,
+			fontFamily: "Helvetica-Bold",
+			textDecoration: "underline",
+			textAlign: "center",
+		},
+		invoiceNumber: { fontSize: 11 * s, textAlign: "center", marginTop: 3 * s },
+		// ── Meta ────────────────────────────────────────────────────────────────
+		date: { fontSize: 11 * s, marginBottom: 12 * s },
+		recipient: { marginBottom: 12 * s },
+		recipientLabel: { fontSize: 11 * s, marginBottom: 2 * s },
+		recipientName: { fontSize: 11 * s, fontFamily: "Helvetica-Bold" },
+		// ── Table ────────────────────────────────────────────────────────────────
+		table: { marginBottom: 12 * s },
+		tableHeaderRow: {
+			flexDirection: "row",
+			borderTopWidth: 0.5,
+			borderBottomWidth: 0.5,
+			borderLeftWidth: 0.5,
+			borderRightWidth: 0.5,
+			borderColor: "#374151",
+		},
+		tableRow: {
+			flexDirection: "row",
+			borderBottomWidth: 0.5,
+			borderLeftWidth: 0.5,
+			borderRightWidth: 0.5,
+			borderColor: "#374151",
+		},
+		tableTotalRow: {
+			flexDirection: "row",
+			borderBottomWidth: 0.5,
+			borderLeftWidth: 0.5,
+			borderRightWidth: 0.5,
+			borderColor: "#374151",
+		},
+		// Column widths
+		colNo: { width: 28, textAlign: "center", paddingVertical: 4 * s, paddingHorizontal: 4 },
+		colDesc: { flex: 1, paddingVertical: 4 * s, paddingHorizontal: 6 },
+		colUnit: { width: 44, textAlign: "center", paddingVertical: 4 * s, paddingHorizontal: 4 },
+		colHarga: { width: 90, textAlign: "right", paddingVertical: 4 * s, paddingHorizontal: 6 },
+		colNilai: { width: 90, textAlign: "right", paddingVertical: 4 * s, paddingHorizontal: 6 },
+		// Vertical dividers inside rows
+		cellBorder: { borderLeftWidth: 0.5, borderLeftColor: "#374151" },
+		headerCellText: { fontSize: 10 * s, fontFamily: "Helvetica-Bold", textAlign: "center" },
+		cellText: { fontSize: 10 * s },
+		totalLabelCell: {
+			flex: 1,
+			textAlign: "right",
+			paddingVertical: 4 * s,
+			paddingHorizontal: 6,
+			fontFamily: "Helvetica-Bold",
+			fontSize: 10 * s,
+		},
+		totalValueCell: {
+			width: 90,
+			textAlign: "right",
+			paddingVertical: 4 * s,
+			paddingHorizontal: 6,
+			fontFamily: "Helvetica-Bold",
+			fontSize: 10 * s,
+		},
+		// ── Bank info ────────────────────────────────────────────────────────────
+		bankSection: { marginBottom: 14 * s },
+		bankText: { fontSize: 11 * s, marginBottom: 1 },
+		// ── Signature ────────────────────────────────────────────────────────────
+		signatureRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 4 * s },
+		signBlock: { width: 200, alignItems: "center" },
+		signLabel: { fontSize: 11 * s, marginBottom: 1 },
+		signCompany: { fontSize: 11 * s, fontFamily: "Helvetica-Bold", marginBottom: 8 * s },
+		qrSeal: { width: 80 * s, height: 80 * s, marginBottom: 4 * s },
+		qrSealLabel: { fontSize: 7 * s, color: "#6b7280", textAlign: "center", marginBottom: 8 * s },
+		signName: { fontSize: 11 * s },
+		signRole: { fontSize: 11 * s },
+		// ── Footer ───────────────────────────────────────────────────────────────
+		footer: {
+			position: "absolute",
+			bottom: 18,
+			left: 56,
+			right: 56,
+			flexDirection: "row",
+			alignItems: "center",
+		},
+		footerDocNumber: { flex: 1, fontSize: 7, color: "#9ca3af", textAlign: "left" },
+		footerText: { flex: 1, fontSize: 8, color: "#dc2626", textAlign: "center" },
+		footerPage: { flex: 1, fontSize: 7, color: "#9ca3af", textAlign: "right" },
+	});
+}
 
 export interface InvoicePDFProps {
 	invoice: {
@@ -154,9 +174,19 @@ export interface InvoicePDFProps {
 		verificationQrUrl: string;
 		verificationUrl: string;
 	};
+	/** Fit-to-one-page scale (1 = default). Set by the download button's fit loop. */
+	fitScale?: number;
 }
 
-export function InvoicePDF({ invoice, customer, lead, company, template }: InvoicePDFProps) {
+export function InvoicePDF({
+	invoice,
+	customer,
+	lead,
+	company,
+	template,
+	fitScale = 1,
+}: InvoicePDFProps) {
+	const styles = makeStyles(fitScale);
 	const displayDate = `${company.city}, ${formatIndonesianDate(invoice.created_at)}`;
 
 	// Build the line-item description
@@ -289,9 +319,9 @@ export function InvoicePDF({ invoice, customer, lead, company, template }: Invoi
 					<Text style={styles.bankText}>Atas nama : {template.bankAccountHolder}</Text>
 				</View>
 
-				{/* Signature */}
-				<View style={styles.signatureRow}>
-					<View style={styles.signBlock}>
+				{/* Signature — kept atomic so the QR / name / role never split across pages */}
+				<View style={styles.signatureRow} wrap={false}>
+					<View style={styles.signBlock} wrap={false}>
 						<Text style={styles.signLabel}>Hormat kami,</Text>
 						<Text style={styles.signCompany}>{company.name.toUpperCase()}</Text>
 						{template.verificationQrUrl ? (
@@ -309,9 +339,14 @@ export function InvoicePDF({ invoice, customer, lead, company, template }: Invoi
 					</View>
 				</View>
 
-				{/* Footer */}
+				{/* Footer — doc number (traceability) · website · page X of Y */}
 				<View style={styles.footer} fixed>
+					<Text style={styles.footerDocNumber}>{invoice.invoice_number}</Text>
 					<Text style={styles.footerText}>{company.website}</Text>
+					<Text
+						style={styles.footerPage}
+						render={({ pageNumber, totalPages }) => `Halaman ${pageNumber} dari ${totalPages}`}
+					/>
 				</View>
 			</Page>
 		</Document>

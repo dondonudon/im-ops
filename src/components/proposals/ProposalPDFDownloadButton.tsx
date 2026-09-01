@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { getPdfAssets } from "@/app/actions/getPdfAssets";
 import { Button } from "@/components/ui";
+import { renderPdfToFit } from "@/lib/pdfFit";
 import type { ProposalPDFProps } from "./ProposalPDF";
 
 function buildProposalFilename(proposalNumber: string) {
@@ -42,7 +43,9 @@ export function ProposalPDFDownloadButton({
 				company: { ...pdfProps.company, logo: logoDataUrl },
 				template: { ...pdfProps.template, verificationQrUrl, verificationUrl },
 			};
-			const blob = await pdf(<ProposalPDF {...fullProps} />).toBlob();
+			const blob = await renderPdfToFit((scale) =>
+				pdf(<ProposalPDF {...fullProps} fitScale={scale} />).toBlob(),
+			);
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = url;

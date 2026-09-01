@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { getPdfAssets } from "@/app/actions/getPdfAssets";
 import { Button } from "@/components/ui";
+import { renderPdfToFit } from "@/lib/pdfFit";
 import type { InvoicePDFProps } from "./InvoicePDF";
 
 function buildInvoiceFilename(invoiceNumber: string) {
@@ -43,7 +44,9 @@ export function InvoicePDFDownloadButton({
 				company: { ...pdfProps.company, logo: logoDataUrl },
 				template: { ...pdfProps.template, verificationQrUrl, verificationUrl },
 			};
-			const blob = await pdf(<InvoicePDF {...fullProps} />).toBlob();
+			const blob = await renderPdfToFit((scale) =>
+				pdf(<InvoicePDF {...fullProps} fitScale={scale} />).toBlob(),
+			);
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = url;

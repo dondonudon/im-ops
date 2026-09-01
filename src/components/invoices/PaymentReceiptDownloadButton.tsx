@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { getLogoAsset } from "@/app/actions/getPdfAssets";
 import { buttonStyles } from "@/components/ui";
+import { renderPdfToFit } from "@/lib/pdfFit";
 import type { PaymentReceiptProps } from "./PaymentReceiptPDF";
 
 function buildReceiptFilename(jobNumber: string, receiptNumber: number): string {
@@ -50,7 +51,9 @@ export function PaymentReceiptDownloadButton({
 				template: { ...receiptProps.template, verificationQrUrl, verificationUrl },
 			};
 
-			const blob = await pdf(<PaymentReceiptPDF {...props} />).toBlob();
+			const blob = await renderPdfToFit((scale) =>
+				pdf(<PaymentReceiptPDF {...props} fitScale={scale} />).toBlob(),
+			);
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = url;

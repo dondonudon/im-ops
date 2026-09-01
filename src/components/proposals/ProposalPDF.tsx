@@ -21,74 +21,88 @@ import {
 
 Font.registerHyphenationCallback((word) => [word]);
 
-const styles = StyleSheet.create({
-	page: {
-		fontSize: 11,
-		fontFamily: "Helvetica",
-		paddingTop: 28,
-		paddingBottom: 36,
-		paddingHorizontal: 56,
-		color: "#1f2937",
-	},
-	// ── Header ──────────────────────────────────────────────────────────────
-	header: {
-		alignItems: "center",
-		marginBottom: 6,
-	},
-	logo: {
-		width: 72,
-		height: 72,
-		marginBottom: 4,
-		objectFit: "contain",
-	},
-	tagline: {
-		fontSize: 8,
-		textAlign: "center",
-		color: "#374151",
-		marginTop: 2,
-		letterSpacing: 0.2,
-	},
-	headerAddress: {
-		fontSize: 8,
-		textAlign: "center",
-		color: "#374151",
-		marginTop: 1,
-	},
-	divider: {
-		borderBottomWidth: 0.5,
-		borderBottomColor: "#374151",
-		marginBottom: 14,
-		marginTop: 6,
-	},
-	// ── Body ────────────────────────────────────────────────────────────────
-	date: { fontSize: 11, marginBottom: 14 },
-	noHalRow: { flexDirection: "row", marginBottom: 2 },
-	noHalLabel: { width: 30, fontSize: 11 },
-	noHalColon: { width: 14, fontSize: 11 },
-	noHalValue: { flex: 1, fontSize: 11 },
-	noHalValueBold: { flex: 1, fontSize: 11, fontFamily: "Helvetica-Bold" },
-	recipient: { marginTop: 14, marginBottom: 12 },
-	recipientLabel: { fontSize: 11, marginBottom: 2 },
-	recipientName: { fontSize: 11, fontFamily: "Helvetica-Bold" },
-	greeting: { fontSize: 11, marginBottom: 8 },
-	para: { fontSize: 11, marginBottom: 8, textAlign: "justify", lineHeight: 1.5 },
-	listContainer: { marginLeft: 14, marginBottom: 8 },
-	listItem: { flexDirection: "row", marginBottom: 2 },
-	listBullet: { width: 16, fontSize: 11 },
-	listText: { flex: 1, fontSize: 11 },
-	// ── Signature ────────────────────────────────────────────────────────────
-	signatureRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 16 },
-	signBlock: { width: 200, alignItems: "center" },
-	signLabel: { fontSize: 11, marginBottom: 1 },
-	signCompany: { fontSize: 11, fontFamily: "Helvetica-Bold", marginBottom: 8 },
-	qrSeal: { width: 80, height: 80, marginBottom: 4 },
-	qrSealLabel: { fontSize: 7, color: "#6b7280", textAlign: "center", marginBottom: 8 },
-	signName: { fontSize: 11, fontFamily: "Helvetica-Bold", textDecoration: "underline" },
-	signRole: { fontSize: 11 },
-	// ── Footer ───────────────────────────────────────────────────────────────
-	footer: { position: "absolute", bottom: 18, left: 56, right: 56, textAlign: "center" },
-	footerText: { fontSize: 8, color: "#dc2626", textAlign: "center" },
-});
+// Scale-aware styles. `s` (fitScale) shrinks font sizes and vertical spacing
+// so an over-long document can be compacted back onto one page (see pdfFit.ts).
+// Horizontal metrics, borders and the fixed footer chrome stay constant.
+function makeStyles(s: number) {
+	return StyleSheet.create({
+		page: {
+			fontSize: 11 * s,
+			fontFamily: "Helvetica",
+			paddingTop: 28 * s,
+			paddingBottom: 36,
+			paddingHorizontal: 56,
+			color: "#1f2937",
+		},
+		// ── Header ──────────────────────────────────────────────────────────────
+		header: {
+			alignItems: "center",
+			marginBottom: 6 * s,
+		},
+		logo: {
+			width: 72 * s,
+			height: 72 * s,
+			marginBottom: 4 * s,
+			objectFit: "contain",
+		},
+		tagline: {
+			fontSize: 8 * s,
+			textAlign: "center",
+			color: "#374151",
+			marginTop: 2,
+			letterSpacing: 0.2,
+		},
+		headerAddress: {
+			fontSize: 8 * s,
+			textAlign: "center",
+			color: "#374151",
+			marginTop: 1,
+		},
+		divider: {
+			borderBottomWidth: 0.5,
+			borderBottomColor: "#374151",
+			marginBottom: 14 * s,
+			marginTop: 6 * s,
+		},
+		// ── Body ────────────────────────────────────────────────────────────────
+		date: { fontSize: 11 * s, marginBottom: 14 * s },
+		noHalRow: { flexDirection: "row", marginBottom: 2 * s },
+		noHalLabel: { width: 30, fontSize: 11 * s },
+		noHalColon: { width: 14, fontSize: 11 * s },
+		noHalValue: { flex: 1, fontSize: 11 * s },
+		noHalValueBold: { flex: 1, fontSize: 11 * s, fontFamily: "Helvetica-Bold" },
+		recipient: { marginTop: 14 * s, marginBottom: 12 * s },
+		recipientLabel: { fontSize: 11 * s, marginBottom: 2 * s },
+		recipientName: { fontSize: 11 * s, fontFamily: "Helvetica-Bold" },
+		greeting: { fontSize: 11 * s, marginBottom: 8 * s },
+		para: { fontSize: 11 * s, marginBottom: 8 * s, textAlign: "justify", lineHeight: 1.5 },
+		listContainer: { marginLeft: 14, marginBottom: 8 * s },
+		listItem: { flexDirection: "row", marginBottom: 2 * s },
+		listBullet: { width: 16, fontSize: 11 * s },
+		listText: { flex: 1, fontSize: 11 * s },
+		// ── Signature ────────────────────────────────────────────────────────────
+		signatureRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 16 * s },
+		signBlock: { width: 200, alignItems: "center" },
+		signLabel: { fontSize: 11 * s, marginBottom: 1 },
+		signCompany: { fontSize: 11 * s, fontFamily: "Helvetica-Bold", marginBottom: 8 * s },
+		qrSeal: { width: 80 * s, height: 80 * s, marginBottom: 4 * s },
+		qrSealLabel: { fontSize: 7 * s, color: "#6b7280", textAlign: "center", marginBottom: 8 * s },
+		signName: { fontSize: 11 * s, fontFamily: "Helvetica-Bold", textDecoration: "underline" },
+		signRole: { fontSize: 11 * s },
+		// ── Footer ───────────────────────────────────────────────────────────────
+		footer: {
+			position: "absolute",
+			bottom: 18,
+			left: 56,
+			right: 56,
+			flexDirection: "row",
+			alignItems: "center",
+		},
+		footerDocNumber: { flex: 1, fontSize: 7, color: "#9ca3af", textAlign: "left" },
+		footerText: { flex: 1, fontSize: 8, color: "#dc2626", textAlign: "center" },
+		footerPage: { flex: 1, fontSize: 7, color: "#9ca3af", textAlign: "right" },
+	});
+}
 
 export interface ProposalPDFProps {
 	proposal: {
@@ -129,6 +143,8 @@ export interface ProposalPDFProps {
 		verificationUrl: string;
 	};
 	customFields?: ProposalCustomFields;
+	/** Fit-to-one-page scale (1 = default). Set by the download button's fit loop. */
+	fitScale?: number;
 }
 
 export function ProposalPDF({
@@ -138,7 +154,9 @@ export function ProposalPDF({
 	company,
 	template,
 	customFields = {},
+	fitScale = 1,
 }: ProposalPDFProps) {
+	const styles = makeStyles(fitScale);
 	const displayDate = `${company.city}, ${formatIndonesianDate(proposal.created_at)}`;
 	const price = proposal.final_price ?? 0;
 	const priceFormatted = formatRupiahLetter(price);
@@ -279,9 +297,9 @@ export function ProposalPDF({
 					tersebut kami sampaikan, atas perhatian dan kerjasamanya terima kasih.
 				</Text>
 
-				{/* Signature */}
-				<View style={styles.signatureRow}>
-					<View style={styles.signBlock}>
+				{/* Signature — kept atomic so the QR / name / role never split across pages */}
+				<View style={styles.signatureRow} wrap={false}>
+					<View style={styles.signBlock} wrap={false}>
 						<Text style={styles.signLabel}>Hormat kami,</Text>
 						<Text style={styles.signCompany}>{company.name.toUpperCase()}</Text>
 						{template.verificationQrUrl ? (
@@ -297,9 +315,14 @@ export function ProposalPDF({
 					</View>
 				</View>
 
-				{/* Footer */}
+				{/* Footer — doc number (traceability) · website · page X of Y */}
 				<View style={styles.footer} fixed>
+					<Text style={styles.footerDocNumber}>{proposal.proposal_number}</Text>
 					<Text style={styles.footerText}>{company.website}</Text>
+					<Text
+						style={styles.footerPage}
+						render={({ pageNumber, totalPages }) => `Halaman ${pageNumber} dari ${totalPages}`}
+					/>
 				</View>
 			</Page>
 		</Document>
