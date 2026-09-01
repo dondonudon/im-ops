@@ -92,11 +92,31 @@ export function useOperationalExpenses(initial: OperationalExpense[]) {
 		});
 	}
 
-	async function update(id: string, form: ExpenseFormState): Promise<boolean> {
+	async function update(
+		id: string,
+		form: ExpenseFormState,
+		file: File | null = null,
+		receiptRemoved = false,
+	): Promise<boolean> {
 		const amount = validAmount(form);
 		if (amount === null) return false;
 
+		const target = expenses.find((e) => e.id === id);
+
 		return mutate(async () => {
+			// undefined = keep existing, null = remove, string = replace
+			let receipt_url: string | null | undefined;
+
+			if (file) {
+				receipt_url = await uploadReceipt(file);
+				if (target?.receipt_url) {
+					await supabase.storage.from("receipts").remove([receiptStoragePath(target.receipt_url)]);
+				}
+			} else if (receiptRemoved && target?.receipt_url) {
+				await supabase.storage.from("receipts").remove([receiptStoragePath(target.receipt_url)]);
+				receipt_url = null;
+			}
+
 			const { data, error: updateErr } = await supabase
 				.from("expenses")
 				.update({
@@ -104,6 +124,7 @@ export function useOperationalExpenses(initial: OperationalExpense[]) {
 					category: form.category,
 					description: form.note.trim() || null,
 					incurred_at: form.date,
+					...(receipt_url !== undefined && { receipt_url }),
 				})
 				.eq("id", id)
 				.select(OPERATIONAL_EXPENSE_COLUMNS)

@@ -38,7 +38,8 @@ export default async function ExpensesPage({
 		.select(`${OPERATIONAL_EXPENSE_COLUMNS}, expense_type`)
 		.gte("incurred_at", monthStart)
 		.lt("incurred_at", monthEnd)
-		.order("incurred_at", { ascending: false });
+		.order("incurred_at", { ascending: false })
+		.order("created_at", { ascending: false });
 
 	const expenses: OperationalExpense[] = [];
 	let operationalTotal = 0;

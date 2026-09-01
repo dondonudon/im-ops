@@ -1,5 +1,6 @@
 "use client";
 import { type InputHTMLAttributes, useRef } from "react";
+import { cn } from "@/lib/utils";
 
 /** Format with Indonesian thousand separator — matches formatRupiah locale. 0 renders as "". */
 function fmt(n: number): string {
@@ -12,6 +13,9 @@ function parse(s: string): number {
 	return digits === "" ? 0 : parseInt(digits, 10);
 }
 
+const INPUT_CLASS =
+	"w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed";
+
 type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> & {
 	value: number;
 	onChange: (value: number) => void;
@@ -22,7 +26,7 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onC
  * value/onChange deal in plain numbers; the field displays formatted text.
  * Cursor position is restored after each reformat keystroke.
  */
-export function NumericInput({ value, onChange, ...rest }: Props) {
+export function NumericInput({ value, onChange, className, ...rest }: Props) {
 	const ref = useRef<HTMLInputElement>(null);
 
 	function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -63,6 +67,7 @@ export function NumericInput({ value, onChange, ...rest }: Props) {
 			inputMode="numeric"
 			value={fmt(value)}
 			onChange={handleChange}
+			className={cn(INPUT_CLASS, className)}
 		/>
 	);
 }

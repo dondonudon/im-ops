@@ -56,6 +56,8 @@ export function OperationalExpensesPanel({
 	const [addForm, setAddForm] = useState<ExpenseFormState | null>(null);
 	const [editing, setEditing] = useState<{ id: string; form: ExpenseFormState } | null>(null);
 	const [file, setFile] = useState<File | null>(null);
+	const [editFile, setEditFile] = useState<File | null>(null);
+	const [editReceiptRemove, setEditReceiptRemove] = useState(false);
 	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
@@ -74,7 +76,17 @@ export function OperationalExpensesPanel({
 	}
 
 	async function submitEdit(id: string, form: ExpenseFormState) {
-		if (await update(id, form)) setEditing(null);
+		if (await update(id, form, editFile, editReceiptRemove)) {
+			setEditing(null);
+			setEditFile(null);
+			setEditReceiptRemove(false);
+		}
+	}
+
+	function cancelEdit() {
+		setEditing(null);
+		setEditFile(null);
+		setEditReceiptRemove(false);
 	}
 
 	async function confirmDelete(id: string) {
@@ -123,7 +135,12 @@ export function OperationalExpensesPanel({
 									value={editing.form}
 									onChange={(form) => setEditing({ id: expense.id, form })}
 									onSubmit={() => submitEdit(expense.id, editing.form)}
-									onCancel={() => setEditing(null)}
+									onCancel={cancelEdit}
+									onFileChange={setEditFile}
+									hasReceipt={!!expense.receipt_url}
+									existingReceiptUrl={receiptUrls.get(expense.id)}
+									receiptRemoved={editReceiptRemove}
+									onReceiptRemoveChange={setEditReceiptRemove}
 									saving={saving}
 									error={error}
 								/>

@@ -1247,6 +1247,7 @@
 			"descriptionPlaceholder": "e.g. Bubble wrap bulk buy",
 			"receipt": "Receipt",
 			"receiptHint": "Optional. Photo is resized before upload.",
+			"receiptMarkedForRemoval": "Receipt will be removed",
 			"viewReceipt": "View receipt",
 			"total": "Total",
 			"empty": "No operational expenses this month"

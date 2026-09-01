@@ -1247,6 +1247,7 @@
 			"descriptionPlaceholder": "mis. Beli bubble wrap borongan",
 			"receipt": "Struk",
 			"receiptHint": "Opsional. Foto dikecilkan sebelum diunggah.",
+			"receiptMarkedForRemoval": "Struk akan dihapus",
 			"viewReceipt": "Lihat struk",
 			"total": "Total",
 			"empty": "Belum ada biaya operasional bulan ini"
