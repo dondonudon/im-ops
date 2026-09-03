@@ -616,6 +616,10 @@
 			},
 			"expensesThisMonth": "Expenses this month",
 			"noExpensesThisMonth": "No expenses this month.",
+			"expenseGroups": {
+				"job": "Job expenses",
+				"operational": "Operational overhead"
+			},
 			"leadFunnel": "Lead funnel",
 			"noLeads": "No leads.",
 			"arAging": {
@@ -642,7 +646,11 @@
 				"revenue": "Revenue",
 				"cost": "Cost",
 				"jobs": "Jobs",
-				"totalProfit": "Total profit"
+				"totalProfit": "Total profit",
+				"grossLessOverhead": "Gross {gross} − overhead {overhead}",
+				"grossProfit": "Job gross profit",
+				"overhead": "Operational overhead",
+				"operatingProfit": "Operating profit"
 			},
 			"yearlyProfit": {
 				"title": "Profit {year}"

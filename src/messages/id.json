@@ -616,6 +616,10 @@
 			},
 			"expensesThisMonth": "Pengeluaran bulan ini",
 			"noExpensesThisMonth": "Belum ada pengeluaran bulan ini.",
+			"expenseGroups": {
+				"job": "Biaya job",
+				"operational": "Overhead operasional"
+			},
 			"leadFunnel": "Funnel prospek",
 			"noLeads": "Belum ada prospek.",
 			"arAging": {
@@ -642,7 +646,11 @@
 				"revenue": "Pendapatan",
 				"cost": "Biaya",
 				"jobs": "Pekerjaan",
-				"totalProfit": "Total keuntungan"
+				"totalProfit": "Total keuntungan",
+				"grossLessOverhead": "Kotor {gross} − overhead {overhead}",
+				"grossProfit": "Laba kotor job",
+				"overhead": "Overhead operasional",
+				"operatingProfit": "Laba operasional"
 			},
 			"yearlyProfit": {
 				"title": "Keuntungan {year}"

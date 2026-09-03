@@ -11,6 +11,7 @@ import {
 	Stat,
 } from "@/components/ui";
 import { monthRange, parseMonth } from "@/lib/month";
+import { summarizeProfit } from "@/lib/profit";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatRupiah } from "@/lib/utils";
 
@@ -64,11 +65,12 @@ export default async function MoneyPage({
 		supabase.rpc("get_invoice_status_breakdown"),
 		// Actual cash received: payments made in this month
 		supabase.from("payments").select("amount").gte("paid_at", monthStart).lt("paid_at", monthEnd),
-		// expense_type is selected, NOT filtered — the two kinds are partitioned below
-		// so the page can show job gross profit and operating profit separately.
+		// Operational overhead for the month (no job) — the bridge from job gross
+		// profit to operating profit. Job cost comes from job_profit_summary below.
 		supabase
 			.from("expenses")
-			.select("amount, expense_type")
+			.select("amount")
+			.eq("expense_type", "operational")
 			.gte("incurred_at", monthStart)
 			.lt("incurred_at", monthEnd),
 		// Recent payments in the selected month
@@ -110,21 +112,24 @@ export default async function MoneyPage({
 	const overdueCount = Number(arTotals?.overdue_count ?? 0);
 	// Cash actually received this month (for CASH IN card)
 	const cashIn = (monthlyPayments ?? []).reduce((s, p) => s + (p.amount ?? 0), 0);
-	// Partition the month's expenses by kind. Job expenses are charged against the
-	// jobs that ran this month; operational expenses (bulk packing materials, ads,
-	// utilities) have no job and are overhead for the month they were bought in.
-	let jobExpenses = 0;
-	let operationalTotal = 0;
-	for (const e of monthlyExp ?? []) {
-		if (e.expense_type === "operational") operationalTotal += e.amount ?? 0;
-		else jobExpenses += e.amount ?? 0;
-	}
-	// NET uses job revenue from completed jobs — consistent with reports page TOTAL PROFIT
-	const completedRevenue = (monthJobsData ?? [])
+	// Operational overhead for the month (bulk packing materials, ads, utilities) —
+	// no job, so it buckets by incurred_at.
+	const operationalTotal = (monthlyExp ?? []).reduce((s, e) => s + (e.amount ?? 0), 0);
+	// Job gross profit comes from job_profit_summary for this month's completed jobs
+	// (accrual basis) — the same source /reports uses, so the two pages agree exactly.
+	const completedJobIds = (monthJobsData ?? [])
 		.filter((j) => (j.move_date ?? "") <= todayStr)
-		.reduce((s, j) => s + (j.revenue ?? 0), 0);
-	const jobGrossProfit = completedRevenue - jobExpenses;
-	const operatingProfit = jobGrossProfit - operationalTotal;
+		.map((j) => j.id);
+	const { data: profitRows } =
+		completedJobIds.length > 0
+			? await supabase
+					.from("job_profit_summary")
+					.select("job_id, revenue, actual_spend, current_profit")
+					.in("job_id", completedJobIds)
+			: { data: [] };
+	const summary = summarizeProfit(profitRows ?? [], operationalTotal);
+	const jobGrossProfit = summary.grossProfit;
+	const operatingProfit = summary.operatingProfit;
 
 	// AR aging buckets — pre-computed server-side
 	const agingRows: { label: string; amount: number; tone: string }[] = [

@@ -16,6 +16,7 @@ import {
 	TR,
 } from "@/components/ui";
 import { monthRange, parseMonth } from "@/lib/month";
+import { summarizeProfit } from "@/lib/profit";
 import { createClient } from "@/lib/supabase/server";
 import { formatRupiah } from "@/lib/utils";
 
@@ -47,7 +48,7 @@ export default async function ReportsPage({
 		{ data: revenueTargetRow },
 		{ data: defaultTargetRow },
 		{ data: yearJobsData },
-		{ data: yearExpData },
+		{ data: yearOpExpData },
 	] = await Promise.all([
 		// Jobs scheduled in this month (move_date) for revenue KPI + profit table
 		supabase
@@ -59,7 +60,7 @@ export default async function ReportsPage({
 			.lt("move_date", monthEnd),
 		supabase
 			.from("expenses")
-			.select("category, amount")
+			.select("category, amount, expense_type, incurred_at")
 			.gte("incurred_at", monthStart)
 			.lt("incurred_at", monthEnd),
 		// Open pipeline leads created this month. Terminal statuses (converted, closed_lost)
@@ -99,45 +100,63 @@ export default async function ReportsPage({
 			.select("value")
 			.eq("key", "revenue_target_monthly")
 			.maybeSingle(),
-		// Yearly jobs — for annual profit chart
+		// Yearly jobs — for annual profit chart (job cost comes from job_profit_summary
+		// below, so we only need id + move_date to accrue each job to its month).
 		supabase
 			.from("jobs")
-			.select("revenue, move_date")
+			.select("id, revenue, move_date")
 			// Cancelled jobs keep their revenue value; exclude them from the annual chart.
 			.neq("status", "cancelled")
 			.gte("move_date", yearStart)
 			.lt("move_date", yearEnd),
-		// Yearly expenses — for annual profit chart
+		// Yearly operational overhead — bucketed by incurred_at (no job to accrue to).
 		supabase
 			.from("expenses")
 			.select("amount, incurred_at")
+			.eq("expense_type", "operational")
 			.gte("incurred_at", yearStart)
 			.lt("incurred_at", yearEnd),
 	]);
 
-	// job_profit_summary has no date column — filter by completed month job IDs
-	const monthJobsMap = new Map((monthJobsData ?? []).map((j) => [j.id, j.move_date]));
-	const completedJobIds = (monthJobsData ?? [])
+	// job_profit_summary has no date column — accrue each job to its move_date month.
+	// Fetch the year's completed-job profit rows once; the selected month and the
+	// annual chart both derive from this so their numbers can never diverge.
+	const jobIdToMoveDate = new Map((yearJobsData ?? []).map((j) => [j.id, j.move_date]));
+	const completedYearJobIds = (yearJobsData ?? [])
 		.filter((j) => (j.move_date ?? "") <= todayStr)
 		.map((j) => j.id);
-	const { data: profitRowsRaw } =
-		completedJobIds.length > 0
+	const { data: yearProfitRowsRaw } =
+		completedYearJobIds.length > 0
 			? await supabase
 					.from("job_profit_summary")
 					.select("job_id, job_number, revenue, actual_spend, current_profit")
-					.in("job_id", completedJobIds)
+					.in("job_id", completedYearJobIds)
 			: { data: [] };
+	const yearProfitRows = yearProfitRowsRaw ?? [];
 
-	// Sort by move_date descending (latest first); monthJobsMap is populated above
-	const profitRows = (profitRowsRaw ?? []).sort((a, b) => {
-		const da = monthJobsMap.get(a.job_id ?? "") ?? "";
-		const db = monthJobsMap.get(b.job_id ?? "") ?? "";
-		return db.localeCompare(da);
-	});
+	// Selected-month subset, sorted by move_date descending (latest first).
+	const monthJobsMap = jobIdToMoveDate;
+	const profitRows = yearProfitRows
+		.filter((r) => (jobIdToMoveDate.get(r.job_id ?? "") ?? "").startsWith(selectedMonth))
+		.sort((a, b) => {
+			const da = jobIdToMoveDate.get(a.job_id ?? "") ?? "";
+			const db = jobIdToMoveDate.get(b.job_id ?? "") ?? "";
+			return db.localeCompare(da);
+		});
 
-	const expenseByCategory: Record<string, number> = {};
+	// Split the month's expenses by kind so the list reconciles with the profit
+	// figures above it: job expenses feed job gross profit; operational overhead is
+	// the bridge from gross to operating profit.
+	const jobExpenseByCategory: Record<string, number> = {};
+	const opExpenseByCategory: Record<string, number> = {};
+	let monthOperationalTotal = 0;
 	for (const e of monthlyExpenses ?? []) {
-		expenseByCategory[e.category] = (expenseByCategory[e.category] ?? 0) + e.amount;
+		if (e.expense_type === "operational") {
+			opExpenseByCategory[e.category] = (opExpenseByCategory[e.category] ?? 0) + e.amount;
+			monthOperationalTotal += e.amount ?? 0;
+		} else {
+			jobExpenseByCategory[e.category] = (jobExpenseByCategory[e.category] ?? 0) + e.amount;
+		}
 	}
 
 	const funnelCounts: Record<string, number> = {};
@@ -155,11 +174,11 @@ export default async function ReportsPage({
 	const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
 
 	const totalRevenue = (monthJobsData ?? []).reduce((s, j) => s + (j.revenue ?? 0), 0);
-	const completedRevenue = (monthJobsData ?? [])
-		.filter((j) => (j.move_date ?? "") <= todayStr)
-		.reduce((s, j) => s + (j.revenue ?? 0), 0);
-	// Use job_profit_summary so totalProfit matches the sum of individual job rows
-	const totalProfit = (profitRows ?? []).reduce((s, r) => s + (r.current_profit ?? 0), 0);
+	// Single source of truth (src/lib/profit.ts): gross = Σ job current_profit;
+	// operating = gross − operational overhead. The headline profit is the operating
+	// (actual) figure — job cost AND overhead subtracted.
+	const summary = summarizeProfit(profitRows, monthOperationalTotal);
+	const completedRevenue = summary.completedRevenue;
 
 	// Period breakdown: 1–15 vs 16–end of month
 	const [ymYear, ymMonth] = selectedMonth.split("-").map(Number);
@@ -174,18 +193,20 @@ export default async function ReportsPage({
 		return date ? Number(date.split("-")[2]) >= 16 : false;
 	});
 
-	const period1 = {
-		profit: period1Jobs.reduce((s, r) => s + (r.current_profit ?? 0), 0),
-		revenue: period1Jobs.reduce((s, r) => s + (r.revenue ?? 0), 0),
-		cost: period1Jobs.reduce((s, r) => s + (r.actual_spend ?? 0), 0),
-		count: period1Jobs.length,
-	};
-	const period2 = {
-		profit: period2Jobs.reduce((s, r) => s + (r.current_profit ?? 0), 0),
-		revenue: period2Jobs.reduce((s, r) => s + (r.revenue ?? 0), 0),
-		cost: period2Jobs.reduce((s, r) => s + (r.actual_spend ?? 0), 0),
-		count: period2Jobs.length,
-	};
+	// Operational overhead accrues to the period it was incurred in (same 1–15 / 16–end
+	// split as jobs), so each period nets to a real operating profit and the two sum to
+	// the month's operating profit.
+	let period1Op = 0;
+	let period2Op = 0;
+	for (const e of monthlyExpenses ?? []) {
+		if (e.expense_type !== "operational") continue;
+		const day = e.incurred_at ? Number(e.incurred_at.split("-")[2]) : 0;
+		if (day >= 16) period2Op += e.amount ?? 0;
+		else period1Op += e.amount ?? 0;
+	}
+
+	const period1 = { ...summarizeProfit(period1Jobs, period1Op), count: period1Jobs.length };
+	const period2 = { ...summarizeProfit(period2Jobs, period2Op), count: period2Jobs.length };
 
 	const revenueTarget =
 		revenueTargetRow?.target_amount ??
@@ -221,21 +242,24 @@ export default async function ReportsPage({
 	}
 	const totalLost = Object.values(lostReasons).reduce((s, v) => s + v, 0);
 
-	// Yearly profit data for chart — one entry per month
+	// Yearly profit data for chart — one entry per month, operating profit on the
+	// same accrual basis as the KPI: gross (Σ job current_profit accrued to move_date)
+	// minus operational overhead (incurred_at). `expenses` is the whole cost base.
 	const yearlyProfitData = Array.from({ length: 12 }, (_, i) => {
 		const m = i + 1;
 		const monthStr = `${yearStr}-${String(m).padStart(2, "0")}`;
-		const revenue = (yearJobsData ?? [])
-			.filter((j) => j.move_date?.startsWith(monthStr) && (j.move_date ?? "") <= todayStr)
-			.reduce((s, j) => s + (j.revenue ?? 0), 0);
-		const expenses = (yearExpData ?? [])
+		const rows = yearProfitRows.filter((r) =>
+			(jobIdToMoveDate.get(r.job_id ?? "") ?? "").startsWith(monthStr),
+		);
+		const opTotal = (yearOpExpData ?? [])
 			.filter((e) => e.incurred_at?.startsWith(monthStr))
 			.reduce((s, e) => s + (e.amount ?? 0), 0);
+		const s = summarizeProfit(rows, opTotal);
 		return {
 			month: monthStr,
-			revenue,
-			expenses,
-			profit: revenue - expenses,
+			revenue: s.completedRevenue,
+			expenses: s.totalCost,
+			profit: s.operatingProfit,
 			isFuture: monthStr > todayStr.slice(0, 7),
 			isSelected: monthStr === selectedMonth,
 		};
@@ -287,7 +311,9 @@ export default async function ReportsPage({
 				</Card>
 
 				<ProfitBreakdownCard
-					totalProfit={totalProfit}
+					operatingProfit={summary.operatingProfit}
+					grossProfit={summary.grossProfit}
+					operationalTotal={summary.operationalTotal}
 					completedRevenue={completedRevenue}
 					period1={period1}
 					period2={period2}
@@ -402,27 +428,44 @@ export default async function ReportsPage({
 					<YearlyProfitChart data={yearlyProfitData} year={Number(yearStr)} />
 					<Card>
 						<CardHeader title={t("expensesThisMonth")} />
-						<div className="p-5">
-							{Object.keys(expenseByCategory).length === 0 ? (
+						<div className="p-5 space-y-4">
+							{Object.keys(jobExpenseByCategory).length === 0 &&
+							Object.keys(opExpenseByCategory).length === 0 ? (
 								<p className="text-sm text-ink-faint">{t("noExpensesThisMonth")}</p>
 							) : (
-								<ul className="space-y-2">
-									{Object.entries(expenseByCategory)
-										.sort(([, a], [, b]) => b - a)
-										.map(([cat, amt]) => {
-											// Stored categories may be labels ("Packing materials") or
-											// keys ("packing_materials"); normalize, then fall back to
-											// the raw value if there's no translation.
-											const key = cat.toLowerCase().replace(/[\s-]+/g, "_");
-											const label = tExpenseCat.has(key as never) ? tExpenseCat(key as never) : cat;
-											return (
-												<li key={cat} className="flex justify-between text-sm">
-													<span className="text-ink-muted">{label}</span>
-													<Money value={amt} className="font-medium" />
-												</li>
-											);
-										})}
-								</ul>
+								(
+									[
+										{ title: t("expenseGroups.job"), data: jobExpenseByCategory },
+										{ title: t("expenseGroups.operational"), data: opExpenseByCategory },
+									] as const
+								).map(({ title, data }) =>
+									Object.keys(data).length === 0 ? null : (
+										<div key={title}>
+											<p className="text-[10px] uppercase tracking-wide text-ink-faint mb-1.5">
+												{title}
+											</p>
+											<ul className="space-y-2">
+												{Object.entries(data)
+													.sort(([, a], [, b]) => b - a)
+													.map(([cat, amt]) => {
+														// Stored categories may be labels ("Packing materials") or
+														// keys ("packing_materials"); normalize, then fall back to
+														// the raw value if there's no translation.
+														const key = cat.toLowerCase().replace(/[\s-]+/g, "_");
+														const label = tExpenseCat.has(key as never)
+															? tExpenseCat(key as never)
+															: cat;
+														return (
+															<li key={cat} className="flex justify-between text-sm">
+																<span className="text-ink-muted">{label}</span>
+																<Money value={amt} className="font-medium" />
+															</li>
+														);
+													})}
+											</ul>
+										</div>
+									),
+								)
 							)}
 						</div>
 					</Card>

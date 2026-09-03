@@ -4,17 +4,20 @@ import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Money } from "@/components/ui";
+import type { ProfitSummary } from "@/lib/profit";
 import { formatRupiah } from "@/lib/utils";
 
-export interface PeriodData {
-	profit: number;
-	revenue: number;
-	cost: number;
+export interface PeriodData extends ProfitSummary {
 	count: number;
 }
 
 interface Props {
-	totalProfit: number;
+	/** The actual bottom line: gross profit − operational overhead. */
+	operatingProfit: number;
+	/** Job gross profit (Σ job current_profit). */
+	grossProfit: number;
+	/** Operational overhead bridging gross → operating. */
+	operationalTotal: number;
 	completedRevenue: number;
 	period1: PeriodData;
 	period2: PeriodData;
@@ -23,7 +26,9 @@ interface Props {
 }
 
 export function ProfitBreakdownCard({
-	totalProfit,
+	operatingProfit,
+	grossProfit,
+	operationalTotal,
 	completedRevenue,
 	period1,
 	period2,
@@ -34,7 +39,9 @@ export function ProfitBreakdownCard({
 	const [open, setOpen] = useState(false);
 	const dialogRef = useRef<HTMLDivElement>(null);
 
-	const margin = completedRevenue > 0 ? Math.round((totalProfit / completedRevenue) * 100) : null;
+	// Headline margin is on the actual (operating) profit.
+	const margin =
+		completedRevenue > 0 ? Math.round((operatingProfit / completedRevenue) * 100) : null;
 
 	const [ymYear, ymMonth] = selectedMonth.split("-").map(Number);
 	const monthLabel = new Intl.DateTimeFormat(undefined, {
@@ -79,18 +86,25 @@ export function ProfitBreakdownCard({
 				</p>
 				<p
 					className={`text-lg sm:text-xl lg:text-2xl font-bold tabular-nums leading-tight ${
-						totalProfit >= 0 ? "text-success" : "text-danger"
+						operatingProfit >= 0 ? "text-success" : "text-danger"
 					}`}
 				>
-					{formatRupiah(totalProfit)}
+					{formatRupiah(operatingProfit)}
 				</p>
 				{margin !== null && (
 					<p
-						className={`text-xs tabular-nums mt-0.5 ${totalProfit >= 0 ? "text-success" : "text-danger"}`}
+						className={`text-xs tabular-nums mt-0.5 ${operatingProfit >= 0 ? "text-success" : "text-danger"}`}
 					>
 						{margin}% {t("kpi.ofRevenue")}
 					</p>
 				)}
+				{/* Show the bridge on the card face so the actual profit is legible at a glance */}
+				<p className="text-[10px] text-ink-faint mt-1 tabular-nums">
+					{t("profitBreakdown.grossLessOverhead", {
+						gross: formatRupiah(grossProfit),
+						overhead: formatRupiah(operationalTotal),
+					})}
+				</p>
 				<p className="text-[10px] text-ink-faint mt-1.5">{t("profitBreakdown.clickHint")}</p>
 			</button>
 
@@ -131,8 +145,9 @@ export function ProfitBreakdownCard({
 
 						<div className="grid grid-cols-2 gap-4">
 							{periods.map(({ label, data }) => {
-								const periodMargin =
-									data.revenue > 0 ? Math.round((data.profit / data.revenue) * 100) : null;
+								// Each period nets to its own operating profit (job cost AND the
+								// overhead incurred in that period subtracted).
+								const isPositive = data.operatingProfit >= 0;
 								return (
 									<div key={label} className="bg-surface-raised border border-line rounded-xl p-4">
 										<p className="text-xs font-medium text-ink-muted mb-3">{label}</p>
@@ -142,29 +157,37 @@ export function ProfitBreakdownCard({
 											</p>
 											<p
 												className={`text-xl font-bold tabular-nums ${
-													data.profit >= 0 ? "text-success" : "text-danger"
+													isPositive ? "text-success" : "text-danger"
 												}`}
 											>
-												{formatRupiah(data.profit)}
+												{formatRupiah(data.operatingProfit)}
 											</p>
-											{periodMargin !== null && (
+											{data.operatingMargin !== null && (
 												<p
 													className={`text-xs tabular-nums ${
-														data.profit >= 0 ? "text-success" : "text-danger"
+														isPositive ? "text-success" : "text-danger"
 													}`}
 												>
-													{periodMargin}%
+													{data.operatingMargin}%
 												</p>
 											)}
 										</div>
 										<div className="space-y-1.5 pt-3 border-t border-line">
 											<div className="flex justify-between text-xs">
 												<span className="text-ink-muted">{t("profitBreakdown.revenue")}</span>
-												<Money value={data.revenue} className="font-medium" />
+												<Money value={data.completedRevenue} className="font-medium" />
 											</div>
 											<div className="flex justify-between text-xs">
 												<span className="text-ink-muted">{t("profitBreakdown.cost")}</span>
-												<Money value={data.cost} tone="danger" className="font-medium" />
+												<Money value={data.jobCost} tone="danger" className="font-medium" />
+											</div>
+											<div className="flex justify-between text-xs">
+												<span className="text-ink-muted">{t("profitBreakdown.overhead")}</span>
+												<Money
+													value={data.operationalTotal}
+													tone="danger"
+													className="font-medium"
+												/>
 											</div>
 											<div className="flex justify-between text-xs">
 												<span className="text-ink-muted">{t("profitBreakdown.jobs")}</span>
@@ -176,13 +199,29 @@ export function ProfitBreakdownCard({
 							})}
 						</div>
 
-						<div className="mt-4 pt-4 border-t border-line flex justify-between items-center">
-							<span className="text-xs text-ink-muted">{t("profitBreakdown.totalProfit")}</span>
-							<Money
-								value={totalProfit}
-								tone={totalProfit >= 0 ? "positive" : "danger"}
-								className="text-base font-bold"
-							/>
+						{/* Monthly reconciliation: ties the per-job table (gross) to the operating
+						    total — gross minus total overhead = the two periods' operating sum. */}
+						<div className="mt-4 pt-4 border-t border-line space-y-1.5">
+							<div className="flex justify-between items-center text-xs">
+								<span className="text-ink-muted">{t("profitBreakdown.grossProfit")}</span>
+								<Money value={grossProfit} className="font-medium" />
+							</div>
+							<div className="flex justify-between items-center text-xs">
+								<span className="text-ink-muted">{t("profitBreakdown.overhead")}</span>
+								<span className="font-medium tabular-nums text-danger">
+									−{formatRupiah(operationalTotal)}
+								</span>
+							</div>
+							<div className="flex justify-between items-center pt-1.5 border-t border-line">
+								<span className="text-xs font-medium text-ink">
+									{t("profitBreakdown.operatingProfit")}
+								</span>
+								<Money
+									value={operatingProfit}
+									tone={operatingProfit >= 0 ? "positive" : "danger"}
+									className="text-base font-bold"
+								/>
+							</div>
 						</div>
 					</div>
 				</div>
