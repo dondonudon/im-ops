@@ -188,6 +188,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 	const invoiceList = (invoices ?? []) as InvoiceRow[];
 	// Leaves the job-level payment recorder may target: standalone/child invoices,
 	// never a master that already has children (payments must land on a leaf).
+	// Issued leaves still owed on — drives the adjustment guard (editing a termin
+	// is the right way to bill a post-issue change, not a job-level adjustment).
+	const openInvoiceCount = billableLeaves(invoiceList).filter(
+		(i) => i.status !== "cancelled" && i.status !== "paid",
+	).length;
 	const leafInvoices = billableLeaves(invoiceList)
 		.filter((i) => i.status !== "cancelled")
 		.map((i) => ({
@@ -352,6 +357,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 						jobId={id}
 						baseRevenue={job.base_revenue ?? 0}
 						adjustments={adjustments ?? []}
+						openInvoiceCount={openInvoiceCount}
 					/>
 
 					{/* Estimation vs Actual */}

@@ -1232,7 +1232,8 @@
 			"charge": "Charge (+)",
 			"discount": "Discount (−)",
 			"amount": "Amount",
-			"reason": "Reason"
+			"reason": "Reason",
+			"issuedWarning": "This job has {count} unpaid invoice(s). Adjustments change the job total but do not update invoices already issued. To bill this change or discount, edit the termin amount on the invoice instead."
 		},
 		"jobInvoices": {
 			"title": "Invoices",

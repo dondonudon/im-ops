@@ -331,6 +331,22 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 
 ## Active development context (as of 2026-08)
 
+- **Editable termin amount + post-issue adjustment guard** (migration `012`):
+  fixes the case where a job-level discount applied *after* a termin was issued
+  left the invoice stale (paid < frozen `total_amount` → stuck `partially_paid`).
+  Two parts: (a) both `InvoiceTerminPanel` (termin rows) and `InvoiceTotalEditor`
+  (the invoice detail total row — covers a master grand total left stale by a later
+  adjustment AND a standalone/un-split invoice) now inline-edit `total_amount` via
+  direct PostgREST `update`; migration `012` adds an `after_invoice_total_change`
+  trigger so editing `total_amount` re-runs `recompute_invoice_paid` and re-derives
+  status (previously only payment writes did — no recursion: recompute never sets
+  `total_amount`). (b) `JobAdjustmentsPanel`
+  shows a non-blocking warning (`panels.adjustments.issuedWarning`) when the job
+  has open (unpaid, non-cancelled) leaf invoices, steering the operator to edit the
+  termin instead of stacking a job adjustment. Job-level AR (`job_outstanding`,
+  `jobs.revenue`) was already correct; this aligns the per-invoice/leaf layer.
+  **Apply migration `012` to Supabase before deploying.**
+
 - **Evidence galleries support video** (migration `011`): lead photos, survey
   media, and job media now accept video alongside images. `lead_photos` gained a
   `media_type ('photo'|'video')` column; `job_media`'s check widened to

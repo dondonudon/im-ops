@@ -29,10 +29,17 @@ export function JobAdjustmentsPanel({
 	jobId,
 	baseRevenue,
 	adjustments: initial,
+	openInvoiceCount = 0,
 }: {
 	jobId: string;
 	baseRevenue: number;
 	adjustments: Adjustment[];
+	/**
+	 * Count of issued, not-yet-fully-paid leaf invoices on this job. When > 0 we
+	 * warn that adjustments move the job total but do NOT touch invoices already
+	 * sent — the operator should edit the relevant termin amount instead.
+	 */
+	openInvoiceCount?: number;
 }) {
 	const router = useRouter();
 	const t = useTranslations("panels.adjustments");
@@ -161,6 +168,11 @@ export function JobAdjustmentsPanel({
 					autoComplete="off"
 				>
 					{error && <FormError>{error}</FormError>}
+					{openInvoiceCount > 0 && (
+						<p className="rounded-lg bg-warning-bg px-3 py-2 text-xs text-warning-text">
+							{t("issuedWarning", { count: openInvoiceCount })}
+						</p>
+					)}
 					<div className="grid grid-cols-2 gap-3">
 						<Field label={t("kind")} htmlFor="adj-kind">
 							<Select

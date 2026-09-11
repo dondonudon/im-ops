@@ -1,4 +1,5 @@
 "use client";
+import { Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
@@ -47,6 +48,12 @@ export function InvoiceTerminPanel({
 	const [showForm, setShowForm] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [form, setForm] = useState({ amount: "", label: "", due_date: "" });
+	// Inline edit of an existing termin's amount/label — for post-issue discounts
+	// or scope changes on an open termin. The DB `after_invoice_total_change`
+	// trigger (migration 012) re-derives status, so lowering total to match a
+	// payment flips the termin to 'paid'.
+	const [editingId, setEditingId] = useState<string | null>(null);
+	const [editForm, setEditForm] = useState({ amount: "", label: "" });
 
 	const sum = splitSumStatus(
 		termins.map((c) => c.total_amount),
@@ -104,6 +111,35 @@ export function InvoiceTerminPanel({
 		}
 	}
 
+	function openEdit(c: TerminChild) {
+		setEditingId(c.id);
+		setEditForm({ amount: String(c.total_amount), label: c.label ?? "" });
+		setError(null);
+	}
+
+	async function handleSaveEdit(e: React.FormEvent) {
+		e.preventDefault();
+		if (!editingId) return;
+		const amount = Number(editForm.amount);
+		if (!amount || amount <= 0) return;
+		setSaving(true);
+		setError(null);
+		try {
+			const supabase = createClient();
+			const { error: updErr } = await supabase
+				.from("invoices")
+				.update({ total_amount: amount, label: editForm.label.trim() || null })
+				.eq("id", editingId);
+			if (updErr) throw updErr;
+			setEditingId(null);
+			startTransition(() => router.refresh());
+		} catch (err: unknown) {
+			setError(err instanceof Error ? err.message : "Error");
+		} finally {
+			setSaving(false);
+		}
+	}
+
 	return (
 		<Card className="p-4 space-y-3">
 			<p className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
@@ -113,26 +149,88 @@ export function InvoiceTerminPanel({
 
 			{termins.length > 0 && (
 				<div className="divide-y divide-line -mx-4">
-					{termins.map((c) => (
-						<div key={c.id} className="flex items-center justify-between gap-2 px-4 py-3 text-sm">
-							<div className="min-w-0">
-								<div className="flex items-center gap-2">
-									<span className="text-xs text-ink-muted">{c.label ?? "—"}</span>
-									<Badge tone={toneFor("invoice", c.status)}>{tStatus(c.status as never)}</Badge>
+					{termins.map((c) =>
+						editingId === c.id ? (
+							<form
+								key={c.id}
+								onSubmit={handleSaveEdit}
+								className="px-4 py-3 space-y-3"
+								autoComplete="off"
+							>
+								<Field label={t("labelField")} htmlFor={`edit-label-${c.id}`}>
+									<Input
+										id={`edit-label-${c.id}`}
+										type="text"
+										value={editForm.label}
+										onChange={(e) => setEditForm((p) => ({ ...p, label: e.target.value }))}
+										placeholder="DP / Pelunasan"
+									/>
+								</Field>
+								<Field label={t("amount")} htmlFor={`edit-amount-${c.id}`} required>
+									<NumericInput
+										id={`edit-amount-${c.id}`}
+										required
+										value={Number(editForm.amount) || 0}
+										onChange={(v) => setEditForm((p) => ({ ...p, amount: v > 0 ? String(v) : "" }))}
+										className={CONTROL_CLASS}
+									/>
+								</Field>
+								<div className="flex gap-2">
+									<Button
+										type="submit"
+										variant="primary"
+										size="sm"
+										loading={saving}
+										disabled={saving || isPending}
+										className="flex-1"
+									>
+										{saving ? tCommonButtons("saving") : tCommonButtons("save")}
+									</Button>
+									<Button
+										type="button"
+										variant="secondary"
+										size="sm"
+										onClick={() => setEditingId(null)}
+										disabled={saving || isPending}
+									>
+										{tCommonButtons("cancel")}
+									</Button>
 								</div>
-								<PendingLink
-									href={`/invoices/${c.id}`}
-									className="font-mono text-xs text-primary-text hover:underline"
-								>
-									{c.invoice_number}
-								</PendingLink>
+							</form>
+						) : (
+							<div key={c.id} className="flex items-center justify-between gap-2 px-4 py-3 text-sm">
+								<div className="min-w-0">
+									<div className="flex items-center gap-2">
+										<span className="text-xs text-ink-muted">{c.label ?? "—"}</span>
+										<Badge tone={toneFor("invoice", c.status)}>{tStatus(c.status as never)}</Badge>
+									</div>
+									<PendingLink
+										href={`/invoices/${c.id}`}
+										className="font-mono text-xs text-primary-text hover:underline"
+									>
+										{c.invoice_number}
+									</PendingLink>
+								</div>
+								<div className="flex items-center gap-2 shrink-0">
+									<div className="text-right">
+										<Money value={c.total_amount} className="block font-medium" />
+										<Money value={c.paid_amount} tone="positive" className="block text-xs" />
+									</div>
+									{c.status !== "cancelled" && (
+										<button
+											type="button"
+											onClick={() => openEdit(c)}
+											disabled={saving || isPending}
+											aria-label={tCommonButtons("edit")}
+											className="text-ink-faint hover:text-ink transition-colors disabled:opacity-60"
+										>
+											<Pencil size={14} aria-hidden="true" />
+										</button>
+									)}
+								</div>
 							</div>
-							<div className="text-right shrink-0">
-								<Money value={c.total_amount} className="block font-medium" />
-								<Money value={c.paid_amount} tone="positive" className="block text-xs" />
-							</div>
-						</div>
-					))}
+						),
+					)}
 				</div>
 			)}
 

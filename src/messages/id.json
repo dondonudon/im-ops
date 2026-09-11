@@ -1232,7 +1232,8 @@
 			"charge": "Biaya (+)",
 			"discount": "Diskon (−)",
 			"amount": "Jumlah",
-			"reason": "Alasan"
+			"reason": "Alasan",
+			"issuedWarning": "Job ini punya {count} faktur belum lunas. Penyesuaian mengubah total job, tetapi tidak memperbarui faktur yang sudah terbit. Untuk menagih perubahan atau diskon ini, edit jumlah termin pada faktur."
 		},
 		"jobInvoices": {
 			"title": "Faktur",

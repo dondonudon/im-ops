@@ -3,10 +3,11 @@ import { getTranslations } from "next-intl/server";
 import { AttachablePayments } from "@/components/invoices/AttachablePayments";
 import { InvoicePDFDownloadButton } from "@/components/invoices/InvoicePDFDownloadButton";
 import { InvoiceTerminPanel, type TerminChild } from "@/components/invoices/InvoiceTerminPanel";
+import { InvoiceTotalEditor } from "@/components/invoices/InvoiceTotalEditor";
 import { PaymentsPanel } from "@/components/invoices/PaymentsPanel";
 import { BackLink } from "@/components/shared/BackLink";
 import { PendingLink } from "@/components/shared/PendingLink";
-import { Badge, Card, Money, PageHeader, toneFor } from "@/components/ui";
+import { Badge, Card, PageHeader, toneFor } from "@/components/ui";
 import { groupLeadAddresses, type LeadAddressRow } from "@/lib/leadAddresses";
 import { buildCompanySettings, buildInvoiceTemplateSettings } from "@/lib/pdfSettings";
 import { createClient } from "@/lib/supabase/server";
@@ -249,9 +250,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 								<span className="whitespace-pre-line text-ink">{invoice.notes}</span>
 							</div>
 						)}
-						<div className="pt-2 border-t border-line flex justify-between font-bold text-base">
+						<div className="pt-2 border-t border-line flex justify-between items-center gap-2 font-bold text-base">
 							<span className="text-ink">{t("total")}</span>
-							<Money value={invoice.total_amount} tone="positive" />
+							<InvoiceTotalEditor
+								invoiceId={invoice.id}
+								total={invoice.total_amount}
+								editable={invoice.status !== "cancelled"}
+							/>
 						</div>
 					</Card>
 				</div>
