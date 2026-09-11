@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { NumericInput } from "@/components/shared/NumericInput";
 import { Button, FormError, Money } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { formatRupiah } from "@/lib/utils";
 
 const CONTROL_CLASS =
 	"w-40 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent disabled:opacity-60 disabled:cursor-not-allowed";
@@ -22,15 +23,22 @@ const CONTROL_CLASS =
  */
 export function InvoiceTotalEditor({
 	invoiceId,
+	jobId,
+	invoiceNumber,
 	total,
+	paid,
 	editable,
 }: {
 	invoiceId: string;
+	jobId: string;
+	invoiceNumber: string;
 	total: number;
+	paid: number;
 	editable: boolean;
 }) {
 	const router = useRouter();
 	const tCommonButtons = useTranslations("common.buttons");
+	const tPage = useTranslations("pages.invoiceDetail");
 	const [isPending, startTransition] = useTransition();
 	const [editing, setEditing] = useState(false);
 	const [saving, setSaving] = useState(false);
@@ -43,6 +51,11 @@ export function InvoiceTotalEditor({
 		e.preventDefault();
 		const n = Number(amount);
 		if (!n || n <= 0) return;
+		// Floor mirror of the DB guard (migration 013): never below cash collected.
+		if (n < paid) {
+			setError(tPage("belowPaid", { paid: formatRupiah(paid) }));
+			return;
+		}
 		setSaving(true);
 		setError(null);
 		try {
@@ -52,6 +65,16 @@ export function InvoiceTotalEditor({
 				.update({ total_amount: n })
 				.eq("id", invoiceId);
 			if (updErr) throw updErr;
+			// Audit trail: record the total change on the job timeline.
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+			await supabase.from("job_timeline").insert({
+				job_id: jobId,
+				event_type: "invoice_total_edited",
+				notes: `${invoiceNumber}: ${formatRupiah(total)} → ${formatRupiah(n)}`,
+				logged_by: user?.id ?? null,
+			});
 			setEditing(false);
 			startTransition(() => router.refresh());
 		} catch (err: unknown) {

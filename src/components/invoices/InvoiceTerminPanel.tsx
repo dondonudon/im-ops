@@ -8,6 +8,7 @@ import { PendingLink } from "@/components/shared/PendingLink";
 import { Badge, Button, Card, Field, FormError, Input, Money, toneFor } from "@/components/ui";
 import { splitSumStatus } from "@/lib/invoices";
 import { createClient } from "@/lib/supabase/client";
+import { formatRupiah } from "@/lib/utils";
 
 export type TerminChild = {
 	id: string;
@@ -120,8 +121,14 @@ export function InvoiceTerminPanel({
 	async function handleSaveEdit(e: React.FormEvent) {
 		e.preventDefault();
 		if (!editingId) return;
+		const child = termins.find((c) => c.id === editingId);
 		const amount = Number(editForm.amount);
 		if (!amount || amount <= 0) return;
+		// Floor mirror of the DB guard (migration 013): never below cash collected.
+		if (child && amount < child.paid_amount) {
+			setError(t("belowPaid", { paid: formatRupiah(child.paid_amount) }));
+			return;
+		}
 		setSaving(true);
 		setError(null);
 		try {
@@ -131,6 +138,16 @@ export function InvoiceTerminPanel({
 				.update({ total_amount: amount, label: editForm.label.trim() || null })
 				.eq("id", editingId);
 			if (updErr) throw updErr;
+			// Audit trail: record the total change on the job timeline.
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+			await supabase.from("job_timeline").insert({
+				job_id: jobId,
+				event_type: "invoice_total_edited",
+				notes: `${child?.invoice_number ?? ""}: ${formatRupiah(child?.total_amount ?? 0)} → ${formatRupiah(amount)}`,
+				logged_by: user?.id ?? null,
+			});
 			setEditingId(null);
 			startTransition(() => router.refresh());
 		} catch (err: unknown) {

@@ -896,7 +896,8 @@
 			"total": "Total",
 			"downloadInvoicePdf": "Unduh PDF Faktur",
 			"backToList": "Tagihan",
-			"terminBreakdown": "Rincian termin"
+			"terminBreakdown": "Rincian termin",
+			"belowPaid": "Jumlah tidak boleh di bawah yang sudah dibayar ({paid})."
 		},
 		"estimation": {
 			"newTitle": "Estimasi Baru",
@@ -1244,7 +1245,8 @@
 			"labelField": "Label",
 			"amount": "Jumlah",
 			"dueDate": "Jatuh tempo",
-			"sumWarning": "Jumlah termin ({sum}) ≠ total master ({total})"
+			"sumWarning": "Jumlah termin ({sum}) ≠ total master ({total})",
+			"belowPaid": "Jumlah tidak boleh di bawah yang sudah dibayar ({paid})."
 		},
 		"operationalExpenses": {
 			"title": "Biaya operasional",
@@ -1432,7 +1434,8 @@
 			"job_completed": "Pekerjaan selesai",
 			"custom": "Catatan",
 			"note": "Catatan",
-			"revenue_adjusted": "Penyesuaian pendapatan"
+			"revenue_adjusted": "Penyesuaian pendapatan",
+			"invoice_total_edited": "Total faktur diubah"
 		}
 	},
 	"offline": {

@@ -254,7 +254,10 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 							<span className="text-ink">{t("total")}</span>
 							<InvoiceTotalEditor
 								invoiceId={invoice.id}
+								jobId={invoice.job_id}
+								invoiceNumber={invoice.invoice_number}
 								total={invoice.total_amount}
+								paid={invoice.paid_amount}
 								editable={invoice.status !== "cancelled"}
 							/>
 						</div>

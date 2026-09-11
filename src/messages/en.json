@@ -896,7 +896,8 @@
 			"total": "Total",
 			"downloadInvoicePdf": "Download Invoice PDF",
 			"backToList": "Invoices",
-			"terminBreakdown": "Termin breakdown"
+			"terminBreakdown": "Termin breakdown",
+			"belowPaid": "Amount can't be below what's already paid ({paid})."
 		},
 		"estimation": {
 			"newTitle": "New Estimation",
@@ -1244,7 +1245,8 @@
 			"labelField": "Label",
 			"amount": "Amount",
 			"dueDate": "Due date",
-			"sumWarning": "Termin total ({sum}) ≠ master total ({total})"
+			"sumWarning": "Termin total ({sum}) ≠ master total ({total})",
+			"belowPaid": "Amount can't be below what's already paid ({paid})."
 		},
 		"operationalExpenses": {
 			"title": "Operational expenses",
@@ -1432,7 +1434,8 @@
 			"job_completed": "Job completed",
 			"custom": "Custom note",
 			"note": "Note",
-			"revenue_adjusted": "Revenue adjusted"
+			"revenue_adjusted": "Revenue adjusted",
+			"invoice_total_edited": "Invoice total edited"
 		}
 	},
 	"offline": {

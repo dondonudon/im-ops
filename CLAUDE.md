@@ -345,7 +345,15 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
   has open (unpaid, non-cancelled) leaf invoices, steering the operator to edit the
   termin instead of stacking a job adjustment. Job-level AR (`job_outstanding`,
   `jobs.revenue`) was already correct; this aligns the per-invoice/leaf layer.
-  **Apply migration `012` to Supabase before deploying.**
+  **Guard + audit** (migration `013`): a `before_invoice_total_valid` trigger floors
+  edits at `total_amount >= paid_amount` and `> 0` (fires only on INSERT/UPDATE OF
+  `total_amount`, so the payment path — which only writes `paid_amount` — and
+  legitimate overpayments are untouched); both editors mirror the floor client-side
+  for a friendly message and log every total change to `job_timeline`
+  (`event_type = 'invoice_total_edited'`). Role-gating who may edit is deferred to
+  `docs/rbac-plan.md`. Also: `src/lib/supabase/client.ts` now memoizes the browser
+  client (one instance) to stop the noisy Web Lock `LockManager` auth warning.
+  **Apply migrations `012` and `013` to Supabase before deploying.**
 
 - **Evidence galleries support video** (migration `011`): lead photos, survey
   media, and job media now accept video alongside images. `lead_photos` gained a
