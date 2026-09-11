@@ -1,136 +1,156 @@
 "use client";
+import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { CompanyHeader, DocFooter, SignatureSeal, StatusPill } from "@/components/pdf/PdfChrome";
+import { PDF_COLOR, PDF_PAGE_PAD, type PdfTone, registerPdfFonts } from "@/lib/pdf/theme";
 import {
-	Document,
-	Font,
-	Link,
-	Page,
-	Image as PdfImage,
-	StyleSheet,
-	Text,
-	View,
-} from "@react-pdf/renderer";
-import { formatCustomerName, formatIndonesianDate, formatRupiahLetter } from "@/lib/utils";
+	formatCustomerName,
+	formatIndonesianDate,
+	formatRupiah,
+	numberToIndonesianWords,
+} from "@/lib/utils";
 
-Font.registerHyphenationCallback((word) => [word]);
+registerPdfFonts();
+
+/** Maps an invoice status → a status pill (label + tone). */
+function statusPill(status: string): { label: string; tone: PdfTone } {
+	switch (status) {
+		case "paid":
+			return { label: "Lunas", tone: "success" };
+		case "partially_paid":
+			return { label: "Dibayar Sebagian", tone: "warn" };
+		case "overdue":
+			return { label: "Jatuh Tempo", tone: "danger" };
+		case "cancelled":
+			return { label: "Dibatalkan", tone: "neutral" };
+		default:
+			return { label: "Belum Dibayar", tone: "danger" };
+	}
+}
 
 // Scale-aware styles. `s` (fitScale) shrinks font sizes and vertical spacing so
-// an over-long invoice can be compacted back onto one page (see pdfFit.ts).
-// Horizontal metrics, borders and the fixed footer chrome stay constant.
+// an over-long invoice can be compacted onto one page (see pdfFit.ts).
 function makeStyles(s: number) {
 	return StyleSheet.create({
 		page: {
-			fontSize: 11 * s,
-			fontFamily: "Helvetica",
-			paddingTop: 28 * s,
-			paddingBottom: 36,
-			paddingHorizontal: 56,
-			color: "#1f2937",
+			fontFamily: "Inter",
+			fontSize: 9.5 * s,
+			color: PDF_COLOR.ink,
+			paddingTop: 34 * s,
+			paddingBottom: 46,
+			paddingHorizontal: PDF_PAGE_PAD,
+			// NOTE: never set `lineHeight` on the Page style — react-pdf then drops
+			// the fixed absolutely-positioned footer. Set it per text block instead.
 		},
-		// ── Header ──────────────────────────────────────────────────────────────
-		header: { alignItems: "center", marginBottom: 6 * s },
-		logo: { width: 72 * s, height: 72 * s, marginBottom: 4 * s, objectFit: "contain" },
-		tagline: {
-			fontSize: 8 * s,
-			textAlign: "center",
-			color: "#374151",
-			marginTop: 2,
-			letterSpacing: 0.2,
+		// ── Title + meta ────────────────────────────────────────────────────────
+		titleRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 16 * s },
+		titleLeft: { flex: 1, paddingRight: 16 },
+		title: {
+			fontSize: 22 * s,
+			lineHeight: 1.2,
+			fontWeight: 700,
+			color: PDF_COLOR.brand,
+			letterSpacing: 0.5,
 		},
-		headerAddress: { fontSize: 8 * s, textAlign: "center", color: "#374151", marginTop: 1 },
-		divider: {
-			borderBottomWidth: 0.5,
-			borderBottomColor: "#374151",
-			marginBottom: 10 * s,
-			marginTop: 6 * s,
+		titleSub: { fontSize: 9.5 * s, color: PDF_COLOR.inkMuted, marginTop: 4 * s },
+		metaCard: {
+			width: 190,
+			borderWidth: 0.75,
+			borderColor: PDF_COLOR.line,
+			borderRadius: 5,
+			padding: 9 * s,
 		},
-		// ── Invoice title ────────────────────────────────────────────────────────
-		invoiceTitleBlock: { alignItems: "center", marginBottom: 12 * s },
-		invoiceTitle: {
-			fontSize: 13 * s,
-			fontFamily: "Helvetica-Bold",
-			textDecoration: "underline",
-			textAlign: "center",
+		metaRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 3 * s },
+		metaLabel: { fontSize: 8 * s, color: PDF_COLOR.inkMuted },
+		metaValue: { fontSize: 8.5 * s, fontWeight: 600, color: PDF_COLOR.ink, textAlign: "right" },
+		pillWrap: { marginTop: 4 * s, alignItems: "flex-end" },
+		// ── Bill-to ─────────────────────────────────────────────────────────────
+		billTo: { marginBottom: 12 * s },
+		billLabel: {
+			fontSize: 7.5 * s,
+			fontWeight: 600,
+			color: PDF_COLOR.inkFaint,
+			letterSpacing: 0.6,
+			textTransform: "uppercase",
+			marginBottom: 3 * s,
 		},
-		invoiceNumber: { fontSize: 11 * s, textAlign: "center", marginTop: 3 * s },
-		// ── Meta ────────────────────────────────────────────────────────────────
-		date: { fontSize: 11 * s, marginBottom: 12 * s },
-		recipient: { marginBottom: 12 * s },
-		recipientLabel: { fontSize: 11 * s, marginBottom: 2 * s },
-		recipientName: { fontSize: 11 * s, fontFamily: "Helvetica-Bold" },
-		// ── Table ────────────────────────────────────────────────────────────────
+		billName: { fontSize: 11 * s, fontWeight: 600, color: PDF_COLOR.ink },
+		billLine: { fontSize: 9 * s, color: PDF_COLOR.inkMuted, marginTop: 1 },
+		// ── Table ───────────────────────────────────────────────────────────────
 		table: { marginBottom: 12 * s },
-		tableHeaderRow: {
+		thead: {
 			flexDirection: "row",
-			borderTopWidth: 0.5,
-			borderBottomWidth: 0.5,
-			borderLeftWidth: 0.5,
-			borderRightWidth: 0.5,
-			borderColor: "#374151",
+			backgroundColor: PDF_COLOR.brandTint,
+			borderBottomWidth: 1,
+			borderBottomColor: PDF_COLOR.brand,
+			paddingVertical: 5 * s,
 		},
-		tableRow: {
-			flexDirection: "row",
-			borderBottomWidth: 0.5,
-			borderLeftWidth: 0.5,
-			borderRightWidth: 0.5,
-			borderColor: "#374151",
-		},
-		tableTotalRow: {
+		row: {
 			flexDirection: "row",
 			borderBottomWidth: 0.5,
-			borderLeftWidth: 0.5,
-			borderRightWidth: 0.5,
-			borderColor: "#374151",
+			borderBottomColor: PDF_COLOR.line,
+			paddingVertical: 7 * s,
 		},
-		// Column widths
-		colNo: { width: 28, textAlign: "center", paddingVertical: 4 * s, paddingHorizontal: 4 },
-		colDesc: { flex: 1, paddingVertical: 4 * s, paddingHorizontal: 6 },
-		colUnit: { width: 44, textAlign: "center", paddingVertical: 4 * s, paddingHorizontal: 4 },
-		colHarga: { width: 90, textAlign: "right", paddingVertical: 4 * s, paddingHorizontal: 6 },
-		colNilai: { width: 90, textAlign: "right", paddingVertical: 4 * s, paddingHorizontal: 6 },
-		// Vertical dividers inside rows
-		cellBorder: { borderLeftWidth: 0.5, borderLeftColor: "#374151" },
-		headerCellText: { fontSize: 10 * s, fontFamily: "Helvetica-Bold", textAlign: "center" },
-		cellText: { fontSize: 10 * s },
-		totalLabelCell: {
+		th: {
+			fontSize: 8 * s,
+			fontWeight: 700,
+			color: PDF_COLOR.brand,
+			letterSpacing: 0.4,
+			textTransform: "uppercase",
+		},
+		td: { fontSize: 9.5 * s, color: PDF_COLOR.ink },
+		colNo: { width: 22, textAlign: "center", paddingHorizontal: 2 },
+		colDesc: { flex: 1, paddingHorizontal: 6 },
+		colQty: { width: 34, textAlign: "center", paddingHorizontal: 2 },
+		colPrice: { width: 84, textAlign: "right", paddingHorizontal: 6 },
+		colAmount: { width: 88, textAlign: "right", paddingHorizontal: 6 },
+		// ── Footer section (bank + totals) ──────────────────────────────────────
+		lower: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 * s },
+		bankBox: {
 			flex: 1,
-			textAlign: "right",
-			paddingVertical: 4 * s,
-			paddingHorizontal: 6,
-			fontFamily: "Helvetica-Bold",
-			fontSize: 10 * s,
+			marginRight: 16,
+			backgroundColor: PDF_COLOR.surfaceSunken,
+			borderRadius: 5,
+			padding: 10 * s,
 		},
-		totalValueCell: {
-			width: 90,
-			textAlign: "right",
-			paddingVertical: 4 * s,
-			paddingHorizontal: 6,
-			fontFamily: "Helvetica-Bold",
-			fontSize: 10 * s,
+		bankHeading: {
+			fontSize: 7.5 * s,
+			fontWeight: 700,
+			color: PDF_COLOR.inkMuted,
+			letterSpacing: 0.5,
+			textTransform: "uppercase",
+			marginBottom: 4 * s,
 		},
-		// ── Bank info ────────────────────────────────────────────────────────────
-		bankSection: { marginBottom: 14 * s },
-		bankText: { fontSize: 11 * s, marginBottom: 1 },
-		// ── Signature ────────────────────────────────────────────────────────────
-		signatureRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 4 * s },
-		signBlock: { width: 200, alignItems: "center" },
-		signLabel: { fontSize: 11 * s, marginBottom: 1 },
-		signCompany: { fontSize: 11 * s, fontFamily: "Helvetica-Bold", marginBottom: 8 * s },
-		qrSeal: { width: 80 * s, height: 80 * s, marginBottom: 4 * s },
-		qrSealLabel: { fontSize: 7 * s, color: "#6b7280", textAlign: "center", marginBottom: 8 * s },
-		signName: { fontSize: 11 * s },
-		signRole: { fontSize: 11 * s },
-		// ── Footer ───────────────────────────────────────────────────────────────
-		footer: {
-			position: "absolute",
-			bottom: 18,
-			left: 56,
-			right: 56,
+		bankRow: { flexDirection: "row", marginTop: 2 * s },
+		bankKey: { width: 66, fontSize: 8.5 * s, color: PDF_COLOR.inkMuted },
+		bankVal: { flex: 1, fontSize: 9 * s, fontWeight: 500, color: PDF_COLOR.ink },
+		totals: { width: 205 },
+		totalRow: {
 			flexDirection: "row",
-			alignItems: "center",
+			justifyContent: "space-between",
+			paddingVertical: 3 * s,
+			paddingHorizontal: 2,
 		},
-		footerDocNumber: { flex: 1, fontSize: 7, color: "#9ca3af", textAlign: "left" },
-		footerText: { flex: 1, fontSize: 8, color: "#dc2626", textAlign: "center" },
-		footerPage: { flex: 1, fontSize: 7, color: "#9ca3af", textAlign: "right" },
+		totalLabel: { fontSize: 9 * s, color: PDF_COLOR.inkMuted },
+		totalValue: { fontSize: 9 * s, fontWeight: 500, color: PDF_COLOR.ink },
+		paidValue: { fontSize: 9 * s, fontWeight: 500, color: PDF_COLOR.successText },
+		grandBar: {
+			flexDirection: "row",
+			justifyContent: "space-between",
+			alignItems: "center",
+			backgroundColor: PDF_COLOR.brand,
+			borderRadius: 5,
+			paddingVertical: 7 * s,
+			paddingHorizontal: 10 * s,
+			marginTop: 4 * s,
+		},
+		grandLabel: { fontSize: 9 * s, fontWeight: 600, color: PDF_COLOR.white },
+		grandValue: { fontSize: 12 * s, fontWeight: 700, color: PDF_COLOR.white },
+		terbilang: {
+			fontSize: 8.5 * s,
+			fontStyle: "italic",
+			color: PDF_COLOR.inkMuted,
+			marginBottom: 4 * s,
+		},
 	});
 }
 
@@ -144,6 +164,12 @@ export interface InvoicePDFProps {
 		label?: string | null;
 		/** Master invoice number this termin belongs to (optional). */
 		parentNumber?: string | null;
+		/** Amount already collected against this invoice (optional). */
+		paid_amount?: number | null;
+		/** Due date (optional). */
+		due_date?: string | null;
+		/** Lifecycle status — drives the status pill (optional). */
+		status?: string | null;
 	};
 	customer: {
 		prefix: string | null;
@@ -187,7 +213,6 @@ export function InvoicePDF({
 	fitScale = 1,
 }: InvoicePDFProps) {
 	const styles = makeStyles(fitScale);
-	const displayDate = `${company.city}, ${formatIndonesianDate(invoice.created_at)}`;
 
 	// Build the line-item description
 	const pickupText = lead.pickups.join(", ");
@@ -202,152 +227,125 @@ export function InvoicePDF({
 				? `Pindah barang dari ${pickupText}`
 				: "Jasa pindah barang");
 
-	const totalFormatted = formatRupiahLetter(invoice.total_amount);
+	const total = invoice.total_amount;
+	const paid = Math.max(0, invoice.paid_amount ?? 0);
+	const outstanding = Math.max(0, total - paid);
+	const hasPaid = paid > 0 && paid < total;
+	const derivedStatus =
+		invoice.status ?? (paid >= total && total > 0 ? "paid" : paid > 0 ? "partially_paid" : "sent");
+	const pill = statusPill(derivedStatus);
+	const amountWords = `${numberToIndonesianWords(Math.round(total))} rupiah`;
 
 	return (
 		<Document title={invoice.invoice_number} author={company.name} subject="Invoice">
 			<Page size="A4" style={styles.page}>
-				{/* Header */}
-				<View style={styles.header}>
-					{company.logo ? <PdfImage src={company.logo} style={styles.logo} /> : null}
-					<Text style={styles.tagline}>{company.tagline}</Text>
-					<Text style={styles.headerAddress}>
-						{[company.address, company.phone ? `Telp ${company.phone}` : ""]
-							.filter(Boolean)
-							.join(", ")}
-					</Text>
+				<CompanyHeader company={company} scale={fitScale} />
+
+				{/* Title + meta card */}
+				<View style={styles.titleRow}>
+					<View style={styles.titleLeft}>
+						<Text style={styles.title}>INVOICE</Text>
+						<Text style={styles.titleSub}>
+							{invoice.label ? invoice.label : "Tagihan Jasa Pindah"}
+							{invoice.parentNumber ? ` · Termin dari ${invoice.parentNumber}` : ""}
+						</Text>
+					</View>
+					<View style={styles.metaCard}>
+						<View style={styles.metaRow}>
+							<Text style={styles.metaLabel}>No. Invoice</Text>
+							<Text style={styles.metaValue}>{invoice.invoice_number}</Text>
+						</View>
+						<View style={styles.metaRow}>
+							<Text style={styles.metaLabel}>Tanggal</Text>
+							<Text style={styles.metaValue}>{formatIndonesianDate(invoice.created_at)}</Text>
+						</View>
+						{invoice.due_date ? (
+							<View style={styles.metaRow}>
+								<Text style={styles.metaLabel}>Jatuh Tempo</Text>
+								<Text style={styles.metaValue}>{formatIndonesianDate(invoice.due_date)}</Text>
+							</View>
+						) : null}
+						<View style={styles.pillWrap}>
+							<StatusPill label={pill.label} tone={pill.tone} scale={fitScale} />
+						</View>
+					</View>
 				</View>
-				<View style={styles.divider} />
 
-				{/* Invoice title + number */}
-				<View style={styles.invoiceTitleBlock}>
-					<Text style={styles.invoiceTitle}>INVOICE</Text>
-					<Text style={styles.invoiceNumber}>
-						No : {invoice.invoice_number}
-						{invoice.label ? ` · ${invoice.label}` : ""}
-					</Text>
-					{invoice.parentNumber ? (
-						<Text style={styles.invoiceNumber}>Termin dari {invoice.parentNumber}</Text>
-					) : null}
-				</View>
-
-				{/* Date */}
-				<Text style={styles.date}>{displayDate}</Text>
-
-				{/* Recipient */}
-				<View style={styles.recipient}>
-					<Text style={styles.recipientLabel}>Kepada Yth,</Text>
-					<Text style={styles.recipientName}>
-						{formatCustomerName(customer.prefix, customer.name)}
-					</Text>
+				{/* Bill to */}
+				<View style={styles.billTo}>
+					<Text style={styles.billLabel}>Ditagihkan kepada</Text>
+					<Text style={styles.billName}>{formatCustomerName(customer.prefix, customer.name)}</Text>
 					{customer.type === "corporate" && customer.company_name ? (
-						<Text style={styles.recipientName}>{customer.company_name}</Text>
+						<Text style={styles.billLine}>{customer.company_name}</Text>
 					) : null}
-					{customer.address ? <Text style={styles.recipientName}>{customer.address}</Text> : null}
+					{customer.address ? <Text style={styles.billLine}>{customer.address}</Text> : null}
 				</View>
 
-				{/* Table */}
+				{/* Line items */}
 				<View style={styles.table}>
-					{/* Header row */}
-					<View style={styles.tableHeaderRow}>
-						<Text style={[styles.colNo, { fontFamily: "Helvetica-Bold", fontSize: 10 }]}>No</Text>
-						<Text
-							style={[
-								styles.colDesc,
-								styles.cellBorder,
-								{ fontFamily: "Helvetica-Bold", fontSize: 10, textAlign: "center" },
-							]}
-						>
-							Deskripsi
-						</Text>
-						<Text
-							style={[
-								styles.colUnit,
-								styles.cellBorder,
-								{ fontFamily: "Helvetica-Bold", fontSize: 10 },
-							]}
-						>
-							Unit
-						</Text>
-						<Text
-							style={[
-								styles.colHarga,
-								styles.cellBorder,
-								{ fontFamily: "Helvetica-Bold", fontSize: 10, textAlign: "center" },
-							]}
-						>
-							Harga
-						</Text>
-						<Text
-							style={[
-								styles.colNilai,
-								styles.cellBorder,
-								{ fontFamily: "Helvetica-Bold", fontSize: 10, textAlign: "center" },
-							]}
-						>
-							Nilai
-						</Text>
+					<View style={styles.thead}>
+						<Text style={[styles.th, styles.colNo]}>No</Text>
+						<Text style={[styles.th, styles.colDesc]}>Deskripsi</Text>
+						<Text style={[styles.th, styles.colQty]}>Qty</Text>
+						<Text style={[styles.th, styles.colPrice]}>Harga</Text>
+						<Text style={[styles.th, styles.colAmount]}>Jumlah</Text>
 					</View>
-
-					{/* Data row */}
-					<View style={styles.tableRow}>
-						<Text style={[styles.colNo, styles.cellText]}>1</Text>
-						<Text style={[styles.colDesc, styles.cellBorder, styles.cellText]}>{description}</Text>
-						<Text style={[styles.colUnit, styles.cellBorder, styles.cellText]}>1</Text>
-						<Text style={[styles.colHarga, styles.cellBorder, styles.cellText]}>
-							{formatRupiahLetter(invoice.total_amount).replace(",-", "")}
-						</Text>
-						<Text style={[styles.colNilai, styles.cellBorder, styles.cellText]}>
-							{formatRupiahLetter(invoice.total_amount).replace(",-", "")}
-						</Text>
-					</View>
-
-					{/* Total row */}
-					<View style={styles.tableTotalRow}>
-						<Text style={[styles.totalLabelCell, { borderLeftWidth: 0 }]}>Jumlah</Text>
-						<Text style={[styles.totalValueCell, styles.cellBorder]}>{totalFormatted}</Text>
+					<View style={styles.row}>
+						<Text style={[styles.td, styles.colNo]}>1</Text>
+						<Text style={[styles.td, styles.colDesc]}>{description}</Text>
+						<Text style={[styles.td, styles.colQty]}>1</Text>
+						<Text style={[styles.td, styles.colPrice]}>{formatRupiah(total)}</Text>
+						<Text style={[styles.td, styles.colAmount]}>{formatRupiah(total)}</Text>
 					</View>
 				</View>
 
-				{/* Bank info */}
-				<View style={styles.bankSection}>
-					<Text style={styles.bankText}>
-						Pembayaran untuk invoice ini mohon ditransfer ke rekening :
-					</Text>
-					<Text style={styles.bankText}>{template.bankName}</Text>
-					<Text style={styles.bankText}>No. Rekening : {template.bankAccountNumber}</Text>
-					<Text style={styles.bankText}>Atas nama : {template.bankAccountHolder}</Text>
-				</View>
-
-				{/* Signature — kept atomic so the QR / name / role never split across pages */}
-				<View style={styles.signatureRow} wrap={false}>
-					<View style={styles.signBlock} wrap={false}>
-						<Text style={styles.signLabel}>Hormat kami,</Text>
-						<Text style={styles.signCompany}>{company.name.toUpperCase()}</Text>
-						{template.verificationQrUrl ? (
-							<>
-								<Link src={template.verificationUrl}>
-									<PdfImage src={template.verificationQrUrl} style={styles.qrSeal} />
-								</Link>
-								<Text style={styles.qrSealLabel}>Pindai untuk verifikasi</Text>
-							</>
+				{/* Bank instructions + totals */}
+				<View style={styles.lower}>
+					<View style={styles.bankBox}>
+						<Text style={styles.bankHeading}>Instruksi Pembayaran</Text>
+						<View style={styles.bankRow}>
+							<Text style={styles.bankKey}>Bank</Text>
+							<Text style={styles.bankVal}>{template.bankName}</Text>
+						</View>
+						<View style={styles.bankRow}>
+							<Text style={styles.bankKey}>No. Rekening</Text>
+							<Text style={styles.bankVal}>{template.bankAccountNumber}</Text>
+						</View>
+						<View style={styles.bankRow}>
+							<Text style={styles.bankKey}>Atas Nama</Text>
+							<Text style={styles.bankVal}>{template.bankAccountHolder}</Text>
+						</View>
+					</View>
+					<View style={styles.totals}>
+						<View style={styles.totalRow}>
+							<Text style={styles.totalLabel}>Subtotal</Text>
+							<Text style={styles.totalValue}>{formatRupiah(total)}</Text>
+						</View>
+						{hasPaid ? (
+							<View style={styles.totalRow}>
+								<Text style={styles.totalLabel}>Sudah Dibayar</Text>
+								<Text style={styles.paidValue}>− {formatRupiah(paid)}</Text>
+							</View>
 						) : null}
-						<Text style={styles.signName}>{template.signatureName}</Text>
-						{template.signatureRole ? (
-							<Text style={styles.signRole}>({template.signatureRole})</Text>
-						) : null}
+						<View style={styles.grandBar}>
+							<Text style={styles.grandLabel}>{hasPaid ? "Sisa Tagihan" : "Total"}</Text>
+							<Text style={styles.grandValue}>{formatRupiah(hasPaid ? outstanding : total)}</Text>
+						</View>
 					</View>
 				</View>
 
-				{/* Footer — doc number (traceability) · website · page X of Y */}
-				<View style={styles.footer} fixed>
-					<Text style={styles.footerDocNumber}>{invoice.invoice_number}</Text>
-					<Text style={styles.footerText}>{company.website}</Text>
-					<Text
-						style={styles.footerPage}
-						render={({ pageNumber, totalPages }) => `Halaman ${pageNumber} dari ${totalPages}`}
-					/>
-				</View>
+				<Text style={styles.terbilang}>Terbilang: {amountWords}</Text>
+
+				<SignatureSeal
+					company={company}
+					name={template.signatureName}
+					role={template.signatureRole}
+					qrUrl={template.verificationQrUrl}
+					verifyUrl={template.verificationUrl}
+					scale={fitScale}
+				/>
+
+				<DocFooter docNumber={invoice.invoice_number} website={company.website} scale={fitScale} />
 			</Page>
 		</Document>
 	);

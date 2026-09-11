@@ -183,6 +183,9 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 									created_at: invoice.created_at,
 									label: invoice.label ?? null,
 									parentNumber,
+									paid_amount: invoice.paid_amount,
+									due_date: invoice.due_date ?? null,
+									status: invoice.status,
 								},
 								customer: {
 									prefix: customer.prefix,

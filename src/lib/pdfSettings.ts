@@ -21,6 +21,8 @@ export interface ProposalTemplateSettings {
 	includedServices: string[];
 	signatureName: string;
 	signatureRole: string;
+	/** Days the proposal stays valid from its issue date (system setting, default 14). */
+	validDays: number;
 	/** Base64 data URL of the QR code. Generated server-side from the proposal's verification_token. */
 	verificationQrUrl: string;
 	/** Verification page URL encoded by the QR code. Used as the clickable link target in the PDF. */
@@ -61,6 +63,7 @@ const DEFAULTS: Record<string, string> = {
 	proposal_included_services: "",
 	proposal_signature_name: "",
 	proposal_signature_role: "",
+	proposal_valid_days: "14",
 	invoice_bank_name: "",
 	invoice_bank_account_number: "",
 	invoice_bank_account_holder: "",
@@ -97,6 +100,7 @@ export function buildProposalTemplateSettings(
 			.filter(Boolean),
 		signatureName: get(map, "proposal_signature_name"),
 		signatureRole: get(map, "proposal_signature_role"),
+		validDays: Number.parseInt(get(map, "proposal_valid_days"), 10) || 14,
 		verificationQrUrl: "", // filled in by download button
 		verificationUrl: "", // filled in by download button
 	};

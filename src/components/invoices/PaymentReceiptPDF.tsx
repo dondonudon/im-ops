@@ -1,18 +1,11 @@
 "use client";
-import {
-	Document,
-	Font,
-	Link,
-	Page,
-	Image as PdfImage,
-	StyleSheet,
-	Text,
-	View,
-} from "@react-pdf/renderer";
+import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { CompanyHeader, DocFooter, SignatureSeal, StatusPill } from "@/components/pdf/PdfChrome";
+import { PDF_COLOR, PDF_PAGE_PAD, registerPdfFonts } from "@/lib/pdf/theme";
 import type { CompanySettings, ReceiptTemplateSettings } from "@/lib/pdfSettings";
-import { formatIndonesianDate, formatRupiahLetter, numberToIndonesianWords } from "@/lib/utils";
+import { formatIndonesianDate, formatRupiah, numberToIndonesianWords } from "@/lib/utils";
 
-Font.registerHyphenationCallback((word) => [word]);
+registerPdfFonts();
 
 const PAYMENT_TYPE_LABELS: Record<string, string> = {
 	down_payment: "Uang Muka",
@@ -27,106 +20,105 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
 };
 
 // Scale-aware styles. `s` (fitScale) shrinks font sizes and vertical spacing so
-// an over-long receipt can be compacted back onto one page (see pdfFit.ts).
-// Horizontal metrics, borders and the fixed footer chrome stay constant.
+// an over-long receipt can be compacted onto one page (see pdfFit.ts).
 function makeStyles(s: number) {
 	return StyleSheet.create({
 		page: {
-			fontSize: 11 * s,
-			fontFamily: "Helvetica",
-			paddingTop: 28 * s,
-			paddingBottom: 36,
-			paddingHorizontal: 56,
-			color: "#1f2937",
+			fontFamily: "Inter",
+			fontSize: 9.5 * s,
+			color: PDF_COLOR.ink,
+			paddingTop: 34 * s,
+			paddingBottom: 46,
+			paddingHorizontal: PDF_PAGE_PAD,
+			// NOTE: never set `lineHeight` on the Page style — react-pdf then drops
+			// the fixed absolutely-positioned footer. Set it per text block instead.
 		},
-		header: { alignItems: "center", marginBottom: 6 * s },
-		logo: { width: 60 * s, height: 60 * s, marginBottom: 4 * s, objectFit: "contain" },
-		tagline: {
-			fontSize: 8 * s,
-			textAlign: "center",
-			color: "#374151",
-			marginTop: 2,
-			letterSpacing: 0.2,
+		// ── Title row ───────────────────────────────────────────────────────────
+		titleRow: {
+			flexDirection: "row",
+			justifyContent: "space-between",
+			alignItems: "flex-start",
+			marginBottom: 14 * s,
 		},
-		headerAddress: { fontSize: 8 * s, textAlign: "center", color: "#374151", marginTop: 1 },
-		divider: {
-			borderBottomWidth: 0.5,
-			borderBottomColor: "#374151",
-			marginBottom: 10 * s,
-			marginTop: 6 * s,
-		},
-		titleBlock: { alignItems: "center", marginBottom: 14 * s },
 		title: {
-			fontSize: 13 * s,
-			fontFamily: "Helvetica-Bold",
-			textDecoration: "underline",
-			textAlign: "center",
+			fontSize: 17 * s,
+			lineHeight: 1.2,
+			fontWeight: 700,
+			color: PDF_COLOR.brand,
+			letterSpacing: 0.4,
 		},
-		metaRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 * s },
-		metaLabel: { fontSize: 11 * s, color: "#374151", width: 100 },
-		metaValue: { fontSize: 11 * s, flex: 1 },
-		metaDate: { fontSize: 11 * s, color: "#374151" },
-		refSection: { marginBottom: 14 * s },
-		refRow: { flexDirection: "row", marginBottom: 3 * s },
-		table: { marginBottom: 12 * s },
-		tableHeaderRow: {
+		titleSub: { fontSize: 9 * s, color: PDF_COLOR.inkMuted, marginTop: 4 * s },
+		// ── Amount hero ─────────────────────────────────────────────────────────
+		hero: {
+			backgroundColor: PDF_COLOR.brandTint,
+			borderLeftWidth: 3,
+			borderLeftColor: PDF_COLOR.brand,
+			borderRadius: 5,
+			paddingVertical: 12 * s,
+			paddingHorizontal: 14 * s,
+			marginBottom: 14 * s,
+		},
+		heroLabel: {
+			fontSize: 8 * s,
+			fontWeight: 600,
+			color: PDF_COLOR.brand,
+			letterSpacing: 0.6,
+			textTransform: "uppercase",
+		},
+		heroAmount: {
+			fontSize: 22 * s,
+			lineHeight: 1.2,
+			fontWeight: 700,
+			color: PDF_COLOR.brand,
+			marginTop: 3 * s,
+		},
+		heroWords: {
+			fontSize: 8.5 * s,
+			fontStyle: "italic",
+			color: PDF_COLOR.inkMuted,
+			marginTop: 3 * s,
+		},
+		// ── Details grid ────────────────────────────────────────────────────────
+		grid: { flexDirection: "row", flexWrap: "wrap", marginBottom: 10 * s },
+		cell: { width: "50%", marginBottom: 9 * s, paddingRight: 12 },
+		cellLabel: {
+			fontSize: 7.5 * s,
+			fontWeight: 600,
+			color: PDF_COLOR.inkFaint,
+			letterSpacing: 0.5,
+			textTransform: "uppercase",
+			marginBottom: 2 * s,
+		},
+		cellValue: { fontSize: 10 * s, fontWeight: 500, color: PDF_COLOR.ink },
+		// ── Running balance ─────────────────────────────────────────────────────
+		balanceBox: {
 			flexDirection: "row",
-			borderTopWidth: 0.5,
-			borderBottomWidth: 0.5,
-			borderLeftWidth: 0.5,
-			borderRightWidth: 0.5,
-			borderColor: "#374151",
-		},
-		tableRow: {
-			flexDirection: "row",
-			borderBottomWidth: 0.5,
-			borderLeftWidth: 0.5,
-			borderRightWidth: 0.5,
-			borderColor: "#374151",
-		},
-		cellBorder: { borderLeftWidth: 0.5, borderLeftColor: "#374151" },
-		colDesc: { flex: 1, paddingVertical: 4 * s, paddingHorizontal: 6 },
-		colAmount: { width: 130, textAlign: "right", paddingVertical: 4 * s, paddingHorizontal: 6 },
-		headerCellText: { fontSize: 10 * s, fontFamily: "Helvetica-Bold", textAlign: "center" },
-		cellText: { fontSize: 10 * s },
-		cellSubText: { fontSize: 9 * s, color: "#6b7280" },
-		totalLabelCell: {
-			flex: 1,
-			textAlign: "right",
-			paddingVertical: 4 * s,
-			paddingHorizontal: 6,
-			fontFamily: "Helvetica-Bold",
-			fontSize: 10 * s,
-		},
-		totalValueCell: {
-			width: 130,
-			textAlign: "right",
-			paddingVertical: 4 * s,
-			paddingHorizontal: 6,
-			fontFamily: "Helvetica-Bold",
-			fontSize: 10 * s,
-		},
-		terbilang: { fontSize: 10 * s, fontStyle: "italic", marginBottom: 8 * s },
-		notes: { fontSize: 10 * s, color: "#374151", marginBottom: 14 * s },
-		signatureRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 8 * s },
-		signBlock: { width: 200, alignItems: "center" },
-		signLabel: { fontSize: 11 * s, marginBottom: 1 },
-		signCompany: { fontSize: 11 * s, fontFamily: "Helvetica-Bold", marginBottom: 8 * s },
-		qrSeal: { width: 80 * s, height: 80 * s, marginBottom: 4 * s },
-		qrSealLabel: { fontSize: 7 * s, color: "#6b7280", textAlign: "center", marginBottom: 8 * s },
-		signName: { fontSize: 11 * s },
-		signRole: { fontSize: 11 * s },
-		footer: {
-			position: "absolute",
-			bottom: 18,
-			left: 56,
-			right: 56,
-			flexDirection: "row",
+			justifyContent: "space-between",
 			alignItems: "center",
+			backgroundColor: PDF_COLOR.surfaceSunken,
+			borderRadius: 5,
+			paddingVertical: 8 * s,
+			paddingHorizontal: 12 * s,
+			marginBottom: 10 * s,
 		},
-		footerDocNumber: { flex: 1, fontSize: 7, color: "#9ca3af", textAlign: "left" },
-		footerText: { flex: 1, fontSize: 8, color: "#dc2626", textAlign: "center" },
-		footerPage: { flex: 1, fontSize: 7, color: "#9ca3af", textAlign: "right" },
+		balanceLabel: { fontSize: 9 * s, color: PDF_COLOR.inkMuted },
+		balanceValue: { fontSize: 11 * s, fontWeight: 700, color: PDF_COLOR.ink },
+		balanceLunas: {
+			fontSize: 10 * s,
+			fontWeight: 700,
+			color: PDF_COLOR.successText,
+			letterSpacing: 0.6,
+			textTransform: "uppercase",
+		},
+		// ── Notes ───────────────────────────────────────────────────────────────
+		notes: {
+			fontSize: 8.5 * s,
+			color: PDF_COLOR.inkMuted,
+			backgroundColor: PDF_COLOR.surfaceSunken,
+			borderRadius: 4,
+			padding: 8 * s,
+			marginBottom: 8 * s,
+		},
 	});
 }
 
@@ -143,6 +135,8 @@ export interface PaymentReceiptProps {
 	jobNumber: string;
 	customerName: string;
 	invoiceNumber?: string | null;
+	/** Outstanding balance immediately after this payment (optional). Omitted → line hidden. */
+	balanceAfter?: number | null;
 	company: CompanySettings;
 	template: ReceiptTemplateSettings;
 	/** Fit-to-one-page scale (1 = default). Set by the download button's fit loop. */
@@ -155,130 +149,106 @@ export function PaymentReceiptPDF({
 	jobNumber,
 	customerName,
 	invoiceNumber,
+	balanceAfter,
 	company,
 	template,
 	fitScale = 1,
 }: PaymentReceiptProps) {
 	const styles = makeStyles(fitScale);
 	const receiptRef = `${jobNumber}/${String(receiptNumber).padStart(3, "0")}`;
-	const displayDate = `${company.city}, ${formatIndonesianDate(payment.paid_at)}`;
+	const displayDate = formatIndonesianDate(payment.paid_at);
 	const typeLabel = PAYMENT_TYPE_LABELS[payment.payment_type] ?? payment.payment_type;
 	const methodLabel = payment.method
 		? (PAYMENT_METHOD_LABELS[payment.method] ?? payment.method)
 		: "—";
-	const amountFormatted = formatRupiahLetter(payment.amount);
+	const isRefund = payment.payment_type === "refund";
+	const amountFormatted = formatRupiah(payment.amount);
 	const amountInWords = `${numberToIndonesianWords(Math.round(payment.amount))} rupiah`;
+	const showBalance = !isRefund && balanceAfter != null;
+	const settled = (balanceAfter ?? 0) <= 0;
 
 	return (
 		<Document title={`Kwitansi-${receiptRef}`} author={company.name} subject="Kwitansi Pembayaran">
 			<Page size="A4" style={styles.page}>
-				{/* Header */}
-				<View style={styles.header}>
-					{company.logo ? <PdfImage src={company.logo} style={styles.logo} /> : null}
-					<Text style={styles.tagline}>{company.tagline}</Text>
-					<Text style={styles.headerAddress}>
-						{[company.address, company.phone ? `Telp ${company.phone}` : ""]
-							.filter(Boolean)
-							.join(", ")}
-					</Text>
-				</View>
-				<View style={styles.divider} />
+				<CompanyHeader company={company} scale={fitScale} />
 
-				{/* Title */}
-				<View style={styles.titleBlock}>
-					<Text style={styles.title}>KWITANSI PEMBAYARAN</Text>
-				</View>
-
-				{/* Receipt no + date */}
-				<View style={styles.metaRow}>
-					<View style={[styles.refRow, { flex: 1 }]}>
-						<Text style={styles.metaLabel}>No.</Text>
-						<Text style={styles.metaValue}>: {receiptRef}</Text>
+				{/* Title + status */}
+				<View style={styles.titleRow}>
+					<View>
+						<Text style={styles.title}>KWITANSI PEMBAYARAN</Text>
+						<Text style={styles.titleSub}>No. {receiptRef}</Text>
 					</View>
-					<Text style={styles.metaDate}>{displayDate}</Text>
-				</View>
-
-				{/* References */}
-				<View style={styles.refSection}>
-					<View style={styles.refRow}>
-						<Text style={styles.metaLabel}>Diterima dari</Text>
-						<Text style={styles.metaValue}>: {customerName}</Text>
-					</View>
-					<View style={styles.refRow}>
-						<Text style={styles.metaLabel}>No. Pekerjaan</Text>
-						<Text style={styles.metaValue}>: {jobNumber}</Text>
-					</View>
-					{invoiceNumber ? (
-						<View style={styles.refRow}>
-							<Text style={styles.metaLabel}>No. Invoice</Text>
-							<Text style={styles.metaValue}>: {invoiceNumber}</Text>
-						</View>
-					) : null}
-				</View>
-
-				{/* Table */}
-				<View style={styles.table}>
-					<View style={styles.tableHeaderRow}>
-						<Text
-							style={[
-								styles.colDesc,
-								{ fontFamily: "Helvetica-Bold", fontSize: 10, textAlign: "center" },
-							]}
-						>
-							Keterangan
-						</Text>
-						<Text style={[styles.colAmount, styles.cellBorder, styles.headerCellText]}>Jumlah</Text>
-					</View>
-					<View style={styles.tableRow}>
-						<View style={styles.colDesc}>
-							<Text style={styles.cellText}>{typeLabel}</Text>
-							<Text style={styles.cellSubText}>via {methodLabel}</Text>
-						</View>
-						<Text style={[styles.colAmount, styles.cellBorder, styles.cellText]}>
-							{amountFormatted.replace(",-", "")}
-						</Text>
-					</View>
-					<View style={styles.tableRow}>
-						<Text style={[styles.totalLabelCell, { borderLeftWidth: 0 }]}>Total</Text>
-						<Text style={[styles.totalValueCell, styles.cellBorder]}>{amountFormatted}</Text>
-					</View>
-				</View>
-
-				{/* Terbilang */}
-				<Text style={styles.terbilang}>Terbilang: {amountInWords}</Text>
-
-				{/* Notes */}
-				{payment.notes ? <Text style={styles.notes}>Keterangan: {payment.notes}</Text> : null}
-
-				{/* Signature — kept atomic so the QR / name / role never split across pages */}
-				<View style={styles.signatureRow} wrap={false}>
-					<View style={styles.signBlock} wrap={false}>
-						<Text style={styles.signLabel}>Hormat kami,</Text>
-						<Text style={styles.signCompany}>{company.name.toUpperCase()}</Text>
-						{template.verificationQrUrl ? (
-							<>
-								<Link src={template.verificationUrl}>
-									<PdfImage src={template.verificationQrUrl} style={styles.qrSeal} />
-								</Link>
-								<Text style={styles.qrSealLabel}>Pindai untuk verifikasi</Text>
-							</>
-						) : null}
-						<Text style={styles.signName}>{template.signatureName}</Text>
-						{template.signatureRole ? (
-							<Text style={styles.signRole}>({template.signatureRole})</Text>
-						) : null}
-					</View>
-				</View>
-
-				{/* Footer — receipt ref (traceability) · website · page X of Y */}
-				<View style={styles.footer} fixed>
-					<Text style={styles.footerDocNumber}>{receiptRef}</Text>
-					<Text style={styles.footerText}>{company.website}</Text>
-					<Text
-						style={styles.footerPage}
-						render={({ pageNumber, totalPages }) => `Halaman ${pageNumber} dari ${totalPages}`}
+					<StatusPill
+						label={isRefund ? "Dana Dikembalikan" : "Pembayaran Diterima"}
+						tone={isRefund ? "warn" : "success"}
+						scale={fitScale}
 					/>
 				</View>
+
+				{/* Amount hero */}
+				<View style={styles.hero}>
+					<Text style={styles.heroLabel}>
+						{isRefund ? "Jumlah Dikembalikan" : "Jumlah Diterima"}
+					</Text>
+					<Text style={styles.heroAmount}>{amountFormatted}</Text>
+					<Text style={styles.heroWords}>Terbilang: {amountInWords}</Text>
+				</View>
+
+				{/* Details grid */}
+				<View style={styles.grid}>
+					<View style={styles.cell}>
+						<Text style={styles.cellLabel}>
+							{isRefund ? "Dikembalikan Kepada" : "Diterima Dari"}
+						</Text>
+						<Text style={styles.cellValue}>{customerName}</Text>
+					</View>
+					<View style={styles.cell}>
+						<Text style={styles.cellLabel}>Tanggal</Text>
+						<Text style={styles.cellValue}>{displayDate}</Text>
+					</View>
+					<View style={styles.cell}>
+						<Text style={styles.cellLabel}>No. Pekerjaan</Text>
+						<Text style={styles.cellValue}>{jobNumber}</Text>
+					</View>
+					{invoiceNumber ? (
+						<View style={styles.cell}>
+							<Text style={styles.cellLabel}>No. Invoice</Text>
+							<Text style={styles.cellValue}>{invoiceNumber}</Text>
+						</View>
+					) : null}
+					<View style={styles.cell}>
+						<Text style={styles.cellLabel}>Untuk Pembayaran</Text>
+						<Text style={styles.cellValue}>{typeLabel}</Text>
+					</View>
+					<View style={styles.cell}>
+						<Text style={styles.cellLabel}>Metode</Text>
+						<Text style={styles.cellValue}>{methodLabel}</Text>
+					</View>
+				</View>
+
+				{showBalance ? (
+					<View style={styles.balanceBox}>
+						<Text style={styles.balanceLabel}>Sisa tagihan setelah pembayaran ini</Text>
+						{settled ? (
+							<Text style={styles.balanceLunas}>Lunas</Text>
+						) : (
+							<Text style={styles.balanceValue}>{formatRupiah(balanceAfter as number)}</Text>
+						)}
+					</View>
+				) : null}
+
+				{payment.notes ? <Text style={styles.notes}>Keterangan: {payment.notes}</Text> : null}
+
+				<SignatureSeal
+					company={company}
+					name={template.signatureName}
+					role={template.signatureRole}
+					qrUrl={template.verificationQrUrl}
+					verifyUrl={template.verificationUrl}
+					scale={fitScale}
+				/>
+
+				<DocFooter docNumber={receiptRef} website={company.website} scale={fitScale} />
 			</Page>
 		</Document>
 	);

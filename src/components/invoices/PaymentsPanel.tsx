@@ -307,42 +307,54 @@ export function PaymentsPanel({
 				{payments.length === 0 && (
 					<p className="px-4 py-4 text-sm text-center text-ink-faint">{tPanel("noPayments")}</p>
 				)}
-				{payments.map((p, idx) => (
-					<div key={p.id} className="flex items-center gap-3 px-4 py-3 text-sm">
-						<div className="flex-1">
-							<span className="font-medium text-ink">{tPaymentType(p.payment_type)}</span>
-							<span className="text-xs text-ink-faint ml-2">
-								{tPanel("via", {
-									method: p.method ? tPaymentMethod(p.method) : "—",
-								})}
-							</span>
-							{p.notes && <span className="block text-xs text-ink-faint">{p.notes}</span>}
-							<span className="block text-xs text-ink-faint">{formatDate(p.paid_at)}</span>
+				{payments.map((p, idx) => {
+					// Outstanding immediately after this payment (payments are chronological;
+					// refunds add back to the balance). Drives the receipt's running-balance line.
+					const collectedThrough = payments
+						.slice(0, idx + 1)
+						.reduce(
+							(sum, pay) => sum + (pay.payment_type === "refund" ? -pay.amount : pay.amount),
+							0,
+						);
+					const balanceAfter = totalAmount - collectedThrough;
+					return (
+						<div key={p.id} className="flex items-center gap-3 px-4 py-3 text-sm">
+							<div className="flex-1">
+								<span className="font-medium text-ink">{tPaymentType(p.payment_type)}</span>
+								<span className="text-xs text-ink-faint ml-2">
+									{tPanel("via", {
+										method: p.method ? tPaymentMethod(p.method) : "—",
+									})}
+								</span>
+								{p.notes && <span className="block text-xs text-ink-faint">{p.notes}</span>}
+								<span className="block text-xs text-ink-faint">{formatDate(p.paid_at)}</span>
+							</div>
+							<Money
+								value={p.amount}
+								tone={p.payment_type === "refund" ? "danger" : "positive"}
+								className="font-medium"
+							/>
+							<PaymentReceiptDownloadButton
+								receiptProps={{
+									payment: p,
+									receiptNumber: idx + 1,
+									jobNumber,
+									customerName,
+									invoiceNumber,
+									balanceAfter,
+									company,
+									template: {
+										...receiptTemplate,
+										verificationQrUrl: "",
+										verificationUrl: "",
+									},
+								}}
+								verificationToken={p.verification_token}
+								logoUrl={logoUrl}
+							/>
 						</div>
-						<Money
-							value={p.amount}
-							tone={p.payment_type === "refund" ? "danger" : "positive"}
-							className="font-medium"
-						/>
-						<PaymentReceiptDownloadButton
-							receiptProps={{
-								payment: p,
-								receiptNumber: idx + 1,
-								jobNumber,
-								customerName,
-								invoiceNumber,
-								company,
-								template: {
-									...receiptTemplate,
-									verificationQrUrl: "",
-									verificationUrl: "",
-								},
-							}}
-							verificationToken={p.verification_token}
-							logoUrl={logoUrl}
-						/>
-					</div>
-				))}
+					);
+				})}
 			</Card>
 		</div>
 	);

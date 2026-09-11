@@ -1,15 +1,8 @@
 "use client";
-import {
-	Document,
-	Font,
-	Link,
-	Page,
-	Image as PdfImage,
-	StyleSheet,
-	Text,
-	View,
-} from "@react-pdf/renderer";
+import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { Fragment } from "react";
+import { CompanyHeader, DocFooter, SignatureSeal } from "@/components/pdf/PdfChrome";
+import { PDF_COLOR, PDF_PAGE_PAD, registerPdfFonts } from "@/lib/pdf/theme";
 import type { ProposalCustomFields } from "@/lib/proposalCustomFields";
 import {
 	formatCustomerName,
@@ -19,88 +12,77 @@ import {
 	toRomanMonth,
 } from "@/lib/utils";
 
-Font.registerHyphenationCallback((word) => [word]);
+registerPdfFonts();
 
-// Scale-aware styles. `s` (fitScale) shrinks font sizes and vertical spacing
-// so an over-long document can be compacted back onto one page (see pdfFit.ts).
-// Horizontal metrics, borders and the fixed footer chrome stay constant.
+function addDaysIso(iso: string, days: number): string {
+	const d = new Date(iso);
+	d.setDate(d.getDate() + days);
+	return d.toISOString();
+}
+
+// Scale-aware styles. `s` (fitScale) shrinks font sizes and vertical spacing so
+// an over-long proposal can be compacted onto one page (see pdfFit.ts).
 function makeStyles(s: number) {
 	return StyleSheet.create({
 		page: {
-			fontSize: 11 * s,
-			fontFamily: "Helvetica",
-			paddingTop: 28 * s,
-			paddingBottom: 36,
-			paddingHorizontal: 56,
-			color: "#1f2937",
+			fontFamily: "Inter",
+			fontSize: 10 * s,
+			color: PDF_COLOR.ink,
+			paddingTop: 34 * s,
+			paddingBottom: 46,
+			paddingHorizontal: PDF_PAGE_PAD,
+			// NOTE: never set `lineHeight` on the Page style — react-pdf then drops
+			// the fixed absolutely-positioned footer. Set it per text block instead.
 		},
-		// ── Header ──────────────────────────────────────────────────────────────
-		header: {
-			alignItems: "center",
-			marginBottom: 6 * s,
-		},
-		logo: {
-			width: 72 * s,
-			height: 72 * s,
-			marginBottom: 4 * s,
-			objectFit: "contain",
-		},
-		tagline: {
-			fontSize: 8 * s,
-			textAlign: "center",
-			color: "#374151",
-			marginTop: 2,
-			letterSpacing: 0.2,
-		},
-		headerAddress: {
-			fontSize: 8 * s,
-			textAlign: "center",
-			color: "#374151",
-			marginTop: 1,
-		},
-		divider: {
-			borderBottomWidth: 0.5,
-			borderBottomColor: "#374151",
-			marginBottom: 14 * s,
-			marginTop: 6 * s,
-		},
-		// ── Body ────────────────────────────────────────────────────────────────
-		date: { fontSize: 11 * s, marginBottom: 14 * s },
+		// ── Letter meta ─────────────────────────────────────────────────────────
+		date: { fontSize: 10 * s, color: PDF_COLOR.inkMuted, textAlign: "right", marginBottom: 12 * s },
 		noHalRow: { flexDirection: "row", marginBottom: 2 * s },
-		noHalLabel: { width: 30, fontSize: 11 * s },
-		noHalColon: { width: 14, fontSize: 11 * s },
-		noHalValue: { flex: 1, fontSize: 11 * s },
-		noHalValueBold: { flex: 1, fontSize: 11 * s, fontFamily: "Helvetica-Bold" },
-		recipient: { marginTop: 14 * s, marginBottom: 12 * s },
-		recipientLabel: { fontSize: 11 * s, marginBottom: 2 * s },
-		recipientName: { fontSize: 11 * s, fontFamily: "Helvetica-Bold" },
-		greeting: { fontSize: 11 * s, marginBottom: 8 * s },
-		para: { fontSize: 11 * s, marginBottom: 8 * s, textAlign: "justify", lineHeight: 1.5 },
-		listContainer: { marginLeft: 14, marginBottom: 8 * s },
-		listItem: { flexDirection: "row", marginBottom: 2 * s },
-		listBullet: { width: 16, fontSize: 11 * s },
-		listText: { flex: 1, fontSize: 11 * s },
-		// ── Signature ────────────────────────────────────────────────────────────
-		signatureRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 16 * s },
-		signBlock: { width: 200, alignItems: "center" },
-		signLabel: { fontSize: 11 * s, marginBottom: 1 },
-		signCompany: { fontSize: 11 * s, fontFamily: "Helvetica-Bold", marginBottom: 8 * s },
-		qrSeal: { width: 80 * s, height: 80 * s, marginBottom: 4 * s },
-		qrSealLabel: { fontSize: 7 * s, color: "#6b7280", textAlign: "center", marginBottom: 8 * s },
-		signName: { fontSize: 11 * s, fontFamily: "Helvetica-Bold", textDecoration: "underline" },
-		signRole: { fontSize: 11 * s },
-		// ── Footer ───────────────────────────────────────────────────────────────
-		footer: {
-			position: "absolute",
-			bottom: 18,
-			left: 56,
-			right: 56,
-			flexDirection: "row",
-			alignItems: "center",
+		noHalLabel: { width: 30, fontSize: 10 * s, color: PDF_COLOR.inkMuted },
+		noHalColon: { width: 12, fontSize: 10 * s, color: PDF_COLOR.inkMuted },
+		noHalValue: { flex: 1, fontSize: 10 * s },
+		noHalValueBold: { flex: 1, fontSize: 10 * s, fontWeight: 700 },
+		recipient: { marginTop: 12 * s, marginBottom: 12 * s },
+		recipientLabel: { fontSize: 10 * s, color: PDF_COLOR.inkMuted, marginBottom: 2 * s },
+		recipientName: { fontSize: 11 * s, fontWeight: 600 },
+		recipientLine: { fontSize: 10 * s, color: PDF_COLOR.inkMuted, marginTop: 1 },
+		// ── Ringkasan card ──────────────────────────────────────────────────────
+		summary: {
+			backgroundColor: PDF_COLOR.surfaceSunken,
+			borderLeftWidth: 3,
+			borderLeftColor: PDF_COLOR.brand,
+			borderRadius: 5,
+			paddingVertical: 9 * s,
+			paddingHorizontal: 12 * s,
+			marginBottom: 14 * s,
 		},
-		footerDocNumber: { flex: 1, fontSize: 7, color: "#9ca3af", textAlign: "left" },
-		footerText: { flex: 1, fontSize: 8, color: "#dc2626", textAlign: "center" },
-		footerPage: { flex: 1, fontSize: 7, color: "#9ca3af", textAlign: "right" },
+		summaryHeading: {
+			fontSize: 7.5 * s,
+			fontWeight: 700,
+			color: PDF_COLOR.brand,
+			letterSpacing: 0.6,
+			textTransform: "uppercase",
+			marginBottom: 5 * s,
+		},
+		summaryRow: { flexDirection: "row", marginBottom: 3 * s },
+		summaryKey: { width: 92, fontSize: 9 * s, color: PDF_COLOR.inkMuted },
+		summaryVal: { flex: 1, fontSize: 9.5 * s, fontWeight: 500 },
+		summaryPrice: { flex: 1, fontSize: 11 * s, fontWeight: 700, color: PDF_COLOR.brand },
+		// ── Body ────────────────────────────────────────────────────────────────
+		greeting: { fontSize: 10 * s, marginBottom: 8 * s },
+		para: { fontSize: 10 * s, marginBottom: 8 * s, textAlign: "justify", lineHeight: 1.6 },
+		bold: { fontWeight: 700 },
+		boldItalic: { fontWeight: 700, fontStyle: "italic" },
+		listContainer: { marginLeft: 6, marginBottom: 8 * s },
+		listItem: { flexDirection: "row", marginBottom: 3 * s },
+		listBullet: { width: 12, fontSize: 10 * s, color: PDF_COLOR.brand },
+		listText: { flex: 1, fontSize: 10 * s },
+		validity: {
+			fontSize: 8.5 * s,
+			color: PDF_COLOR.inkMuted,
+			fontStyle: "italic",
+			marginTop: 2 * s,
+			marginBottom: 4 * s,
+		},
 	});
 }
 
@@ -139,6 +121,7 @@ export interface ProposalPDFProps {
 		includedServices: string[];
 		signatureName: string;
 		signatureRole: string;
+		validDays: number;
 		verificationQrUrl: string;
 		verificationUrl: string;
 	};
@@ -158,6 +141,7 @@ export function ProposalPDF({
 }: ProposalPDFProps) {
 	const styles = makeStyles(fitScale);
 	const displayDate = `${company.city}, ${formatIndonesianDate(proposal.created_at)}`;
+	const validUntil = formatIndonesianDate(addDaysIso(proposal.created_at, template.validDays));
 	const price = proposal.final_price ?? 0;
 	const priceFormatted = formatRupiahLetter(price);
 	const priceWords = numberToIndonesianWords(price);
@@ -166,28 +150,24 @@ export function ProposalPDF({
 	const pickups = lead.pickups;
 	const destinations = lead.destinations;
 	const hasRoute = pickups.length > 0 || destinations.length > 0;
+	const routeText = [
+		pickups.map((p) => p.replace(/\n/g, " ")).join(", "),
+		destinations.map((d) => d.replace(/\n/g, " ")).join(", "),
+	]
+		.filter(Boolean)
+		.join("  →  ");
 
 	const effectiveServices = customFields.override_services
 		? customFields.override_services
 				.split("\n")
-				.map((s) => s.trim())
+				.map((svc) => svc.trim())
 				.filter(Boolean)
 		: template.includedServices;
 
 	return (
 		<Document title={`Proposal ${proposal.proposal_number}`} author={company.name}>
 			<Page size="A4" style={styles.page}>
-				{/* Header */}
-				<View style={styles.header}>
-					{company.logo ? <PdfImage src={company.logo} style={styles.logo} /> : null}
-					<Text style={styles.tagline}>{company.tagline}</Text>
-					<Text style={styles.headerAddress}>
-						{[company.address, company.phone ? `Telp ${company.phone}` : ""]
-							.filter(Boolean)
-							.join(", ")}
-					</Text>
-				</View>
-				<View style={styles.divider} />
+				<CompanyHeader company={company} scale={fitScale} />
 
 				{/* Date */}
 				<Text style={styles.date}>{displayDate}</Text>
@@ -211,10 +191,35 @@ export function ProposalPDF({
 						{formatCustomerName(customer.prefix, customer.name)}
 					</Text>
 					{customer.type === "corporate" && customer.company_name ? (
-						<Text style={styles.recipientName}>{customer.company_name}</Text>
+						<Text style={styles.recipientLine}>{customer.company_name}</Text>
 					) : null}
-					{customer.address ? <Text style={styles.recipientName}>{customer.address}</Text> : null}
+					{customer.address ? <Text style={styles.recipientLine}>{customer.address}</Text> : null}
 				</View>
+
+				{/* Ringkasan penawaran — at-a-glance recap */}
+				{hasRoute || price > 0 ? (
+					<View style={styles.summary}>
+						<Text style={styles.summaryHeading}>Ringkasan Penawaran</Text>
+						{routeText ? (
+							<View style={styles.summaryRow}>
+								<Text style={styles.summaryKey}>Rute</Text>
+								<Text style={styles.summaryVal}>{routeText}</Text>
+							</View>
+						) : null}
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryKey}>Tanggal Pindah</Text>
+							<Text style={styles.summaryVal}>
+								{lead.preferred_date ? formatIndonesianDate(lead.preferred_date) : "Menyesuaikan"}
+							</Text>
+						</View>
+						{price > 0 ? (
+							<View style={styles.summaryRow}>
+								<Text style={styles.summaryKey}>Nilai Penawaran</Text>
+								<Text style={styles.summaryPrice}>{priceFormatted}</Text>
+							</View>
+						) : null}
+					</View>
+				) : null}
 
 				{/* Greeting */}
 				<Text style={styles.greeting}>Dengan hormat,</Text>
@@ -222,7 +227,7 @@ export function ProposalPDF({
 				{/* Paragraph 1 */}
 				<Text style={styles.para}>
 					{"            "}Bersama ini kami sampaikan surat penawaran pindah dari{" "}
-					<Text style={{ fontFamily: "Helvetica-Bold" }}>{company.name.toUpperCase()}</Text>
+					<Text style={styles.bold}>{company.name.toUpperCase()}</Text>
 					{
 						", sebuah perusahaan pindah rumah dan kantor yang sudah berpengalaman menangani pindah barang untuk rute seluruh Indonesia."
 					}
@@ -237,7 +242,7 @@ export function ProposalPDF({
 							{pickups.length > 0 ? (
 								<>
 									{" dari "}
-									<Text style={{ fontFamily: "Helvetica-Bold" }}>
+									<Text style={styles.bold}>
 										{pickups.map((p) => p.replace(/\n/g, " ")).join(", ")}
 									</Text>
 								</>
@@ -246,7 +251,7 @@ export function ProposalPDF({
 								// biome-ignore lint/suspicious/noArrayIndexKey: fixed render list; index also drives the connector text
 								<Fragment key={`dest-${i}-${d}`}>
 									{i === 0 ? " ke " : ", lalu ke "}
-									<Text style={{ fontFamily: "Helvetica-Bold" }}>{d.replace(/\n/g, " ")}</Text>
+									<Text style={styles.bold}>{d.replace(/\n/g, " ")}</Text>
 								</Fragment>
 							))}
 						</>
@@ -254,11 +259,11 @@ export function ProposalPDF({
 					{price > 0 ? (
 						<>
 							{". Sehingga biayanya menjadi "}
-							<Text style={{ fontFamily: "Helvetica-Bold" }}>
+							<Text style={styles.bold}>
 								{priceFormatted}
 								{customFields.price_suffix ? ` ${customFields.price_suffix}` : ""}
 							</Text>{" "}
-							<Text style={{ fontFamily: "Helvetica-BoldOblique" }}>({priceWordsDisplay}).</Text>
+							<Text style={styles.boldItalic}>({priceWordsDisplay}).</Text>
 						</>
 					) : (
 						"."
@@ -274,7 +279,7 @@ export function ProposalPDF({
 						<View style={styles.listContainer}>
 							{effectiveServices.map((svc) => (
 								<View key={svc} style={styles.listItem}>
-									<Text style={styles.listBullet}>-</Text>
+									<Text style={styles.listBullet}>•</Text>
 									<Text style={styles.listText}>{svc}</Text>
 								</View>
 							))}
@@ -297,33 +302,22 @@ export function ProposalPDF({
 					tersebut kami sampaikan, atas perhatian dan kerjasamanya terima kasih.
 				</Text>
 
-				{/* Signature — kept atomic so the QR / name / role never split across pages */}
-				<View style={styles.signatureRow} wrap={false}>
-					<View style={styles.signBlock} wrap={false}>
-						<Text style={styles.signLabel}>Hormat kami,</Text>
-						<Text style={styles.signCompany}>{company.name.toUpperCase()}</Text>
-						{template.verificationQrUrl ? (
-							<>
-								<Link src={template.verificationUrl}>
-									<PdfImage src={template.verificationQrUrl} style={styles.qrSeal} />
-								</Link>
-								<Text style={styles.qrSealLabel}>Pindai untuk verifikasi</Text>
-							</>
-						) : null}
-						<Text style={styles.signName}>{template.signatureName}</Text>
-						<Text style={styles.signRole}>{template.signatureRole}</Text>
-					</View>
-				</View>
+				<Text style={styles.validity}>Penawaran ini berlaku hingga {validUntil}.</Text>
 
-				{/* Footer — doc number (traceability) · website · page X of Y */}
-				<View style={styles.footer} fixed>
-					<Text style={styles.footerDocNumber}>{proposal.proposal_number}</Text>
-					<Text style={styles.footerText}>{company.website}</Text>
-					<Text
-						style={styles.footerPage}
-						render={({ pageNumber, totalPages }) => `Halaman ${pageNumber} dari ${totalPages}`}
-					/>
-				</View>
+				<SignatureSeal
+					company={company}
+					name={template.signatureName}
+					role={template.signatureRole}
+					qrUrl={template.verificationQrUrl}
+					verifyUrl={template.verificationUrl}
+					scale={fitScale}
+				/>
+
+				<DocFooter
+					docNumber={proposal.proposal_number}
+					website={company.website}
+					scale={fitScale}
+				/>
 			</Page>
 		</Document>
 	);
