@@ -157,11 +157,11 @@ export function SignatureSeal({
 export function DocFooter({
 	docNumber,
 	website,
-	scale: _s,
 }: {
 	docNumber: string;
 	website: string;
-	scale: number;
+	/** Accepted for call-site symmetry with the other chrome; footer chrome is fixed-size. */
+	scale?: number;
 }) {
 	const st = StyleSheet.create({
 		footer: {
