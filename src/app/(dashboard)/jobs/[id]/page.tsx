@@ -249,7 +249,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 							{tCommon("edit")}
 						</Link>
 						<GCalRetryButton kind="job" id={id} hasEvent={Boolean(job.gcal_event_id)} />
-						{derivedStatus !== "cancelled" && (
+						{derivedStatus !== "cancelled" && derivedStatus !== "done" && (
 							<JobCancelButton jobId={id} payments={payments ?? []} />
 						)}
 						<JobStatusActions jobId={id} derivedStatus={derivedStatus} />
