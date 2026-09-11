@@ -47,6 +47,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 				"invoice_bank_account_holder",
 				"invoice_signature_name",
 				"invoice_signature_role",
+				"invoice_due_days",
 			]),
 	]);
 
@@ -94,6 +95,17 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 	const settingsMap = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
 	const pdfCompany = buildCompanySettings(settingsMap);
 	const pdfTemplate = buildInvoiceTemplateSettings(settingsMap);
+
+	// Due date for the PDF: use the stored value, else fall back to the
+	// `invoice_due_days` setting (created_at + N) so a "Jatuh Tempo" always prints.
+	const invoiceDueDays = Number(settingsMap.invoice_due_days) || 7;
+	const dueDateForPdf =
+		invoice.due_date ??
+		(() => {
+			const d = new Date(invoice.created_at);
+			d.setDate(d.getDate() + invoiceDueDays);
+			return d.toISOString();
+		})();
 
 	type PaymentRow = {
 		id: string;
@@ -158,7 +170,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 				subtitle={
 					<>
 						{customer ? formatCustomerName(customer.prefix, customer.name) : "—"}
-						{invoice.due_date && ` · ${t("due", { date: formatDate(invoice.due_date) })}`}
+						{` · ${t("due", { date: formatDate(dueDateForPdf) })}`}
 						{job && (
 							<>
 								{" "}
@@ -184,7 +196,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 									label: invoice.label ?? null,
 									parentNumber,
 									paid_amount: invoice.paid_amount,
-									due_date: invoice.due_date ?? null,
+									due_date: dueDateForPdf,
 									status: invoice.status,
 								},
 								customer: {
@@ -241,12 +253,10 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 							<span className="w-32 text-ink-muted">{t("invoiceDate")}</span>
 							<span className="text-ink">{formatDate(invoice.created_at)}</span>
 						</div>
-						{invoice.due_date && (
-							<div className="flex gap-4">
-								<span className="w-32 text-ink-muted">{t("dueDate")}</span>
-								<span className="text-ink">{formatDate(invoice.due_date)}</span>
-							</div>
-						)}
+						<div className="flex gap-4">
+							<span className="w-32 text-ink-muted">{t("dueDate")}</span>
+							<span className="text-ink">{formatDate(dueDateForPdf)}</span>
+						</div>
 						{invoice.notes && (
 							<div className="flex gap-4">
 								<span className="w-32 text-ink-muted">{t("notes")}</span>
@@ -275,6 +285,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 							masterId={invoice.id}
 							masterTotal={invoice.total_amount}
 							termins={(children ?? []) as TerminChild[]}
+							dueDays={invoiceDueDays}
 						/>
 					)}
 					<PaymentsPanel

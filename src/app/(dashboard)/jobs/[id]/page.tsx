@@ -58,6 +58,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 				"company_city",
 				"invoice_signature_name",
 				"invoice_signature_role",
+				"invoice_due_days",
 			]),
 	]);
 
@@ -517,7 +518,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 					</Card>
 
 					{/* Invoices — one grand-total (master) + N termin children */}
-					<JobInvoicesPanel jobId={id} jobRevenue={job.revenue ?? 0} invoices={invoiceList} />
+					<JobInvoicesPanel
+						jobId={id}
+						jobRevenue={job.revenue ?? 0}
+						invoices={invoiceList}
+						dueDays={Number(settingsMap.invoice_due_days) || 7}
+					/>
 
 					{/* Payments — recordable even before an invoice exists (e.g. DP). Targets a
 					    specific termin (leaf) or stays job-level when none is selected. */}

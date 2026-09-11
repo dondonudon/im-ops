@@ -744,6 +744,7 @@
 				"proposal_included_services": "Included services listed in the proposal body — one service per line",
 				"proposal_signature_name": "Name shown on the proposal signature block",
 				"proposal_signature_role": "Role/title shown on the proposal signature block",
+				"proposal_valid_days": "Number of days a proposal stays valid from its issue date",
 				"invoice_bank_name": "Bank name for payment transfer instructions",
 				"invoice_bank_account_number": "Bank account number for payment transfer",
 				"invoice_bank_account_holder": "Account holder name for payment transfer",

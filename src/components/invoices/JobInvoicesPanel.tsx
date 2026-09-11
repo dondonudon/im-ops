@@ -33,10 +33,13 @@ export function JobInvoicesPanel({
 	jobId,
 	jobRevenue,
 	invoices,
+	dueDays = 7,
 }: {
 	jobId: string;
 	jobRevenue: number;
 	invoices: InvoiceRow[];
+	/** Default due-date offset (days) from the `invoice_due_days` setting. */
+	dueDays?: number;
 }) {
 	const router = useRouter();
 	const t = useTranslations("panels.jobInvoices");
@@ -112,7 +115,7 @@ export function JobInvoicesPanel({
 		const outstanding = Math.max(total - alreadySplit, 0);
 		// Client component: browser runs in Jakarta time, so local date is correct.
 		const due = new Date();
-		due.setDate(due.getDate() + 7);
+		due.setDate(due.getDate() + dueDays);
 		const dueDate = due.toLocaleDateString("en-CA");
 		if (children.length === 0) {
 			setForm({ amount: String(Math.round(total * 0.3)), label: "DP", due_date: dueDate });

@@ -744,6 +744,7 @@
 				"proposal_included_services": "Layanan yang disertakan dalam badan proposal — satu layanan per baris",
 				"proposal_signature_name": "Nama yang ditampilkan di blok tanda tangan proposal",
 				"proposal_signature_role": "Jabatan yang ditampilkan di blok tanda tangan proposal",
+				"proposal_valid_days": "Masa berlaku penawaran sejak tanggal diterbitkan (hari)",
 				"invoice_bank_name": "Nama bank untuk instruksi transfer pembayaran",
 				"invoice_bank_account_number": "Nomor rekening bank untuk transfer pembayaran",
 				"invoice_bank_account_holder": "Nama pemilik rekening untuk transfer pembayaran",
