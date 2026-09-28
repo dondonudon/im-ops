@@ -106,10 +106,11 @@ export function LeadPhotoGallery({
 						setError(tErrors("uploadFailed"));
 						continue;
 					}
-					// Resize + convert to WebP
-					blob = await resizeImage(file);
-					ext = "webp";
-					contentType = "image/webp";
+					// Resize + re-encode; the helper reports the format it actually produced.
+					const prepared = await resizeImage(file);
+					blob = prepared.blob;
+					ext = prepared.ext;
+					contentType = prepared.contentType;
 					mediaType = "photo";
 				}
 

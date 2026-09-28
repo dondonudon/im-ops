@@ -4,8 +4,8 @@ import { getTranslations } from "next-intl/server";
 import { ExpensePanel } from "@/components/jobs/ExpensePanel";
 import { PageHeader } from "@/components/ui";
 import { deriveInvoiceStatus } from "@/lib/invoices";
-import { createClient } from "@/lib/supabase/server";
 import { getSystemSettings } from "@/lib/supabase/queries";
+import { createClient } from "@/lib/supabase/server";
 import { todayInJakarta } from "@/lib/utils";
 
 export default async function ExpensesPage({ params }: { params: Promise<{ id: string }> }) {
@@ -18,26 +18,26 @@ export default async function ExpensesPage({ params }: { params: Promise<{ id: s
 		await Promise.all([
 			getSystemSettings(),
 			Promise.all([
-			supabase.from("jobs").select("id, job_number, status, revenue").eq("id", id).single(),
-			supabase
-				.from("expenses")
-				.select("id, category, description, amount, incurred_at, receipt_url")
-				.eq("job_id", id)
-				.order("incurred_at", { ascending: false })
-				.order("created_at", { ascending: false }),
-			// A job may now have many invoices (master + termin children). Only the
-			// active master (parent_invoice_id IS NULL, non-cancelled) carries the
-			// rolled-up job-level paid/total, so fetch enough to derive "fully paid".
-			supabase
-				.from("invoices")
-				.select("status, total_amount, paid_amount, parent_invoice_id")
-				.eq("job_id", id),
-			// Payments are job-level; a pre-invoice DP carries invoice_id NULL. Needed
-			// to lock a job that's been fully collected before any invoice was raised.
-			// paid_at is used to compute the grace period after settlement.
-			supabase.from("payments").select("amount, paid_at, payment_type").eq("job_id", id),
-		]),
-	]);
+				supabase.from("jobs").select("id, job_number, status, revenue").eq("id", id).single(),
+				supabase
+					.from("expenses")
+					.select("id, category, description, amount, incurred_at, receipt_url")
+					.eq("job_id", id)
+					.order("incurred_at", { ascending: false })
+					.order("created_at", { ascending: false }),
+				// A job may now have many invoices (master + termin children). Only the
+				// active master (parent_invoice_id IS NULL, non-cancelled) carries the
+				// rolled-up job-level paid/total, so fetch enough to derive "fully paid".
+				supabase
+					.from("invoices")
+					.select("status, total_amount, paid_amount, parent_invoice_id")
+					.eq("job_id", id),
+				// Payments are job-level; a pre-invoice DP carries invoice_id NULL. Needed
+				// to lock a job that's been fully collected before any invoice was raised.
+				// paid_at is used to compute the grace period after settlement.
+				supabase.from("payments").select("amount, paid_at, payment_type").eq("job_id", id),
+			]),
+		]);
 
 	if (!job) notFound();
 
@@ -61,7 +61,10 @@ export default async function ExpensesPage({ params }: { params: Promise<{ id: s
 	const jobRevenue = job.revenue ?? 0;
 	const paidWithoutInvoice = !hasInvoice && jobRevenue > 0 && totalPaid >= jobRevenue;
 
-	const graceDays = Math.max(0, Number(settings.find((s) => s.key === "expense_grace_days")?.value ?? 3));
+	const graceDays = Math.max(
+		0,
+		Number(settings.find((s) => s.key === "expense_grace_days")?.value ?? 3),
+	);
 
 	let lockReason: string | null = null;
 	let graceEndsAt: string | null = null;
@@ -85,24 +88,18 @@ export default async function ExpensesPage({ params }: { params: Promise<{ id: s
 		if (latestPaidDate) {
 			const today = todayInJakarta();
 			const daysSince =
-				(new Date(today).getTime() - new Date(latestPaidDate).getTime()) /
-				(1000 * 60 * 60 * 24);
+				(new Date(today).getTime() - new Date(latestPaidDate).getTime()) / (1000 * 60 * 60 * 24);
 
 			if (daysSince <= graceDays) {
 				// Within grace window — panel stays open; surface the close date.
-				const graceEndMs =
-					new Date(latestPaidDate).getTime() + graceDays * 24 * 60 * 60 * 1000;
+				const graceEndMs = new Date(latestPaidDate).getTime() + graceDays * 24 * 60 * 60 * 1000;
 				graceEndsAt = new Date(graceEndMs).toLocaleDateString("en-CA");
 			} else {
-				lockReason = invoiceFullyPaid
-					? tExpense("lockedInvoicePaid")
-					: tExpense("lockedFullyPaid");
+				lockReason = invoiceFullyPaid ? tExpense("lockedInvoicePaid") : tExpense("lockedFullyPaid");
 			}
 		} else {
 			// No paid_date on any payment (edge case) — lock immediately.
-			lockReason = invoiceFullyPaid
-				? tExpense("lockedInvoicePaid")
-				: tExpense("lockedFullyPaid");
+			lockReason = invoiceFullyPaid ? tExpense("lockedInvoicePaid") : tExpense("lockedFullyPaid");
 		}
 	}
 
@@ -120,7 +117,12 @@ export default async function ExpensesPage({ params }: { params: Promise<{ id: s
 				}
 			/>
 
-			<ExpensePanel jobId={id} expenses={expenses ?? []} lockReason={lockReason} graceEndsAt={graceEndsAt} />
+			<ExpensePanel
+				jobId={id}
+				expenses={expenses ?? []}
+				lockReason={lockReason}
+				graceEndsAt={graceEndsAt}
+			/>
 		</div>
 	);
 }

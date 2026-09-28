@@ -13,7 +13,8 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
-		"seo:backfill": "tsx --env-file=.env.local --tsconfig scripts/tsconfig.json scripts/backfill-search-console.ts"
+		"seo:backfill": "tsx --env-file=.env.local --tsconfig scripts/tsconfig.json scripts/backfill-search-console.ts",
+		"storage:reencode": "tsx --env-file=.env.local --tsconfig scripts/tsconfig.json scripts/reencode-png-images.ts"
 	},
 	"dependencies": {
 		"@react-google-maps/api": "^2.20.8",

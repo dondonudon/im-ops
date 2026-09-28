@@ -198,8 +198,10 @@ export function ExpensePanel({
 					if (oldPath) await supabase.storage.from("receipts").remove([oldPath]);
 				}
 				const resized = await resizeImage(editReceiptFile);
-				const path = `${jobId}/${crypto.randomUUID()}.webp`;
-				const { error: uploadErr } = await supabase.storage.from("receipts").upload(path, resized);
+				const path = `${jobId}/${crypto.randomUUID()}.${resized.ext}`;
+				const { error: uploadErr } = await supabase.storage
+					.from("receipts")
+					.upload(path, resized.blob, { contentType: resized.contentType });
 				if (uploadErr) throw uploadErr;
 				// Store the bare storage path; the bucket is private, reads sign on demand.
 				receipt_url = path;
@@ -311,8 +313,10 @@ export function ExpensePanel({
 
 			if (receiptFile) {
 				const resized = await resizeImage(receiptFile);
-				const path = `${jobId}/${crypto.randomUUID()}.webp`;
-				const { error: uploadErr } = await supabase.storage.from("receipts").upload(path, resized);
+				const path = `${jobId}/${crypto.randomUUID()}.${resized.ext}`;
+				const { error: uploadErr } = await supabase.storage
+					.from("receipts")
+					.upload(path, resized.blob, { contentType: resized.contentType });
 				if (uploadErr) throw uploadErr;
 				// Store the bare storage path; the bucket is private, reads sign on demand.
 				receipt_url = path;

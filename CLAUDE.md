@@ -279,8 +279,9 @@ Internal SEO analytics at `/growth/seo`. Full design + as-built notes in
   `GSC_SITE_URL` (mirrors the gcal auth pattern). Cron protected by `CRON_SECRET`.
 - **Service-role client (`src/lib/supabase/admin.ts`)** — the app's ONLY RLS
   bypass. Import it *only* from the sync path (sync service, cron route, backfill
-  script). Never from a user-facing Server Component or anything under
-  `src/components/`. It's guarded by `import "server-only"`.
+  script) or the one-off storage maintenance script
+  (`scripts/reencode-png-images.ts`). Never from a user-facing Server Component
+  or anything under `src/components/`. It's guarded by `import "server-only"`.
 - **`server-only` gotcha:** the bare specifier is only bundled inside `next`, so
   plain Node/tsx/vitest can't resolve it. It's aliased to a no-op stub in
   `vitest.config.ts` (tests) and `scripts/tsconfig.json` (the `tsx` backfill).
@@ -330,6 +331,20 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 ---
 
 ## Active development context (as of 2026-08)
+
+- **Image uploads: silent PNG fallback fixed** (2026-09-29, no migration): 287 of
+  647 `lead-photos` objects were 3 MB PNGs named `.webp` — 855 MB of a 900 MB
+  bucket. Cause: `canvas.toBlob(cb, "image/webp", q)` is spec-required to fall
+  back to PNG when the browser can't encode the requested type (Safari < 16.4),
+  and PNG ignores the quality arg; the upload paths then hardcoded `.webp` /
+  `image/webp`. `resizeImage` now returns `{ blob, ext, contentType }` reflecting
+  what was actually produced (WebP → JPEG fallback → honest label), and all five
+  call sites use it instead of assuming. **Never hardcode an extension or content
+  type from `resizeImage`.** Existing objects were repaired in place by
+  `npm run storage:reencode` (`scripts/reencode-png-images.ts`, dry-run by
+  default, backs up originals locally, verifies via the `/object/info` metadata
+  endpoint because the CDN serves stale bytes for `max-age=3600` after an
+  upsert). Bucket went 899 MB → 98 MB; all 647 objects are now real WebP.
 
 - **Editable termin amount + post-issue adjustment guard** (migration `012`):
   fixes the case where a job-level discount applied *after* a termin was issued

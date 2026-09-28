@@ -97,8 +97,37 @@ export function formatJobSchedule(
 	return time ? `${start} · ${time}` : start;
 }
 
-/** Resize and convert an image File to a WebP Blob (client-side). */
-export async function resizeImage(file: File, maxPx = 1600): Promise<Blob> {
+/** Encoding quality for re-encoded upload images. Ignored by lossless formats. */
+const IMAGE_QUALITY = 0.82;
+
+/**
+ * Promise wrapper around canvas.toBlob. The resolved Blob's `type` is the format
+ * the browser actually produced, which is not always the one requested.
+ */
+function canvasToBlob(canvas: HTMLCanvasElement, type: string): Promise<Blob> {
+	return new Promise<Blob>((resolve, reject) => {
+		canvas.toBlob(
+			(blob) => (blob ? resolve(blob) : reject(new Error("Image conversion failed"))),
+			type,
+			IMAGE_QUALITY,
+		);
+	});
+}
+
+/**
+ * Resize an image File and encode it for upload (client-side).
+ *
+ * Returns the format actually produced — do NOT assume WebP. Per the HTML spec,
+ * `canvas.toBlob` silently falls back to PNG when the browser cannot encode the
+ * requested type (Safari before 16.4), and PNG ignores the quality argument, so
+ * a 1600px photo lands at ~3 MB instead of ~120 KB. We detect that fallback and
+ * retry as JPEG, which every canvas implementation supports and which honours
+ * quality. Callers must use the returned `ext`/`contentType` when uploading.
+ */
+export async function resizeImage(
+	file: File,
+	maxPx = 1600,
+): Promise<{ blob: Blob; ext: string; contentType: string }> {
 	const img = await createImageBitmap(file);
 	const ratio = Math.min(maxPx / img.width, maxPx / img.height, 1);
 	const canvas = document.createElement("canvas");
@@ -106,13 +135,17 @@ export async function resizeImage(file: File, maxPx = 1600): Promise<Blob> {
 	canvas.height = Math.round(img.height * ratio);
 	const ctx = canvas.getContext("2d")!;
 	ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-	return new Promise<Blob>((resolve, reject) => {
-		canvas.toBlob(
-			(blob) => (blob ? resolve(blob) : reject(new Error("Image conversion failed"))),
-			"image/webp",
-			0.82,
-		);
-	});
+	img.close();
+
+	const webp = await canvasToBlob(canvas, "image/webp");
+	if (webp.type === "image/webp") return { blob: webp, ext: "webp", contentType: "image/webp" };
+
+	const jpeg = await canvasToBlob(canvas, "image/jpeg");
+	if (jpeg.type === "image/jpeg") return { blob: jpeg, ext: "jpg", contentType: "image/jpeg" };
+
+	// Both requests fell back. Label the blob honestly rather than storing a PNG
+	// named .webp — that mislabelling is what filled the bucket in the first place.
+	return { blob: jpeg, ext: "png", contentType: "image/png" };
 }
 
 /** Max size for an uploaded (or re-encoded) evidence video. */

@@ -166,9 +166,10 @@ export function SurveyDetailClient({
 					}
 					mediaType = "video";
 				} else {
-					blob = await resizeImage(file);
-					ext = "webp";
-					contentType = "image/webp";
+					const prepared = await resizeImage(file);
+					blob = prepared.blob;
+					ext = prepared.ext;
+					contentType = prepared.contentType;
 					mediaType = "photo";
 				}
 

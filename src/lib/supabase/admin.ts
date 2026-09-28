@@ -12,8 +12,10 @@ import type { Database } from "./types";
  *
  * ⚠️  Containment rules (enforce in review — this is the app's only service-role
  *     usage):
- *   - Import ONLY from the SEO sync path: src/lib/search-console/sync.ts, the
- *     cron route, and scripts/backfill-search-console.ts.
+ *   - Import ONLY from the SEO sync path (src/lib/search-console/sync.ts, the
+ *     cron route, scripts/backfill-search-console.ts) or from the one-off
+ *     storage maintenance script scripts/reencode-png-images.ts, which needs to
+ *     rewrite objects across buckets.
  *   - NEVER import from a Server Component that renders for a user, from
  *     anything under src/components/, or from a Client Component.
  *   - For user-facing reads use src/lib/supabase/server.ts (RLS enforced).

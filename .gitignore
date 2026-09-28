@@ -37,3 +37,5 @@ next-env.d.ts
 
 # supabase
 /supabase/.temp
+# Local originals saved by scripts/reencode-png-images.ts
+/storage-backup/

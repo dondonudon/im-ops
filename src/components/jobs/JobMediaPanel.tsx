@@ -161,9 +161,10 @@ export function JobMediaPanel({
 					}
 					mediaType = "video";
 				} else {
-					blob = await resizeImage(file);
-					fileName = `${crypto.randomUUID()}.webp`;
-					contentType = "image/webp";
+					const prepared = await resizeImage(file);
+					blob = prepared.blob;
+					fileName = `${crypto.randomUUID()}.${prepared.ext}`;
+					contentType = prepared.contentType;
 					mediaType = "photo";
 				}
 

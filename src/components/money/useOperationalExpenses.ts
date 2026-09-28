@@ -53,10 +53,11 @@ export function useOperationalExpenses(initial: OperationalExpense[]) {
 
 	async function uploadReceipt(image: File): Promise<string> {
 		// Job receipts are keyed by job id; operational ones have no job.
-		const path = `operational/${crypto.randomUUID()}.webp`;
+		const prepared = await resizeImage(image);
+		const path = `operational/${crypto.randomUUID()}.${prepared.ext}`;
 		const { error: uploadErr } = await supabase.storage
 			.from("receipts")
-			.upload(path, await resizeImage(image));
+			.upload(path, prepared.blob, { contentType: prepared.contentType });
 		if (uploadErr) throw uploadErr;
 		return path;
 	}
