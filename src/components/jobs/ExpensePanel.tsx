@@ -448,17 +448,6 @@ export function ExpensePanel({
 								</fieldset>
 							</div>
 
-							<Button
-								type="submit"
-								disabled={saving || isPending}
-								loading={saving}
-								variant="primary"
-								size="lg"
-								className="w-full"
-							>
-								{saving ? tCommonButtons("saving") : tExpense("saveExpense")}
-							</Button>
-
 							{/* Secondary fields — toggle to keep critical path short */}
 							<div>
 								<button
@@ -512,6 +501,17 @@ export function ExpensePanel({
 									</div>
 								)}
 							</div>
+
+							<Button
+								type="submit"
+								disabled={saving || isPending}
+								loading={saving}
+								variant="primary"
+								size="lg"
+								className="w-full"
+							>
+								{saving ? tCommonButtons("saving") : tExpense("saveExpense")}
+							</Button>
 						</Card>
 					</form>
 				)}
