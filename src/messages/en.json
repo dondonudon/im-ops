@@ -732,6 +732,7 @@
 				"vehicle_rate_box_truck": "Box truck daily rate (IDR)",
 				"min_target_profit": "Minimum acceptable profit per job (IDR)",
 				"invoice_due_days": "Default invoice due days after issue",
+				"expense_grace_days": "Expense logging window after full payment (days)",
 				"gcal_calendar_id": "Google Calendar ID for event sync (leave blank to disable)",
 				"revenue_target_monthly": "Monthly revenue target shown on the dashboard (IDR)",
 				"company_name": "Company name shown on proposals and invoices",
@@ -1076,6 +1077,7 @@
 			"lockedJobCancelled": "Expenses are locked — this job is cancelled.",
 			"lockedInvoicePaid": "Expenses are locked — invoice is fully paid.",
 			"lockedFullyPaid": "Expenses are locked — payment is complete.",
+			"graceWindow": "Expense window closes {date} (3 days after final payment).",
 			"moreOptions": "Note / date / receipt",
 			"hideOptions": "Hide options"
 		},

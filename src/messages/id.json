@@ -732,6 +732,7 @@
 				"vehicle_rate_box_truck": "Tarif harian box truck (IDR)",
 				"min_target_profit": "Profit minimum yang dapat diterima per pekerjaan (IDR)",
 				"invoice_due_days": "Batas waktu pembayaran faktur default setelah diterbitkan (hari)",
+				"expense_grace_days": "Jendela pencatatan biaya setelah pelunasan (hari)",
 				"gcal_calendar_id": "ID Google Calendar untuk sinkronisasi acara (kosongkan untuk menonaktifkan)",
 				"revenue_target_monthly": "Target pendapatan bulanan yang ditampilkan di dasbor (IDR)",
 				"company_name": "Nama perusahaan yang ditampilkan di proposal dan faktur",
@@ -1076,6 +1077,7 @@
 			"lockedJobCancelled": "Pengeluaran dikunci — pekerjaan ini dibatalkan.",
 			"lockedInvoicePaid": "Pengeluaran dikunci — faktur sudah lunas.",
 			"lockedFullyPaid": "Pengeluaran dikunci — pembayaran sudah lunas.",
+			"graceWindow": "Catatan biaya ditutup pada {date} (3 hari setelah pelunasan).",
 			"moreOptions": "Catatan / tanggal / resi",
 			"hideOptions": "Sembunyikan opsi"
 		},

@@ -21,7 +21,7 @@ import {
 } from "@/lib/offline/expenseQueue";
 import { batchSignedUrls, receiptStoragePath, type UrlCache } from "@/lib/storage/signedUrls";
 import { createClient } from "@/lib/supabase/client";
-import { formatRupiah, resizeImage } from "@/lib/utils";
+import { formatDate, formatRupiah, resizeImage } from "@/lib/utils";
 
 type Expense = {
 	id: string;
@@ -44,11 +44,14 @@ export function ExpensePanel({
 	jobId,
 	expenses: initial,
 	lockReason,
+	graceEndsAt,
 }: {
 	jobId: string;
 	expenses: Expense[];
 	/** When set, edit/delete is disabled and this message is shown in the list. */
 	lockReason: string | null;
+	/** When set, shows a closing-soon banner inside the open entry form. */
+	graceEndsAt?: string | null;
 }) {
 	const router = useRouter();
 	const tExpense = useTranslations("forms.expense");
@@ -195,8 +198,10 @@ export function ExpensePanel({
 					if (oldPath) await supabase.storage.from("receipts").remove([oldPath]);
 				}
 				const resized = await resizeImage(editReceiptFile);
-				const path = `${jobId}/${crypto.randomUUID()}.webp`;
-				const { error: uploadErr } = await supabase.storage.from("receipts").upload(path, resized);
+				const path = `${jobId}/${crypto.randomUUID()}.${resized.ext}`;
+				const { error: uploadErr } = await supabase.storage
+					.from("receipts")
+					.upload(path, resized.blob, { contentType: resized.contentType });
 				if (uploadErr) throw uploadErr;
 				// Store the bare storage path; the bucket is private, reads sign on demand.
 				receipt_url = path;
@@ -308,8 +313,10 @@ export function ExpensePanel({
 
 			if (receiptFile) {
 				const resized = await resizeImage(receiptFile);
-				const path = `${jobId}/${crypto.randomUUID()}.webp`;
-				const { error: uploadErr } = await supabase.storage.from("receipts").upload(path, resized);
+				const path = `${jobId}/${crypto.randomUUID()}.${resized.ext}`;
+				const { error: uploadErr } = await supabase.storage
+					.from("receipts")
+					.upload(path, resized.blob, { contentType: resized.contentType });
 				if (uploadErr) throw uploadErr;
 				// Store the bare storage path; the bucket is private, reads sign on demand.
 				receipt_url = path;
@@ -367,6 +374,15 @@ export function ExpensePanel({
 									</Badge>
 								)}
 							</div>
+
+							{graceEndsAt && (
+								<div
+									role="status"
+									className="rounded bg-warning-bg border border-warning px-3 py-2 text-sm text-warning-text"
+								>
+									{tExpense("graceWindow", { date: formatDate(graceEndsAt) })}
+								</div>
+							)}
 
 							{info && (
 								<div
