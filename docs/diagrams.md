@@ -4,172 +4,6 @@ Mermaid-compatible. Render in GitHub, VS Code (Mermaid Preview), or any compatib
 
 ---
 
-## 4. Middleware & Auth Flow
-
-### Request gate (every HTTP request)
-
-```mermaid
-flowchart TD
-  REQ([Incoming request]) --> MATCHER{Matches middleware?\nexclude: _next/static\n_next/image · favicon\nmanifest · icons}
-  MATCHER -- no --> BYPASS([Pass through])
-  MATCHER -- yes --> HEADERS[Attach security headers to response\nX-Frame-Options · X-Content-Type-Options\nReferrer-Policy · Permissions-Policy\nCSP nonce · HSTS in prod]
-  HEADERS --> PUBLIC{Public route?\n/ · /login · /auth/*\n/privacy · /terms\n/verify/* · /api/cron/*}
-  PUBLIC -- yes --> ALLOW([Return response])
-  PUBLIC -- no --> SESSION[Refresh Supabase session\nsupabase.auth.getUser]
-  SESSION --> AUTH{Authenticated?}
-  AUTH -- yes --> ALLOW
-  AUTH -- no --> REDIR([Redirect → /login])
-```
-
-> `/api/cron/*` is exempt from the session gate — Vercel Cron has no user session. The route handler enforces its own `CRON_SECRET` bearer check instead.
-> CSP uses `'unsafe-inline' + 'unsafe-eval'` in development (for React Fast Refresh) and a nonce-based `'strict-dynamic'` policy in production. `'wasm-unsafe-eval'` is always included for `@react-pdf/renderer`.
-
----
-
-### Google OAuth login sequence
-
-```mermaid
-sequenceDiagram
-  actor Op as Operator
-  participant App as IM Ops (Next.js)
-  participant SB as Supabase Auth
-  participant G as Google OAuth
-
-  Op->>App: GET /login
-  App-->>Op: Login page (Sign in with Google button)
-  Op->>App: Click sign-in
-  App->>SB: signInWithOAuth({ provider: "google" })
-  SB-->>Op: Redirect → Google consent screen
-  Op->>G: Grant access
-  G-->>SB: Auth code callback
-  SB->>G: Exchange code for tokens
-  G-->>SB: Access + ID tokens
-  SB-->>App: GET /auth/callback?code=…
-  App->>SB: exchangeCodeForSession(code)
-  SB-->>App: Session cookies set
-  App-->>Op: Redirect → /today (safe allowlist)
-```
-
-> The redirect target on callback is validated against a 14-route allowlist in `/auth/callback/route.ts`. Unknown targets fall back to `/today`.
-
----
-
-## 5. Expense Lock Decision Tree
-
-```mermaid
-flowchart TD
-  START([Job expenses page loaded]) --> CANCEL{job.status\n= cancelled?}
-  CANCEL -- yes --> LOCKED_CANCEL[🔒 Locked\nReason: job cancelled]
-
-  CANCEL -- no --> HAS_INV{Active master\ninvoice exists?}
-
-  HAS_INV -- yes --> INV_PAID{master.paid_amount\n≥ master.total_amount\nAND total_amount > 0?}
-  INV_PAID -- no --> OPEN_INV([✅ Open — normal editing])
-
-  HAS_INV -- no --> NO_INV_PAID{totalPaid\n≥ job.revenue\nAND revenue > 0?}
-  NO_INV_PAID -- no --> OPEN_NO_INV([✅ Open — no invoice yet])
-
-  INV_PAID -- yes --> GRACE_INV{Days since latest\npayment ≤ expense_grace_days?}
-  NO_INV_PAID -- yes --> GRACE_NO_INV{Days since latest\npayment ≤ expense_grace_days?}
-
-  GRACE_INV -- yes --> BANNER_INV[✅ Open with grace banner\nShows close date]
-  GRACE_NO_INV -- yes --> BANNER_NO_INV[✅ Open with grace banner\nShows close date]
-
-  GRACE_INV -- no --> LOCKED_INV[🔒 Locked\nReason: invoice fully paid]
-  GRACE_NO_INV -- no --> LOCKED_FULL[🔒 Locked\nReason: fully collected]
-```
-
-> **Two enforcement points must stay in sync:**
-> 1. UI — `expenses/page.tsx` derives `lockReason` / `graceEndsAt` and passes to `ExpensePanel`, which hides the form and guards its mutation handlers
-> 2. DB — `before_expense_lock_check` trigger → `is_job_expenses_locked()` function (migration `009`) blocks INSERT/UPDATE/DELETE even for direct PostgREST writes
->
-> `expense_grace_days` comes from `system_settings` (default 7). Payment dates are converted to Jakarta timezone before comparison.
-
----
-
-## 6. Data-Fetch Architecture (RSC Pattern)
-
-```mermaid
-flowchart TD
-  subgraph SERVER["Server (Vercel Edge / Node)"]
-    SC[Server Component\npage.tsx]
-    SA[Server Action\n'use server']
-    QH[Query helpers\ngetSystemSettings · getActiveFleet · getActiveCrew\nReact cache — deduped per render pass]
-    SBS[Supabase server client\ncreateClient — cookie-based auth · RLS enforced]
-    ADMIN[Supabase admin client\nadmin.ts — bypasses RLS\nSEO sync + storage scripts only]
-  end
-
-  subgraph CLIENT["Browser"]
-    CC[Client Component\n'use client']
-    SBC[Supabase browser client\ncreateBrowserClient — memoised singleton]
-    HOOK[useReceiptUrls\nSigns private storage URLs\non demand · cached 60 s margin]
-  end
-
-  SC -->|fetch on render| QH
-  QH --> SBS
-  SC -->|pass data as props| CC
-  CC -->|form submit / mutation| SA
-  SA --> SBS
-  CC -->|interactive read/write\ndirect PostgREST| SBC
-  CC --> HOOK
-  HOOK --> SBC
-  SBS --> ADMIN
-```
-
-**Rules:**
-- Data fetches default to Server Components — never fetch in a client component unless the data is interactive (e.g., live mutation feedback)
-- `getSystemSettings()` / `getActiveFleet()` / `getActiveCrew()` in `src/lib/supabase/queries.ts` wrap with `React.cache()` so multiple Server Components on the same page share one query
-- Server Actions (`src/app/actions/`) handle form submissions and server-only work (PDF asset resolution, map URL resolution, locale switching)
-- Client-side direct PostgREST is used for expense entry and other write paths that don't need Server Action overhead — the DB trigger is the safety net
-- Private bucket reads (receipts) are signed on-demand via `useReceiptUrls` + `batchSignedUrls`; public bucket reads (proposals, invoices) use plain public URLs
-
----
-
-## 7. Proposal PDF & eSign Verification Flow
-
-```mermaid
-sequenceDiagram
-  actor Op as Operator
-  actor Cl as Client
-  participant UI as Browser (Client Component)
-  participant SA as getPdfAssets\n(Server Action)
-  participant PDF as @react-pdf/renderer\n(client-side WASM)
-  participant SB as Supabase
-  participant VFY as /verify/[token]\n(public route)
-
-  Note over Op,SB: Proposal detail page load (Server Component)
-  Op->>SB: Fetch proposal incl. verification_token
-  SB-->>UI: Proposal data + token passed as props
-
-  Note over Op,UI: Operator clicks Download PDF
-  Op->>UI: Click download
-  UI->>SA: getPdfAssets(logoUrl, verificationToken)
-  SA->>SA: resolveLogoDataUrl — fetch logo, encode base64
-  SA->>SA: QRCode.toDataURL — generate QR pointing to /verify/{token}
-  SA-->>UI: { logoDataUrl, verificationQrUrl, verificationUrl }
-
-  UI->>PDF: Render ProposalPDF with all assets
-  PDF->>PDF: renderPdfToFit — retry at smaller scales until 1 page
-  PDF-->>UI: PDF Blob
-
-  UI->>Op: Browser downloads PDF file
-
-  Note over Op,Cl: Operator sends PDF to client (email / WhatsApp)
-
-  Cl->>Cl: Open PDF, scan QR code
-  Cl->>VFY: GET /verify/{token}  ← no auth required
-  VFY->>SB: RPC verify_document_by_token(token)
-  SB-->>VFY: { doc_type, doc_number, issued_at, signatory_name, company_name }
-  VFY-->>Cl: Verified ✅ card  or  Not found ✗
-```
-
-> **Key points:**
-> - PDF generation is entirely client-side (WASM via `@react-pdf/renderer`); this is why `'wasm-unsafe-eval'` is in the CSP
-> - The QR code is generated server-side in the Server Action so the `qrcode` library doesn't ship to the browser bundle
-> - `verification_token` is a pre-generated UUID stored on the proposal record; it never expires
-> - `/verify/[token]` is a public route (no auth) — it's in the middleware allowlist
-> - The same eSign pattern applies to invoices and payment receipts (each has its own `verification_token`)
-
 ## 1. Entity Lifecycle
 
 ### Pipeline
@@ -351,3 +185,171 @@ C4Context
 ```
 
 **Auth detail:** Google OAuth is brokered by Supabase Auth — the app never calls Google OAuth directly. Middleware gates every route except `/login`, `/auth`, `/privacy`, `/terms`, `/verify`. `/verify/[token]` is a public eSign verification route.
+
+---
+
+## 4. Middleware & Auth Flow
+
+### Request gate (every HTTP request)
+
+```mermaid
+flowchart TD
+  REQ([Incoming request]) --> MATCHER{Matches middleware?\nexclude: _next/static\n_next/image · favicon\nmanifest · icons}
+  MATCHER -- no --> BYPASS([Pass through])
+  MATCHER -- yes --> HEADERS[Attach security headers to response\nX-Frame-Options · X-Content-Type-Options\nReferrer-Policy · Permissions-Policy\nCSP nonce · HSTS in prod]
+  HEADERS --> PUBLIC{Public route?\n/ · /login · /auth/*\n/privacy · /terms\n/verify/* · /api/cron/*}
+  PUBLIC -- yes --> ALLOW([Return response])
+  PUBLIC -- no --> SESSION[Refresh Supabase session\nsupabase.auth.getUser]
+  SESSION --> AUTH{Authenticated?}
+  AUTH -- yes --> ALLOW
+  AUTH -- no --> REDIR([Redirect → /login])
+```
+
+> `/api/cron/*` is exempt from the session gate — Vercel Cron has no user session. The route handler enforces its own `CRON_SECRET` bearer check instead.
+> CSP uses `'unsafe-inline' + 'unsafe-eval'` in development (for React Fast Refresh) and a nonce-based `'strict-dynamic'` policy in production. `'wasm-unsafe-eval'` is always included for `@react-pdf/renderer`.
+
+---
+
+### Google OAuth login sequence
+
+```mermaid
+sequenceDiagram
+  actor Op as Operator
+  participant App as IM Ops (Next.js)
+  participant SB as Supabase Auth
+  participant G as Google OAuth
+
+  Op->>App: GET /login
+  App-->>Op: Login page (Sign in with Google button)
+  Op->>App: Click sign-in
+  App->>SB: signInWithOAuth({ provider: "google" })
+  SB-->>Op: Redirect → Google consent screen
+  Op->>G: Grant access
+  G-->>SB: Auth code callback
+  SB->>G: Exchange code for tokens
+  G-->>SB: Access + ID tokens
+  SB-->>App: GET /auth/callback?code=…
+  App->>SB: exchangeCodeForSession(code)
+  SB-->>App: Session cookies set
+  App-->>Op: Redirect → /today (safe allowlist)
+```
+
+> The redirect target on callback is validated against a 14-route allowlist in `/auth/callback/route.ts`. Unknown targets fall back to `/today`.
+
+---
+
+## 5. Expense Lock Decision Tree
+
+```mermaid
+flowchart TD
+  START([Job expenses page loaded]) --> CANCEL{job.status\n= cancelled?}
+  CANCEL -- yes --> LOCKED_CANCEL[🔒 Locked\nReason: job cancelled]
+
+  CANCEL -- no --> HAS_INV{Active master\ninvoice exists?}
+
+  HAS_INV -- yes --> INV_PAID{master.paid_amount\n≥ master.total_amount\nAND total_amount > 0?}
+  INV_PAID -- no --> OPEN_INV([✅ Open — normal editing])
+
+  HAS_INV -- no --> NO_INV_PAID{totalPaid\n≥ job.revenue\nAND revenue > 0?}
+  NO_INV_PAID -- no --> OPEN_NO_INV([✅ Open — no invoice yet])
+
+  INV_PAID -- yes --> GRACE_INV{Days since latest\npayment ≤ expense_grace_days?}
+  NO_INV_PAID -- yes --> GRACE_NO_INV{Days since latest\npayment ≤ expense_grace_days?}
+
+  GRACE_INV -- yes --> BANNER_INV[✅ Open with grace banner\nShows close date]
+  GRACE_NO_INV -- yes --> BANNER_NO_INV[✅ Open with grace banner\nShows close date]
+
+  GRACE_INV -- no --> LOCKED_INV[🔒 Locked\nReason: invoice fully paid]
+  GRACE_NO_INV -- no --> LOCKED_FULL[🔒 Locked\nReason: fully collected]
+```
+
+> **Two enforcement points must stay in sync:**
+> 1. UI — `expenses/page.tsx` derives `lockReason` / `graceEndsAt` and passes to `ExpensePanel`, which hides the form and guards its mutation handlers
+> 2. DB — `before_expense_lock_check` trigger → `is_job_expenses_locked()` function (migration `009`) blocks INSERT/UPDATE/DELETE even for direct PostgREST writes
+>
+> `expense_grace_days` comes from `system_settings` (default 7). Payment dates are converted to Jakarta timezone before comparison.
+
+---
+
+## 6. Data-Fetch Architecture (RSC Pattern)
+
+```mermaid
+flowchart TD
+  subgraph SERVER["Server (Vercel Edge / Node)"]
+    SC[Server Component\npage.tsx]
+    SA[Server Action\n'use server']
+    QH[Query helpers\ngetSystemSettings · getActiveFleet · getActiveCrew\nReact cache — deduped per render pass]
+    SBS[Supabase server client\ncreateClient — cookie-based auth · RLS enforced]
+    ADMIN[Supabase admin client\nadmin.ts — bypasses RLS\nSEO sync + storage scripts only]
+  end
+
+  subgraph CLIENT["Browser"]
+    CC[Client Component\n'use client']
+    SBC[Supabase browser client\ncreateBrowserClient — memoised singleton]
+    HOOK[useReceiptUrls\nSigns private storage URLs\non demand · cached 60 s margin]
+  end
+
+  SC -->|fetch on render| QH
+  QH --> SBS
+  SC -->|pass data as props| CC
+  CC -->|form submit / mutation| SA
+  SA --> SBS
+  CC -->|interactive read/write\ndirect PostgREST| SBC
+  CC --> HOOK
+  HOOK --> SBC
+  SBS --> ADMIN
+```
+
+**Rules:**
+- Data fetches default to Server Components — never fetch in a client component unless the data is interactive (e.g., live mutation feedback)
+- `getSystemSettings()` / `getActiveFleet()` / `getActiveCrew()` in `src/lib/supabase/queries.ts` wrap with `React.cache()` so multiple Server Components on the same page share one query
+- Server Actions (`src/app/actions/`) handle form submissions and server-only work (PDF asset resolution, map URL resolution, locale switching)
+- Client-side direct PostgREST is used for expense entry and other write paths that don't need Server Action overhead — the DB trigger is the safety net
+- Private bucket reads (receipts) are signed on-demand via `useReceiptUrls` + `batchSignedUrls`; public bucket reads (proposals, invoices) use plain public URLs
+
+---
+
+## 7. Proposal PDF & eSign Verification Flow
+
+```mermaid
+sequenceDiagram
+  actor Op as Operator
+  actor Cl as Client
+  participant UI as Browser (Client Component)
+  participant SA as getPdfAssets\n(Server Action)
+  participant PDF as @react-pdf/renderer\n(client-side WASM)
+  participant SB as Supabase
+  participant VFY as /verify/[token]\n(public route)
+
+  Note over Op,SB: Proposal detail page load (Server Component)
+  Op->>SB: Fetch proposal incl. verification_token
+  SB-->>UI: Proposal data + token passed as props
+
+  Note over Op,UI: Operator clicks Download PDF
+  Op->>UI: Click download
+  UI->>SA: getPdfAssets(logoUrl, verificationToken)
+  SA->>SA: resolveLogoDataUrl — fetch logo, encode base64
+  SA->>SA: QRCode.toDataURL — generate QR pointing to /verify/{token}
+  SA-->>UI: { logoDataUrl, verificationQrUrl, verificationUrl }
+
+  UI->>PDF: Render ProposalPDF with all assets
+  PDF->>PDF: renderPdfToFit — retry at smaller scales until 1 page
+  PDF-->>UI: PDF Blob
+
+  UI->>Op: Browser downloads PDF file
+
+  Note over Op,Cl: Operator sends PDF to client (email / WhatsApp)
+
+  Cl->>Cl: Open PDF, scan QR code
+  Cl->>VFY: GET /verify/{token}  ← no auth required
+  VFY->>SB: RPC verify_document_by_token(token)
+  SB-->>VFY: { doc_type, doc_number, issued_at, signatory_name, company_name }
+  VFY-->>Cl: Verified ✅ card  or  Not found ✗
+```
+
+> **Key points:**
+> - PDF generation is entirely client-side (WASM via `@react-pdf/renderer`); this is why `'wasm-unsafe-eval'` is in the CSP
+> - The QR code is generated server-side in the Server Action so the `qrcode` library doesn't ship to the browser bundle
+> - `verification_token` is a pre-generated UUID stored on the proposal record; it never expires
+> - `/verify/[token]` is a public route (no auth) — it's in the middleware allowlist
+> - The same eSign pattern applies to invoices and payment receipts (each has its own `verification_token`)
