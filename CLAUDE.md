@@ -2,6 +2,8 @@
 
 Agent-facing reference for this codebase. Read this before touching anything.
 
+> **Visual reference:** `docs/diagrams.md` — entity lifecycle, invoice/payment model, and C4 system context (all Mermaid).
+
 ---
 
 ## What this is
@@ -60,8 +62,25 @@ Always prefer these over raw HTML + classes:
 - `EmptyState` — zero-state placeholder
 - `Money` — IDR formatter component (wraps `formatRupiah`)
 - `Stat` — KPI card (label + value)
+- `MonthPicker` — month selector used by `/money`, `/expenses`, `/reports`; emits `YYYY-MM` strings
+- `Pagination` — page-number controls; used wherever list data is paginated
+- `RouteLine` — renders a pickup → destination route summary (takes `points: string[]`)
+- `ObfuscatedEmail` — renders an email address that bots can't scrape
 - `StatusChip` (in `src/components/shared/`) — status dot + label; uses `toneFor(entity, status)`
+- `EntityStatusChip` (in `src/components/shared/`) — StatusChip variant typed to a specific entity; prefer this over raw StatusChip on entity pages
 - `LocationInput` (in `src/components/shared/`) — address search + map pin via Google Maps; stores lat/lng; requires `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` env var (optional — input degrades gracefully without it)
+- `AddressListInput` (in `src/components/shared/`) — dynamic add/remove of `LocationInput` rows; used on lead forms for multi-stop routes
+- `AddressLink` (in `src/components/shared/`) — renders a stop as a Google Maps directions link when coords exist, plain text otherwise; never expose raw lat/lng to users
+- `MediaThumb` (in `src/components/shared/`) — grid tile for photo or video; detects type from `media_type`
+- `PhotoLightbox` (in `src/components/shared/`) — fullscreen photo/video viewer; `kind: 'video'` branch renders native `<video>`
+- `ReceiptLightbox` (in `src/components/shared/`) — lightbox variant for expense receipts (signed URL aware)
+- `NumericInput` (in `src/components/shared/`) — IDR-aware numeric field; parses/formats via `parseRupiah` / `formatRupiah`
+- `WhatsAppButton` (in `src/components/shared/`) — pre-fills and opens a WhatsApp deeplink; wraps `buildWhatsAppLink`
+- `CommandPalette` (in `src/components/shared/`) — global ⌘K search overlay
+- `FilterForm` (in `src/components/shared/`) — collapsible filter row used on list pages
+- `BackLink` (in `src/components/shared/`) — breadcrumb back-navigation link
+- `Skeleton` (in `src/components/shared/`) — loading placeholder; use in `loading.tsx` files
+- `PendingLink` (in `src/components/shared/`) — `<Link>` wrapper that shows a spinner while the route is loading (uses `useNavFeedback`)
 
 ### Status colors
 `toneFor(entity, status)` in `src/components/ui/status.ts` is the **single source of truth** for mapping any domain status to a semantic tone. Never hardcode status colors inline.
@@ -94,7 +113,7 @@ These are enforced at the DB level and in app logic:
 | `src/lib/supabase/types.ts` | Full DB type definitions — hand-edit after schema changes (not codegen) |
 | `src/lib/supabase/client.ts` | Browser client (for Client Components) |
 | `src/lib/supabase/server.ts` | Server client (for Server Components + Actions) |
-| `src/lib/supabase/admin.ts` | Service-role client — **bypasses RLS**; `server-only`; SEO sync path only (see Growth/SEO) |
+| `src/lib/supabase/admin.ts` | Service-role client — **bypasses RLS**; `server-only`; approved importers: SEO sync path + `scripts/reencode-png-images.ts` only |
 | `src/lib/supabase/queries.ts` | Shared query helpers used across Server Components + Actions |
 | `src/lib/search-console/` | GSC client, two-dataset sync, dashboard queries, aggregation, opportunity engine (all `server-only` where they touch secrets) |
 | `src/app/api/cron/seo-sync/route.ts` | Daily GSC sync cron (bearer `CRON_SECRET`); `/api/cron` is exempt in middleware |
@@ -103,7 +122,20 @@ These are enforced at the DB level and in app logic:
 | `src/lib/estimation/engine.ts` | ENGINE_VERSION 2.5.1 — cost + margin calculation, tiered margin table |
 | `src/lib/gcal/sync.ts` | Google Calendar push sync (never blocks) |
 | `src/lib/invoices.ts` | Pure helpers: `deriveJobRevenue`, `splitSumStatus`, `deriveInvoiceStatus`, `rollupMasterPaid`, `billableLeaves` |
-| `src/lib/utils.ts` | `formatRupiah`, `parseRupiah`, `formatDate`, `cn`, `resizeImage`, `sanitizeSearch` |
+| `src/lib/utils.ts` | `formatRupiah`, `parseRupiah`, `formatDate`, `cn`, `resizeImage`, `sanitizeSearch`, `prepareVideoUpload`, `buildWhatsAppLink`, `numberToIndonesianWords`, `formatCustomerName`, `todayInJakarta`, `deriveJobStatus` |
+| `src/lib/constants.ts` | `PAGE_SIZE` (10), `CUSTOMER_PREFIX_OPTIONS` |
+| `src/lib/month.ts` | `parseMonth(raw?)` — falls back to Jakarta month; `monthRange(ym)` — half-open `[start, end)`; `formatMonthLabel(ym, locale)` — used by `/money`, `/expenses`, `/reports` |
+| `src/lib/profit.ts` | `summarizeProfit(rows, operationalTotal)` — single source of truth for gross/operating profit and margins on `/money` and `/reports` |
+| `src/lib/expenseCategories.ts` | `JOB_EXPENSE_CATEGORIES` and `OPERATIONAL_EXPENSE_CATEGORIES` — app-level vocabulary for `expenses.category`; DB stores free text so renderers must fall back to the raw value for historical rows |
+| `src/lib/customerDuplicates.ts` | Phone + name normalisation for duplicate customer detection |
+| `src/lib/leadAddresses.ts` | `groupLeadAddresses`, `routePoints`, `replaceLeadAddresses`, `routePointsFromText` — read/write helpers for the `lead_addresses` child table |
+| `src/lib/parseGoogleMapsUrl.ts` | `extractAddressFromMapsUrl`, `resolveMapUrl` — server-side resolver for pasted `maps.app.goo.gl` share links |
+| `src/lib/proposalCustomFields.ts` | `ProposalCustomFields`, `parseCustomFields` — JSONB custom fields on proposals (`price_suffix`, `custom_conditions`, `override_services`) |
+| `src/lib/pdfFit.ts` | `countPdfPages(blob)` — regex-based page counter for fit-to-one-page retry loop in PDF generation |
+| `src/lib/security/ssrf.ts` | `isPrivateHostname` — best-effort SSRF guard for server-side outbound fetches on user-influenced URLs |
+| `src/lib/storage/signedUrls.ts` | `batchSignedUrls`, `receiptStoragePath` — batch-sign private bucket URLs with cache (60 s margin before expiry) |
+| `src/lib/useReceiptUrls.ts` | `useReceiptUrls(supabase, rows)` — client hook that signs and caches receipt URLs for expense lists |
+| `src/lib/useNavFeedback.ts` | `useNavFeedback()` — tracks the last-clicked nav href so items light up instantly before the route settles |
 | `src/lib/env.ts` | Startup env var validation (checks Supabase vars on import) |
 | `src/app/globals.css` | CSS custom properties for all semantic tokens |
 | `tailwind.config.ts` | Token definitions mapping CSS vars to Tailwind classes |
@@ -164,11 +196,26 @@ cn("base-class", condition && "conditional-class", "override")
 // Sanitize before passing to PostgREST ilike/fts
 sanitizeSearch(query)
 
-// Resize before upload (≤1600px WebP, ~300KB)
-const resized = await resizeImage(file)
+// Resize before upload (≤1600px; returns { blob, ext, contentType } — WebP, JPEG, or PNG depending on browser)
+const { blob, ext, contentType } = await resizeImage(file)
+
+// Video upload prep (src/lib/utils.ts — under 50 MB: pass-through; over 50 MB: canvas downscale; throws VideoTooLargeError if still too large)
+const { blob, ext, contentType } = await prepareVideoUpload(file)
+isVideoFile(file)           // true for video/* MIME types
+MAX_VIDEO_BYTES             // 50 * 1024 * 1024
 
 // Today's date in Jakarta time (use this — never new Date().toISOString().slice(0,10))
 todayInJakarta()  // → "2026-07-31"
+
+// Month helpers (src/lib/month.ts — for ?month=YYYY-MM pages)
+parseMonth(searchParams.month)        // → current Jakarta month if missing/malformed
+monthRange("2026-08")                 // → { start: "2026-08-01", end: "2026-09-01" }
+
+// Profit summary (src/lib/profit.ts)
+summarizeProfit(jobRows, operationalTotal) // → ProfitSummary with grossProfit, operatingProfit, margins
+
+// Error mapping (maps Supabase/PostgREST error codes to user-facing strings)
+mapDbError(err)
 ```
 
 ---
@@ -209,6 +256,47 @@ Do not change the engine without updating ENGINE_VERSION.
 
 ---
 
+## Environment variables
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon key (RLS enforced) |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ server | Service-role key — bypasses RLS; used by admin.ts + scripts only |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | optional | Google Maps Places API; LocationInput degrades gracefully without it |
+| `GCAL_SERVICE_ACCOUNT_KEY` | optional | Full GCal service account JSON (single-line); required for calendar sync |
+| `GSC_SERVICE_ACCOUNT_KEY` | optional | Read-only GSC service account JSON; required for SEO dashboard |
+| `GSC_SITE_URL` | optional | Property URL registered in Google Search Console |
+| `CRON_SECRET` | optional | Bearer token protecting `/api/cron/*` routes |
+| `NEXT_PUBLIC_APP_URL` | optional | Canonical app URL; used for eSign verification links |
+| `PDF_FONT_BASE` | optional | URL base for PDF fonts (Inter); falls back to bundled fonts |
+| `VERCEL_URL` / `VERCEL_PROJECT_PRODUCTION_URL` | auto | Injected by Vercel; used for canonical URL fallback |
+
+---
+
+## system_settings keys
+
+All keys live in the `system_settings` table (`key`, `value`, `category`). Loaded per-request via `getSystemSettings()` from `src/lib/supabase/queries.ts` (React `cache()` deduplicates within a render pass). The estimation engine snapshot (`settings_snapshot` on estimations) records the values at estimation time.
+
+| Key | Category | Purpose |
+|---|---|---|
+| `margin_tiers` | estimation | JSON array — tiered margin table (see Estimation engine section) |
+| `crew_day_rate` | estimation | Default crew day rate (IDR) when not set per-crew |
+| `food_per_crew` | estimation | Food allowance per crew member (IDR) |
+| `travel_cost_per_crew` | estimation | Travel cost per crew member (IDR) |
+| `spot_hire_cost` | estimation | Spot hire vehicle cost (IDR) |
+| `spot_hire_count` | estimation | Default number of spot-hire vehicles |
+| `operational_buffer` | estimation | Operational buffer percentage |
+| `vehicle_rate_box_truck` | estimation | Box truck day rate (IDR) |
+| `negotiation_buffer_pct` | estimation | Negotiation headroom percentage |
+| `price_round_increment` | estimation | Rounding increment for final price |
+| `gcal_calendar_id` | calendar | Target Google Calendar ID; calendar must be shared with the service account |
+| `revenue_targets` / `revenue_target_monthly` | finance | Monthly revenue target (IDR); surfaced on `/today` and `/money` |
+| `proposal_valid_days` | proposals | Days a proposal is valid from issue date (default 14); printed on proposal PDFs |
+| `expense_grace_days` | expenses | Days after full payment that expense logging remains open (default 7) |
+
+---
+
 ## Navigation / IA
 
 Top-level nav, split into two tiers in the sidebar by a divider:
@@ -228,6 +316,13 @@ function, so the divider signals "secondary" without a misleading label.
 - **Growth** is the marketing/growth area (SEO now; attribution later). `/growth`
   redirects to `/growth/seo`. Not in `BottomNav` (low-frequency). See the SEO
   section below and `docs/seo-dashboard-plan.md`.
+
+### Routes not in top-level nav (accessed from Settings or linked internally)
+- `/fleet` + `/fleet/[id]` — fleet vehicle management (add/edit vehicles, mark active/inactive)
+- `/crew` + `/crew/[id]` — crew member management (add/edit crew, daily rates, active status)
+- `/expenses` — standalone operational expenses page (month-scoped, separate from per-job expenses)
+- `/reports` — profit breakdown card + yearly profit chart; uses `summarizeProfit` from `src/lib/profit.ts`
+- `/customers` + `/customers/[id]` — customer directory (the "Directory" nav item links here)
 
 ---
 
@@ -300,11 +395,12 @@ Internal SEO analytics at `/growth/seo`. Full design + as-built notes in
 |---|---|
 | `lead-photos` | Lead intake photos |
 | `survey-media` | Survey site photos/videos |
+| `job-media` | Job documentation photos/videos |
 | `proposals` | Generated proposal PDFs |
 | `invoices` | Generated invoice PDFs |
 | `receipts` | Job expense receipt photos |
 
-Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `lib/utils.ts`).
+Images resized client-side to ≤1600px before upload via `resizeImage` from `lib/utils.ts` — returns `{ blob, ext, contentType }` (WebP when supported, JPEG fallback, PNG last resort). **Never hardcode `.webp` or `image/webp` from `resizeImage` output.**
 
 ---
 
@@ -331,6 +427,10 @@ Images resized client-side to ≤1600px WebP before upload (`resizeImage` from `
 ---
 
 ## Active development context (as of 2026-08)
+
+- **Configurable expense grace period** (migration `015`): `expense_grace_days` added to `system_settings` (default 7). `is_job_expenses_locked()` now honours a grace window — expenses remain editable for N days after full payment before locking. Surfaced in `ExpensePanel` via a `graceDays` prop passed from `expenses/page.tsx`; the grace-window banner uses ICU plural in English (`{days, plural, one {# day} other {# days}}`). **Apply migration `015` to Supabase before deploying.**
+
+- **Configurable proposal validity period** (migration `014`): `proposal_valid_days` added to `system_settings` (default 14). Used in `src/lib/pdfSettings.ts` to compute the proposal expiry date printed on PDFs. **Apply migration `014` to Supabase before deploying.**
 
 - **Image uploads: silent PNG fallback fixed** (2026-09-29, no migration): 287 of
   647 `lead-photos` objects were 3 MB PNGs named `.webp` — 855 MB of a 900 MB

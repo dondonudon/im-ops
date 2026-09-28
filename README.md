@@ -73,6 +73,7 @@ Built around workflows, not modules.
 | `npm run test:watch` | Vitest — watch mode |
 | `npm run test:coverage` | Vitest — run with coverage report |
 | `npm run seo:backfill -- --start=YYYY-MM-DD --end=YYYY-MM-DD` | Backfill historical Search Console data (needs `tsx` + SEO env; `--force` to redo months) |
+| `npm run storage:reencode [-- --apply] [--limit=N] [--sample=N]` | Re-encode mislabelled PNGs in storage to real WebP (dry-run by default; backs up originals locally) |
 
 Biome (`biome.json`) owns formatting and general linting. `next lint` is kept alongside it for Next.js-specific rules (Image, Link, a11y helpers) that Biome doesn't cover.
 
@@ -213,7 +214,7 @@ Lead Intake  →  Survey (optional)  →  Estimation  →  Proposal
 
 - Server Components by default; `"use client"` only where interaction or browser APIs are needed.
 - Currency stored as `BIGINT` (IDR, no decimals). Formatted via `formatRupiah` in `lib/utils.ts`.
-- Photos resized client-side to 1600px WebP before upload (`resizeImage` in `lib/utils.ts`).
+- Images resized client-side to ≤1600px before upload via `resizeImage` in `lib/utils.ts` — returns `{ blob, ext, contentType }` (WebP when supported, JPEG fallback, PNG last resort). Never hardcode `.webp` from its output.
 - Status badges go through the `toneFor(entity, status)` helper in `components/ui/status.ts` — single source of truth mapping every domain status to a semantic `Tone`.
 - All tables have RLS enabled; the single-org policy grants full access to any authenticated user.
 
@@ -221,7 +222,7 @@ Lead Intake  →  Survey (optional)  →  Estimation  →  Proposal
 
 These are tracked but not yet implemented:
 
-- `payments` is FK'd to `invoices.id` instead of `jobs.id` — down payments before invoice generation aren't supported yet.
+- Payments attach to leaf invoices only (termin children, or the master when no termin split exists); down payments before any invoice is issued aren't supported.
 - `/estimations/[id]` (edit existing estimation) — only the `new` route exists.
 - `next-pwa` is installed but the service worker + offline expense queue aren't wired.
 - Reports are minimal — missing avg discount, lost-reason breakdown, AR aging, fleet/crew utilization.
