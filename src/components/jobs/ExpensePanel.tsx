@@ -45,6 +45,7 @@ export function ExpensePanel({
 	expenses: initial,
 	lockReason,
 	graceEndsAt,
+	graceDays = 3,
 }: {
 	jobId: string;
 	expenses: Expense[];
@@ -52,6 +53,8 @@ export function ExpensePanel({
 	lockReason: string | null;
 	/** When set, shows a closing-soon banner inside the open entry form. */
 	graceEndsAt?: string | null;
+	/** Length of the grace window, for the banner copy. Configurable per org. */
+	graceDays?: number;
 }) {
 	const router = useRouter();
 	const tExpense = useTranslations("forms.expense");
@@ -380,7 +383,7 @@ export function ExpensePanel({
 									role="status"
 									className="rounded bg-warning-bg border border-warning px-3 py-2 text-sm text-warning-text"
 								>
-									{tExpense("graceWindow", { date: formatDate(graceEndsAt) })}
+									{tExpense("graceWindow", { date: formatDate(graceEndsAt), days: graceDays })}
 								</div>
 							)}
 

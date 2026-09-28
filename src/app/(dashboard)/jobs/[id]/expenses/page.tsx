@@ -122,6 +122,7 @@ export default async function ExpensesPage({ params }: { params: Promise<{ id: s
 				expenses={expenses ?? []}
 				lockReason={lockReason}
 				graceEndsAt={graceEndsAt}
+				graceDays={graceDays}
 			/>
 		</div>
 	);

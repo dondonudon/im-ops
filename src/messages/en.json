@@ -1077,7 +1077,7 @@
 			"lockedJobCancelled": "Expenses are locked — this job is cancelled.",
 			"lockedInvoicePaid": "Expenses are locked — invoice is fully paid.",
 			"lockedFullyPaid": "Expenses are locked — payment is complete.",
-			"graceWindow": "Expense window closes {date} (3 days after final payment).",
+			"graceWindow": "Expense window closes {date} ({days, plural, one {# day} other {# days}} after final payment).",
 			"moreOptions": "Note / date / receipt",
 			"hideOptions": "Hide options"
 		},

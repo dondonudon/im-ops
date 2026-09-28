@@ -1077,7 +1077,7 @@
 			"lockedJobCancelled": "Pengeluaran dikunci — pekerjaan ini dibatalkan.",
 			"lockedInvoicePaid": "Pengeluaran dikunci — faktur sudah lunas.",
 			"lockedFullyPaid": "Pengeluaran dikunci — pembayaran sudah lunas.",
-			"graceWindow": "Catatan biaya ditutup pada {date} (3 hari setelah pelunasan).",
+			"graceWindow": "Catatan biaya ditutup pada {date} ({days} hari setelah pelunasan).",
 			"moreOptions": "Catatan / tanggal / resi",
 			"hideOptions": "Sembunyikan opsi"
 		},
