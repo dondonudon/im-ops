@@ -6,7 +6,9 @@
 > business data (leads → jobs → revenue), and an AI "Growth Advisor" that turns
 > deterministic signals into prioritized recommendations.
 
-> **Status (2026-10-29): PLANNED — not started.**
+> **Status (2026-10-29): PLANNED — not started.** Phase 0 progress: Google Ads
+> developer token **Basic access approved**; OAuth brand verification in
+> progress (privacy policy expanded, awaiting re-verification).
 
 ---
 
@@ -127,6 +129,7 @@ GA4_PROPERTY_ID=
 GA4_SERVICE_ACCOUNT_KEY=        # may reuse GSC key if identical; separate var for clarity
 
 # Google Ads (OAuth refresh token — service account alone cannot access Ads)
+ADS_DEVELOPER_TOKEN=
 ADS_CLIENT_ID=
 ADS_CLIENT_SECRET=
 ADS_REFRESH_TOKEN=
