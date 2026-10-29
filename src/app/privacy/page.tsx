@@ -18,16 +18,7 @@ export default function PrivacyPage() {
 					<section className="space-y-2">
 						<h2 className="font-semibold text-base">About this application</h2>
 						<p>
-							Indo Mover is a private, internal operations platform used exclusively by authorised
-							personnel. It is not a public-facing service and does not accept sign-ups from the
-							general public.
-						</p>
-					</section>
-
-					<section className="space-y-2">
-						<h2 className="font-semibold text-base">About this application</h2>
-						<p>
-							Indo Mover ("IM Ops") is a private, internal operations platform used exclusively by
+							Indo Mover (“IM Ops”) is a private, internal operations platform used exclusively by
 							authorised personnel of Indo Mover, a moving services company based in Semarang,
 							Indonesia. It is not a public-facing service and does not accept sign-ups from the
 							general public. This policy explains what data the platform collects, how it is used,
@@ -137,7 +128,7 @@ export default function PrivacyPage() {
 						<h2 className="font-semibold text-base">AI-generated insights</h2>
 						<p>
 							The platform can send aggregated, non-personal marketing metrics (for example: weekly
-							totals of clicks, sessions, advertising spend, and jobs closed) to Google's Gemini API
+							totals of clicks, sessions, advertising spend, and jobs closed) to Google’s Gemini API
 							to generate internal business recommendations. These requests contain no customer
 							personal data, no end-user identifiers, and no OAuth credentials.
 						</p>
@@ -189,7 +180,7 @@ export default function PrivacyPage() {
 							We do not sell, trade, or transfer your data to any third party. Data is shared only
 							with the infrastructure and service providers necessary to operate the platform:
 							Supabase (database hosting), Vercel (application hosting), Google APIs (calendar sync,
-							analytics data), and Google's Gemini API (aggregated marketing insights, no personal
+							analytics data), and Google’s Gemini API (aggregated marketing insights, no personal
 							data). Each provider processes data only on our behalf.
 						</p>
 					</section>
@@ -197,7 +188,7 @@ export default function PrivacyPage() {
 					<section className="space-y-2">
 						<h2 className="font-semibold text-base">Changes to this policy</h2>
 						<p>
-							We may update this policy as the platform evolves. The "Last updated" date above
+							We may update this policy as the platform evolves. The “Last updated” date above
 							reflects the current version. Continued use of the platform after changes take effect
 							constitutes acceptance of the updated policy.
 						</p>
